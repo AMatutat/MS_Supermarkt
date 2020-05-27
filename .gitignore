@@ -1,0 +1,13 @@
+backend/target
+backend/.vs
+backend/project/project
+backend/project/target
+target
+frontend/.vs
+frontend/logs
+frontend/target
+frontend/.g8
+frontend/project/project
+frontend/project/target
+settings
+.git

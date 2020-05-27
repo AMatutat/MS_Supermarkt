@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package grpcOrder;
+
+service OrderService { 
+    rpc makeOrder (OrderInformation) returns (OrderID){}
+    rpc trackOrder (OrderID) returns (OrderState){}
+}
+
+message OrderID {
+    int32 orderID=1; //-1 if order failed
+}
+
+message OrderInformation{
+    int32 userID=1;
+    int32 artickeID=2;
+    int32 howMany=3;
+}
+
+message OrderState{
+    string state=1;
+}

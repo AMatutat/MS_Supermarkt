@@ -1,0 +1,37 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# https://www.playframework.com/documentation/latest/ScalaRouting
+# ~~~~
+
+#GRPC
+->     /   controllers.OrderServiceRouter
+
+#LOGIN
+GET /login/:name/:pw controllers.HomeController.login(name:String, pw:String)
+
+#GET ARTICLE
+GET     /allArticle controllers.HomeController.getAllArticle
+GET     /articleByID/:id controllers.HomeController.getArticleByID(id: Int)
+GET     /article/:category/:name controllers.HomeController.getArticle(category: String, name: String)
+GET     /articleComments/:id    controllers.HomeController.getArticleComments(id: Int)
+
+#GET KUNDE
+GET     /customerByID/:id controllers.HomeController.getCustomerByID(id: Int)
+
+#GET ORDER
+GET     /allOrder controllers.HomeController.getAllOrder
+GET     /orderByID/:id controllers.HomeController.getOrderByID(id: Int)
+GET     /orderByCustomerID/:cid controllers.HomeController.getOrderByCustomerID(cid: Int)
+
+# POST 
+POST /newOrder controllers.HomeController.newOrder
+POST /newComment controllers.HomeController.newComment
+POST /newArticle controllers.HomeController.newArticle
+
+#UPDATE
+POST /updateOrder controllers.HomeController.updateOrder 
+POST /fillStock controllers.HomeController.fillStock
+POST /updatePrice controllers.HomeController.updatePrice
+
+
+
