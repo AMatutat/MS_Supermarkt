@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  web:
+    build: frontend/
+    ports:
+      - "80:80"
+    links:
+      - api
+  
+  database:
+    image: "postgres" # use latest official postgres version
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=mydb  
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_USER=postgres
+    volumes:
+      - database-data:/var/lib/postgresql/data/ # persist data even if container shuts downvolumes:
+  
+  api:
+    build: backend/
+    ports:
+      - "9000:9000"
+    links:
+      - database
+    environment:
+      - POSTGRES_DB=mydb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_PORT=5432
+      - API_PORT=8081
+      - POSTGRES_HOST=192.168.99.102
+    depends_on: 
+      - database
+
+volumes:
+  database-data:
