@@ -13,11 +13,12 @@ services:
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_DB=mydb  
+      - POSTGRES_DB=smartmarkt2  
       - POSTGRES_PASSWORD=1234
       - POSTGRES_USER=postgres
     volumes:
-      - database-data:/var/lib/postgresql/data/ # persist data even if container shuts downvolumes:
+     - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+     #- ./postgres-data:/var/lib/postgresql/data # persist data even if container shuts downvolumes:
   
   api:
     build: backend/
@@ -25,15 +26,8 @@ services:
       - "9000:9000"
     links:
       - database
-    environment:
-      - POSTGRES_DB=mydb
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=1234
-      - POSTGRES_PORT=5432
-      - API_PORT=8081
-      - POSTGRES_HOST=192.168.99.102
     depends_on: 
       - database
 
-volumes:
-  database-data:
+#volumes:
+ # database-data:
