@@ -1,7 +1,12 @@
 backend/target
 backend/.vs
+backend/.metals
+frontend/.metals
+frontend/.bloop
+backend/.bloop
 backend/project/project
 backend/project/target
+backend/logs
 target
 frontend/.vs
 frontend/logs
