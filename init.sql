@@ -9,7 +9,8 @@ CREATE TABLE article(
     name TEXT NOT NULL,
     description TEXT NOT NULL,
     price FLOAT NOT NULL,
-    picture BYTEA
+    picture BYTEA,
+    stock INTEGER NOT NULL
 );
 
 CREATE TABLE article_category(
@@ -59,12 +60,12 @@ VALUES
 ('Sonstiges');
 
 
-INSERT INTO article (manufacture,name,description,price)
+INSERT INTO article (manufacture,name,description,price,stock)
 VALUES
-('Schrott&Teuer','Ziegenkaese 200g','Lecker schmecker Ziegenkaese',1.5),
-('Schrott&Teuer','Fertig Pizza Salami','Lecker schmecker Pizza',2.5),
-('Schrott&Teuer','Erdbeer Marmelade 100g','Lecker schmecker Marmelade',0.5),
-('Schrott&Teuer','Cola 2L','Lecker schmecker Cola',1.0);
+('Schrott&Teuer','Ziegenkaese 200g','Lecker schmecker Ziegenkaese',1.5,5),
+('Schrott&Teuer','Fertig Pizza Salami','Lecker schmecker Pizza',2.5,5),
+('Schrott&Teuer','Erdbeer Marmelade 100g','Lecker schmecker Marmelade',0.5,5),
+('Schrott&Teuer','Cola 2L','Lecker schmecker Cola',1.0,5);
 
 INSERT INTO markt_user(id,points,isWorker)
 VALUES

@@ -11,14 +11,22 @@ import play.api.libs.json._
 @Singleton
 class HomeController @Inject()(val controllerComponents: ControllerComponents) extends BaseController {
 
-  val tmpArticle= Json.obj("id"->1, "name"->"Artikel", "price"-> 20f, "rating"-> 4,"bestand" -> 13)
+  val tmpArticle= Json.obj("id"->1, "manufacutre"->"M1","name"->"A1","decription"->"D1" ,"price"-> 20f, "picture"->"t", "stock"->12)
+  val tmpArticle2= Json.obj("id"->2, "manufacutre"->"M2","name"->"A2","decription"->"D2" ,"price"-> 20f, "picture"->"t", "stock"->12)
+
 
    def login(name: String, pw: String)= Action{ _ => 
     Ok(tmpArticle)
   } 
 
+ def getAllCategorys= Action{ _ => 
+   println(tmpArticle)
+   var r= Json.toJson(List(tmpArticle,tmpArticle2))
+   println(r)
+   Ok(r)
+  }
+
   def getAllArticle= Action{ _ => 
-  println("Input")
     Ok(tmpArticle)
   }
   
