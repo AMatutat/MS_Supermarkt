@@ -130,7 +130,11 @@ object Main {
     for (cat <- example) {
       $("#" + cat).click { () => createArticleOverview(cat) }
     }
-
+    val searchBar = document.createElement("INPUT")
+    searchBar.id = "stock-search"
+    searchBar.setAttribute("type","Text")
+    searchBar.setAttribute("placeholder", "Suche...")
+    content.appendChild(searchBar)
     // GET mit Filtern
     //Später ne liste mit :Article
     val a1 = new Article(1, "M1", "D1", "N1", 20f, 12)
@@ -273,6 +277,7 @@ object Main {
   def createMyOrdersPage(): Unit = {
     clearContent()
     var content = document.getElementById("content")
+
     println("Test")
     //Bestellungen
     //Übersicht
@@ -311,16 +316,66 @@ object Main {
     * Erstellt die Lager Seite
     */
   def createWarehousePage(): Unit = {
-    var content = document.getElementById("content")
-    //Artikeliste
-    //ID
-    //Name
-    //Lagerbestand
-    //Preisändern
-    //Anzahl neu Ordern
-    //Lager füllen
-    //Add new Artikel
+    clearContent()
+    val content = document.getElementById("content")
+    val allArticleDiv = document.createElement("div")
+
+    val a1 = new Article(1, "M1", "D1", "N1", 20f, 12)
+    val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
+    val exampleArticle = List(a1, a2)
+    val searchBar = document.createElement("INPUT")
+    searchBar.id = "stock-search"
+    searchBar.setAttribute("type","Text")
+    searchBar.setAttribute("placeholder", "Suche...")
+    content.appendChild(searchBar)
+    for (article <- exampleArticle) {
+      val articleDiv = document.createElement("div")
+      val articleName = document.createElement("h3")
+      articleName.innerHTML = article.getName
+      val articleDescription = document.createTextNode(article.getDescription)
+      val articlePrice = document.createTextNode("Preis: " + article.getPrice)
+      val articleStock =
+        document.createTextNode("Bestand: " + article.getStock())
+      val articleImg = document.createElement("IMG")
+      val alterButton = document.createElement("Button")
+      alterButton.id = "alter-button" + article.getID()
+      alterButton.textContent = ("Bearbeiten")
+      val restockButton = document.createElement("Button")
+      restockButton.id = "restock-button" + article.getID()
+      restockButton.textContent = ("Lager füllen")
+
+      articleImg.setAttribute("src", "../src/main/scala/tmp.png")
+      articleImg.setAttribute("width", "50")
+      articleImg.setAttribute("height", "50")
+      articleDiv.appendChild(articleName)
+      articleDiv.appendChild(articleImg)
+      articleDiv.appendChild(articleDescription)
+      articleDiv.appendChild(document.createElement("BR"))
+      articleDiv.appendChild(articlePrice)
+      articleDiv.appendChild(articleStock)
+      articleDiv.appendChild(alterButton)
+      articleDiv.appendChild(restockButton)
+      allArticleDiv.appendChild(articleDiv)
+
+      $("#alter-button" + article.getID()).click { () => println("Bearbeite") }
+      $("#restock-button" + article.getID()).click { () => println("Restock") }
+    }
+    content.appendChild(allArticleDiv)
+    val newArticleButton= document.createElement("Button")
+    newArticleButton.id="new-article-button"
+    newArticleButton.textContent=("Neuen Artikel hinzufügen")
+    content.appendChild(newArticleButton)
+     $("#new-article-button").click { () => println("Neuer Article") }
   }
+
+  //Artikeliste
+  //ID
+  //Name
+  //Lagerbestand
+  //Preisändern
+  //Anzahl neu Ordern
+  //Lager füllen
+  //Add new Artikel
 
   /**
     * Erstellt die Übersichtseite alle Bestellungen
