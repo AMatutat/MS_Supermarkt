@@ -1,10 +1,9 @@
 class User(
     val id: Int,
-    val name: String,
-    val treuepunkte: Int,
-    val Adreese: String
+    val isWorker: Boolean,
+    var treuepunkte: Int
 ) {
-  def getTreuepunkte(): Int = 0
-  def istWorker(): Boolean = false
+  def getTreuepunkte(): Int = this.treuepunkte
+  def istWorker(): Boolean = this.istWorker
   def getID(): Int = this.id
 }

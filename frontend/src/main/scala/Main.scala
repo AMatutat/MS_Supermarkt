@@ -4,7 +4,7 @@ import org.querki.jquery._
 import java.util.ArrayList
 
 object Main {
-  var user: User = _
+  var user = new User(1,true,220)
   //evtl auch als Object, dann kann man spaß machen wie Contains: etc.
   val shoppingcar = new ArrayList[Article]
   val articleList = new ArrayList[Article]
@@ -278,10 +278,30 @@ object Main {
     clearContent()
     var content = document.getElementById("content")
 
-    println("Test")
-    //Bestellungen
-    //Übersicht
-    //Status
+    val a1 = new Article(1, "M1", "D1", "N1", 20f, 12)
+    val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
+    val o1 = new Order(1,user,"On the Way")
+    val o2 = new Order(1,user,"In Bearbeitung")
+    var articles= List(a1,a2)
+    val orders = List(o1,o2)
+    for (order<-orders){
+      val orderDiv = document.createElement("div")
+      //Order Datum noch anzeigen
+      //GET Articles to order
+
+      for (article<-articles){
+        val articleDiv = document.createElement("div")
+        val articleName= document.createTextNode(article.getName)
+        val articleNumber= document.createTextNode("Anzahl: 2") //db abfrage
+        
+        articleDiv.appendChild(articleName)
+        articleDiv.appendChild(articleNumber)
+        orderDiv.appendChild(articleDiv)
+      }
+      val orderState= document.createTextNode(order.getState)
+      orderDiv.appendChild(orderState)
+      content.appendChild(orderDiv)
+    }
   }
 
   /**

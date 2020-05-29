@@ -1,12 +1,11 @@
-class Orders(
+class Order(
     val id: Int,
     val customer: User,
-    status: String,
-    article: Array[Article]
+    var state: String
 ) {
-  def getCustomer(): User = null
-  def getStatus(): String = "None"
-  def getArticle(): Array[Article] = return article
+  def getCustomer(): User = this.customer
+  def getState(): String = this.state
+  def getID(): Int = this.id
   def setStatus(state: String): Unit = return //api call ALTER
 
 }
