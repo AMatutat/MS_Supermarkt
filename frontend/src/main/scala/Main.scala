@@ -4,7 +4,7 @@ import org.querki.jquery._
 import java.util.ArrayList
 
 object Main {
-  var user = new User(1, true, 220)
+  var user = new User(-1, true, 220)
   //var user:User = _
   //evtl auch als Object, dann kann man spaß machen wie Contains: etc.
   val shoppingcar = new ArrayList[Article]
@@ -34,20 +34,25 @@ object Main {
       id: String
   ): org.scalajs.dom.raw.Node = {
     val articleDiv = document.createElement("div")
-    articleDiv.id = article.getName
+    articleDiv.id = id
+    articleDiv.setAttribute("class","article-div")
     val articleName = document.createElement("h3")
-    articleName.innerHTML = article.getName
-    val articleDescription = document.createTextNode(article.getDescription)
-    val articlePrice = document.createTextNode("Preis: " + article.getPrice)
+    articleName.innerHTML = article.getName    
+    val articleInfoDiv= document.createElement("Div")
+    articleInfoDiv.id="info-div"
+    val articleDescription = document.createTextNode(article.getDescription)  
+    val articlePrice = document.createTextNode("Preis: " + article.getPrice+"")
     val articleImg = document.createElement("IMG")
+    articleImg.id="article-img"
     articleImg.setAttribute("src", "../src/main/scala/tmp.png")
-    articleImg.setAttribute("width", "50")
-    articleImg.setAttribute("height", "50")
+    articleImg.setAttribute("width", "80")
+    articleImg.setAttribute("height", "80")
     articleDiv.appendChild(articleName)
     articleDiv.appendChild(articleImg)
-    articleDiv.appendChild(articleDescription)
-    articleDiv.appendChild(document.createElement("BR"))
-    articleDiv.appendChild(articlePrice)
+    articleInfoDiv.appendChild(articleDescription)
+    articleInfoDiv.appendChild(document.createElement("BR"))
+    articleInfoDiv.appendChild(articlePrice)
+    articleDiv.appendChild(articleInfoDiv)
     return articleDiv
   }
 
@@ -151,7 +156,7 @@ object Main {
     val exampleArticle = List(a1, a2)
 
     for (article <- exampleArticle) {
-      content.appendChild(createArticleDiv(article, "Test"))
+      content.appendChild(createArticleDiv(article, article.getName()))
     }
 
     for (article <- exampleArticle) {
