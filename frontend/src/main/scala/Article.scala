@@ -1,36 +1,23 @@
 class Article(
     val id: Int,
-    val manufacture: String,
-    val description: String,
-    val name: String,
+    var manufacture: String,
+    var description: String,
+    var name: String,
     var price: Float,
-    val stock: Int
+    var stock: Int
 ) {
-
-  def getName(): String = this.name
   def getID(): Int = this.id
-  def getPrice(): Float = this.price
+  def getManufacture(): String = this.manufacture
   def getDescription(): String = this.description
-  def setPrice(newPrice: Float): Unit = {
-    this.price = newPrice
-    //update DB
-  }
-  def getStock(): Int = {
-    //api call
-    this.stock
-  }
-  def addToLager(anzahl: Int): Unit = {
-    getStock() + anzahl
-  }
-  def orderNachschub(anzahl: Int): Unit = {
-    //api call
-  }
-  def getBewertungen(): Array[Review] = {
-    new Array[Review](1)
-  }
+  def getName(): String = this.name
+  def getPrice(): Float = this.price
+  def getStock(): Int = this.stock
 
-  def addBewertung(bewertung: Review): Unit = {
-    //ApiCall
-  }
+  def setManufacture(man: String): Unit = this.manufacture = man
+  def setPrice(newPrice: Float): Unit = this.price = newPrice
+  def setName(name: String): Unit = this.name = name
+  def setDescription(des: String): Unit = this.description = des
+  def restock(anzahl: Int): Unit = getStock() + anzahl
+  def pushChanges():Unit = println("test")
 
 }
