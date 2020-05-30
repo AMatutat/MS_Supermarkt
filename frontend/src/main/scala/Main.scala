@@ -114,17 +114,28 @@ object Main {
 
     //Navigator-Button listener
     $("#home-button").click { () => { createArticleOverview() } }
-    $("#log-button").click { () => { createLogInPage } }
+    $("#log-button").click { () =>
+      {
+        if (user == null)
+          createLogInPage
+        else {
+          user = null
+          var navbar = document.getElementById("navigtor")
+          while (navbar.firstChild != null) {
+            navbar.removeChild(navbar.firstChild)
+
+          }
+          createHomePage()
+        }
+      }
+    }
     $("#my-orders-button").click { () => createMyOrdersPage }
     $("#shoppingcar-button").click { () => createShoppingcarPage }
     $("#warehouse-button").click { () => createWarehousePage() }
     $("#orders-button").click { () => createOrdersPage }
   }
 
-  def createArticleOverview(
-      filterCat: String = null,
-      filterName: String = null
-  ): Unit = {
+  def createArticleOverview(filterCat: String = null): Unit = {
     clearContent()
     val content = document.getElementById("content")
 
@@ -145,23 +156,41 @@ object Main {
       $("#filter-" + cat).click { () => createArticleOverview(cat) }
     }
     val searchBar = document.createElement("INPUT")
-    searchBar.id = "stock-search"
+    searchBar.id = "article-search"
     searchBar.setAttribute("type", "Text")
     searchBar.setAttribute("placeholder", "Suche...")
     content.appendChild(searchBar)
+
     // GET mit Filtern
     //Später ne liste mit :Article
     val a1 = new Article(1, "M1", "D1", "N1", 20f, 12)
     val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
     val exampleArticle = List(a1, a2)
 
+    val allArticles = document.createElement("div")
+    allArticles.id = "all-article-div"
     for (article <- exampleArticle) {
-      content.appendChild(createArticleDiv(article, article.getName()))
+      allArticles.appendChild(createArticleDiv(article, article.getName()))
     }
-
+    content.appendChild(allArticles)
     for (article <- exampleArticle) {
       $("#" + article.getName()).click { () => createArticlePage(article) }
     }
+    //Only work on enter
+    $("#article-search").change { () =>
+      {
+        while (allArticles.firstChild != null) {
+          allArticles.removeChild(allArticles.firstChild)
+        }
+        val exampleArticle2 = List(a1)
+        for (article <- exampleArticle2) {
+          allArticles.appendChild(createArticleDiv(article, article.getName()))
+          $("#" + article.getName()).click { () => createArticlePage(article) }
+        }
+
+      }
+    }
+
   }
 
   def createArticlePage(article: Article): Unit = {
@@ -183,7 +212,7 @@ object Main {
     articleDiv.appendChild(buyButton)
     content.appendChild(articleDiv)
 
-    //FIXME
+    //FIXME liest nur startwerte
     $("#buy-button").click { () =>
       // add to warenkorb
       println(
@@ -191,37 +220,40 @@ object Main {
           .getElementById("number")
           .getAttribute("value")
       )
-      //show warenkorb
+
     }
 
     //Write Review
     //if loged in
-    val writeReviewDiv = document.createElement("div")
-    val textField = document.createElement("INPUT")
-    textField.setAttribute("type", "text")
-    textField.id = "text-field"
-    val yourRating = document.createElement("INPUT")
-    yourRating.setAttribute("type", "number")
-    yourRating.setAttribute("min", "1")
-    yourRating.setAttribute("max", "5")
-    yourRating.setAttribute("value", "3")
-    yourRating.id = "your-rating"
-    val sendButton = createButton("Senden", "send-button")
-    writeReviewDiv.appendChild(textField)
-    writeReviewDiv.appendChild(yourRating)
-    writeReviewDiv.appendChild(sendButton)
-    content.appendChild(writeReviewDiv)
+    if (user != null) {
+      val writeReviewDiv = document.createElement("div")
+      val textField = document.createElement("INPUT")
+      textField.setAttribute("type", "text")
+      textField.id = "text-field"
+      val yourRating = document.createElement("INPUT")
+      yourRating.setAttribute("type", "number")
+      yourRating.setAttribute("min", "1")
+      yourRating.setAttribute("max", "5")
+      yourRating.setAttribute("value", "3")
+      yourRating.id = "your-rating"
+      val sendButton = createButton("Senden", "send-button")
+      writeReviewDiv.appendChild(textField)
+      writeReviewDiv.appendChild(yourRating)
+      writeReviewDiv.appendChild(sendButton)
+      content.appendChild(writeReviewDiv)
 
-    //FIXME
-    $("#send-button").click { () =>
-      //new Review -> article.addReview
-      println(
-        "send review: " + document
-          .getElementById("text-field")
-          .innerHTML + "for " + article.getID + " is: " + document
-          .getElementById("your-rating")
-          .getAttribute("value")
-      )
+      //FIXME
+      $("#send-button").click { () =>
+        //new Review -> article.addReview
+        println(
+          "send review: " + document
+            .getElementById("text-field")
+            .innerHTML + "for " + article.getID + " is: " + document
+            .getElementById("your-rating")
+            .getAttribute("value")
+        )
+      }
+
     }
 
     //Show Reviews
@@ -283,7 +315,7 @@ object Main {
     val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
     shoppingcar.add(a1)
     shoppingcar.add(a2)
-    var summe=0f;
+    var summe = 0f;
     val it = shoppingcar.iterator
     while (it.hasNext()) {
       val article = it.next()
@@ -294,21 +326,24 @@ object Main {
       img.setAttribute("height", "50")
       articleDiv.appendChild(img)
       articleDiv.appendChild(document.createTextNode(article.getName()))
-      articleDiv.appendChild(document.createTextNode(""+article.getPrice()+"€"))
-      summe+=article.getPrice()
+      articleDiv.appendChild(
+        document.createTextNode("" + article.getPrice() + "€")
+      )
+      summe += article.getPrice()
       content.appendChild(articleDiv)
     }
-    
+
     val usePoints = document.createElement("INPUT")
-    usePoints.setAttribute("type","Checkbox")
-    usePoints.id="use-points-box"   
+    usePoints.setAttribute("type", "Checkbox")
+    usePoints.id = "use-points-box"
     content.appendChild(document.createTextNode("Treuepunkte einlösen?"))
     content.appendChild(usePoints)
-    content.appendChild(document.createTextNode("Gesamtpreis: "+summe+"€"))
-    val buyButton =createButton("Kaufen","buy-button")
+    content.appendChild(document.createTextNode("Gesamtpreis: " + summe + "€"))
+    val buyButton = createButton("Kaufen", "buy-button")
     content.appendChild(buyButton)
-
-
+    $("#buy-button").click(() => {
+      println("Gekauft")
+    })
 
   }
 
@@ -349,31 +384,60 @@ object Main {
     searchBar.setAttribute("type", "Text")
     searchBar.setAttribute("placeholder", "Suche...")
     content.appendChild(searchBar)
-    for (article <- exampleArticle) {
-      val articleDiv = createArticleDiv(article, "test")
-      val articleStock =
-        document.createTextNode("Bestand: " + article.getStock())
-      val alterButton =
-        createButton("Bearbeiten", "alter-button" + article.getID())
-      val restockButton =
-        createButton("Auffüllen", "restock-button" + article.getID())
-      articleDiv.appendChild(articleStock)
-      articleDiv.appendChild(alterButton)
-      articleDiv.appendChild(restockButton)
-      content.appendChild(articleDiv)
 
-      //FIXME
-      $("#alter-button" + article.getID()).click { () =>
+    val allArticles = document.createElement("div")
+
+    for (article <- exampleArticle) {
+      allArticles.appendChild(createStorageDiv(article))
+      content.appendChild(allArticles)
+
+      $("#alter-button-" + article.getID()).click { () =>
         createAlterArticlePage(article)
       }
-      $("#restock-button" + article.getID()).click { () =>
+      $("#restock-button-" + article.getID()).click { () =>
         createRestockPage(article)
       }
     }
 
+    //content.appendChild(allArticles)
     val newArticleButton = createButton("Neuer Artikel", "new-article-button")
     content.appendChild(newArticleButton)
     $("#new-article-button").click { () => createAlterArticlePage() }
+
+    $("#stock-search").change { () =>
+      {
+        while (allArticles.firstChild != null) {
+          allArticles.removeChild(allArticles.firstChild)
+        }
+        val exampleArticle2 = List(a2)
+        for (article <- exampleArticle2) {
+          allArticles.appendChild(createStorageDiv(article))
+          $("#alter-button-" + article.getID()).click { () =>
+            createAlterArticlePage(article)
+          }
+          $("#restock-button-" + article.getID()).click { () =>
+            createRestockPage(article)
+          }
+        }
+
+      }
+    }
+  }
+
+  def createStorageDiv(article: Article): org.scalajs.dom.raw.Node = {
+    val articleDiv = createArticleDiv(article, "test")
+    val articleStock =
+      document.createTextNode("Bestand: " + article.getStock())
+    val alterButton =
+      createButton("Bearbeiten", "alter-button-" + article.getID())
+    val restockButton =
+      createButton("Auffüllen", "restock-button-" + article.getID())
+    articleDiv.appendChild(articleStock)
+    articleDiv.appendChild(alterButton)
+    articleDiv.appendChild(restockButton)
+
+    return articleDiv
+
   }
 
   def createOrdersPage(): Unit = {
@@ -510,6 +574,8 @@ object Main {
     content.appendChild(ExitButton)
 
     //FIXME nur startwerte werden gelesen
+    //EVTL change listener an felder mit .value = wasdrinnesteht
+
     $("#alter-article-button").click { () =>
       article.setName(
         document.getElementById("name-field").getAttribute("value")
