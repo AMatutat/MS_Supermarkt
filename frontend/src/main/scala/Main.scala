@@ -8,7 +8,6 @@ object Main {
   //var user:User = _
   //evtl auch als Object, dann kann man spaß machen wie Contains: etc.
   val shoppingcar = new ArrayList[Article]
-  
 
   def main(args: Array[String]): Unit = {
     createHomePage()
@@ -35,15 +34,16 @@ object Main {
   ): org.scalajs.dom.raw.Node = {
     val articleDiv = document.createElement("div")
     articleDiv.id = id
-    articleDiv.setAttribute("class","article-div")
+    articleDiv.setAttribute("class", "article-div")
     val articleName = document.createElement("h3")
-    articleName.innerHTML = article.getName    
-    val articleInfoDiv= document.createElement("Div")
-    articleInfoDiv.id="info-div"
-    val articleDescription = document.createTextNode(article.getDescription)  
-    val articlePrice = document.createTextNode("Preis: " + article.getPrice+"")
+    articleName.innerHTML = article.getName
+    val articleInfoDiv = document.createElement("Div")
+    articleInfoDiv.id = "info-div"
+    val articleDescription = document.createTextNode(article.getDescription)
+    val articlePrice =
+      document.createTextNode("Preis: " + article.getPrice + "€")
     val articleImg = document.createElement("IMG")
-    articleImg.id="article-img"
+    articleImg.id = "article-img"
     articleImg.setAttribute("src", "../src/main/scala/tmp.png")
     articleImg.setAttribute("width", "80")
     articleImg.setAttribute("height", "80")
@@ -283,9 +283,32 @@ object Main {
     val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
     shoppingcar.add(a1)
     shoppingcar.add(a2)
+    var summe=0f;
+    val it = shoppingcar.iterator
+    while (it.hasNext()) {
+      val article = it.next()
+      val articleDiv = document.createElement("div")
+      val img = document.createElement("IMG")
+      img.setAttribute("src", "../src/main/scala/tmp.png")
+      img.setAttribute("width", "50")
+      img.setAttribute("height", "50")
+      articleDiv.appendChild(img)
+      articleDiv.appendChild(document.createTextNode(article.getName()))
+      articleDiv.appendChild(document.createTextNode(""+article.getPrice()+"€"))
+      summe+=article.getPrice()
+      content.appendChild(articleDiv)
+    }
+    
+    val usePoints = document.createElement("INPUT")
+    usePoints.setAttribute("type","Checkbox")
+    usePoints.id="use-points-box"   
+    content.appendChild(document.createTextNode("Treuepunkte einlösen?"))
+    content.appendChild(usePoints)
+    content.appendChild(document.createTextNode("Gesamtpreis: "+summe+"€"))
+    val buyButton =createButton("Kaufen","buy-button")
+    content.appendChild(buyButton)
 
 
-     
 
   }
 
