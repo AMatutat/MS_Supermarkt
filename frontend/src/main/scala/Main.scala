@@ -4,16 +4,24 @@ import org.querki.jquery._
 import java.util.ArrayList
 
 object Main {
+
+  /**
+    * Aktueller User
+    */
   var user = new User(-1, true, 220)
-  //var user:User = _
-  //evtl auch als Object, dann kann man spaß machen wie Contains: etc.
+
+  /**
+    * Einkaufswagen vom aktuellen User
+    */
   val shoppingcar = new ArrayList[Article]
 
   def main(args: Array[String]): Unit = {
     createHomePage()
-
   }
 
+  /**
+    * Löscht alle Inhalte aus den Content Bereich
+    */
   def clearContent(): Unit = {
     var content = document.getElementById("content")
     while (content.firstChild != null) {
@@ -21,6 +29,13 @@ object Main {
     }
   }
 
+  /**
+    * Erstellt einen Button
+    *
+    * @param label Text im Button
+    * @param id id des Button
+    * @return Button Element
+    */
   def createButton(label: String, id: String): org.scalajs.dom.raw.Node = {
     val button = document.createElement("Button")
     button.textContent = label
@@ -28,81 +43,89 @@ object Main {
     return button
   }
 
+  /**
+    * Erstellt den Standart ArtikelDiv mit Name, Beschreibung, Preis, Bild
+    *
+    * @param article Artikel der dargestellt werden soll
+    * @param id id des Divs
+    * @return Div Element
+    */
   def createArticleDiv(
       article: Article,
       id: String
   ): org.scalajs.dom.raw.Node = {
     val articleDiv = document.createElement("div")
-    articleDiv.id = id
-    articleDiv.setAttribute("class", "article-div")
     val articleName = document.createElement("h3")
-    articleName.innerHTML = article.getName
     val articleInfoDiv = document.createElement("Div")
-    articleInfoDiv.id = "info-div"
     val articleDescription = document.createTextNode(article.getDescription)
     val articlePrice =
       document.createTextNode("Preis: " + article.getPrice + "€")
     val articleImg = document.createElement("IMG")
+
+    articleDiv.id = id
+    articleDiv.setAttribute("class", "article-div")
+    articleName.innerHTML = article.getName
+    articleInfoDiv.id = "info-div"
     articleImg.id = "article-img"
     articleImg.setAttribute("src", "../src/main/scala/tmp.png")
     articleImg.setAttribute("width", "80")
     articleImg.setAttribute("height", "80")
+
     articleDiv.appendChild(articleName)
     articleDiv.appendChild(articleImg)
     articleInfoDiv.appendChild(articleDescription)
     articleInfoDiv.appendChild(document.createElement("BR"))
     articleInfoDiv.appendChild(articlePrice)
     articleDiv.appendChild(articleInfoDiv)
+
     return articleDiv
   }
 
+  /**
+    * Erestellt die Startseite
+    */
   def createHomePage(): Unit = {
     createNavigator()
     createArticleOverview()
   }
 
+  /**
+    * Erstellt Navigator im oberen Bereich der Seite
+    */
   def createNavigator(): Unit = {
     val userNavi = document.getElementById("navigtor")
     val userList = document.createElement("ul")
-
-    //Home button
     val homeButton = createButton("Home", "home-button")
-    val li0 = document.createElement("li")
-    li0.appendChild(homeButton)
-
-    userList.appendChild(homeButton)
-
-    //Login bzw. logout button
-
     val logButton = createButton("LogIn", "log-button")
+    val myOrders = createButton("Meine Bestellungen", "my-orders-button")
+    val shoppingcar = createButton("Einkaufswagen", "shoppingcar-button")
+    val warehouse = createButton("Lager", "warehouse-button")
+    val orders = createButton("Bestellung", "orders-button")
+    val li0 = document.createElement("li")
     val li1 = document.createElement("li")
+    val li2 = document.createElement("li")
+    val li3 = document.createElement("li")
+    val li4 = document.createElement("li")
+    val li5 = document.createElement("li")
+
+    li0.appendChild(homeButton)
+    userList.appendChild(li0)
+
     li1.appendChild(logButton)
     if (user != null) {
       logButton.textContent = ("LogOut")
 
-      //My Orders
-      val myOrders = createButton("Meine Bestellungen", "my-orders-button")
-      val li2 = document.createElement("li")
       li2.appendChild(myOrders)
       userList.appendChild(li2)
 
-      //Einkaufswagen
-      val shoppingcar = createButton("Einkaufswagen", "shoppingcar-button")
-      val li3 = document.createElement("li")
       li3.appendChild(shoppingcar)
       userList.appendChild(li3)
 
       if (user.isWorker) {
 
-        //Lager
-        val warehouse = createButton("Lager", "warehouse-button")
-        val li4 = document.createElement("li")
         li4.appendChild(warehouse)
         userList.appendChild(li4)
 
-        //Bestellungen
-        val orders = createButton("Bestellung", "orders-button")
-        val li5 = document.createElement("li")
         li5.appendChild(orders)
         userList.appendChild(li5)
       }
@@ -133,17 +156,20 @@ object Main {
     $("#shoppingcar-button").click { () => createShoppingcarPage }
     $("#warehouse-button").click { () => createWarehousePage() }
     $("#orders-button").click { () => createOrdersPage }
+
   }
 
-  def createArticleOverview(filterCat: String = null): Unit = {
-    clearContent()
+  /**
+    * Erstellt Kategorie Naviagor für die ArticleOverviewPage
+    */
+  def createCatNavigator(): Unit = {
     val content = document.getElementById("content")
-
-    //Kategorie Navigator
     val navDiv = document.createElement("div")
-    navDiv.id = "catDiv"
-    val example = List("Hase", "Tier", "Gemüse", "Obst", "käse")
     val categoryList = document.createElement("ul")
+    navDiv.id = "catDiv"
+
+    //DB Abfrage
+    val example = List("Hase", "Tier", "Gemüse", "Obst", "käse")
     for (cat <- example) {
       val li = document.createElement("li")
       val c = createButton(cat, "filter-" + cat)
@@ -155,10 +181,24 @@ object Main {
     for (cat <- example) {
       $("#filter-" + cat).click { () => createArticleOverview(cat) }
     }
+  }
+
+  /**
+    * Erstellt die ArticleOverviewPage die alle Artikel anzeigt, welche die Filter kriterien erfüllen
+    *
+    * @param filterCat Kategorie der angezeigten Artikel
+    */
+  def createArticleOverview(filterCat: String = null): Unit = {
+    clearContent()
+
+    val content = document.getElementById("content")
     val searchBar = document.createElement("INPUT")
+
     searchBar.id = "article-search"
     searchBar.setAttribute("type", "Text")
     searchBar.setAttribute("placeholder", "Suche...")
+
+    createCatNavigator()
     content.appendChild(searchBar)
 
     // GET mit Filtern
@@ -187,56 +227,51 @@ object Main {
           allArticles.appendChild(createArticleDiv(article, article.getName()))
           $("#" + article.getName()).click { () => createArticlePage(article) }
         }
-
       }
     }
-
   }
 
+  /**
+    * Erstellt die Detailierte ArtikelSeite
+    *
+    * @param article Artikel der dargestellt werden soll
+    */
   def createArticlePage(article: Article): Unit = {
     clearContent()
 
     //Article view
     var content = document.getElementById("content")
-
     val articleDiv = createArticleDiv(article, "Test")
     val number = document.createElement("INPUT")
+    val buyButton = createButton("Add to Warenkorb", "buy-button")
+
     number.id = ("number")
     number.setAttribute("type", "number")
     number.setAttribute("value", "1")
     number.setAttribute("min", "1")
     number.setAttribute("max", "" + article.getStock)
-    val buyButton = createButton("Add to Warenkorb", "buy-button")
 
     articleDiv.appendChild(number)
     articleDiv.appendChild(buyButton)
     content.appendChild(articleDiv)
 
-    //FIXME liest nur startwerte
-    $("#buy-button").click { () =>
-      // add to warenkorb
-      println(
-        "add to warenkorb: " + document
-          .getElementById("number")
-          .getAttribute("value")
-      )
-
-    }
+    //FIXME anzahl auslesen
+    $("#buy-button").click { () => shoppingcar.add(article) }
 
     //Write Review
     //if loged in
     if (user != null) {
       val writeReviewDiv = document.createElement("div")
       val textField = document.createElement("INPUT")
+      val sendButton = createButton("Senden", "send-button")
+      val yourRating = document.createElement("INPUT")
       textField.setAttribute("type", "text")
       textField.id = "text-field"
-      val yourRating = document.createElement("INPUT")
       yourRating.setAttribute("type", "number")
       yourRating.setAttribute("min", "1")
       yourRating.setAttribute("max", "5")
       yourRating.setAttribute("value", "3")
       yourRating.id = "your-rating"
-      val sendButton = createButton("Senden", "send-button")
       writeReviewDiv.appendChild(textField)
       writeReviewDiv.appendChild(yourRating)
       writeReviewDiv.appendChild(sendButton)
@@ -245,15 +280,8 @@ object Main {
       //FIXME
       $("#send-button").click { () =>
         //new Review -> article.addReview
-        println(
-          "send review: " + document
-            .getElementById("text-field")
-            .innerHTML + "for " + article.getID + " is: " + document
-            .getElementById("your-rating")
-            .getAttribute("value")
-        )
+        println("still buggy")
       }
-
     }
 
     //Show Reviews
@@ -276,9 +304,11 @@ object Main {
       allReviewDiv.appendChild(document.createElement("BR"))
     }
     content.appendChild(allReviewDiv)
-
   }
 
+  /**
+    * Erstellt die Übersicht aller Bestellungen des aktuellen Users
+    */
   def createMyOrdersPage(): Unit = {
     clearContent()
     var content = document.getElementById("content")
@@ -292,31 +322,25 @@ object Main {
 
     for (order <- orders) {
       val orderDiv = document.createElement("div")
+      val orderState = document.createTextNode(order.getState)
       //Order Datum noch anzeigen
       //GET Articles to order
-
       for (article <- articles) {
         val articleName = document.createTextNode(article.getName)
-        val articleNumber = document.createTextNode("Anzahl: 2") //db abfrage
         orderDiv.appendChild(articleName)
-        orderDiv.appendChild(articleNumber)
+        orderDiv.appendChild(document.createTextNode("Anzahl: 2"))
       }
-      val orderState = document.createTextNode(order.getState)
       orderDiv.appendChild(orderState)
       content.appendChild(orderDiv)
     }
   }
 
+  /**
+    * Erstellt EinkaufswagenSeite vom aktuellen User
+    */
   def createShoppingcarPage(): Unit = {
     clearContent()
     var content = document.getElementById("content")
-
-    val a1 = new Article(1, "M1", "D1", "N1", 20f, 12)
-    val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
-    if (shoppingcar.isEmpty()) {
-      shoppingcar.add(a1)
-      shoppingcar.add(a2)
-    }
 
     var summe = 0f;
     val it = shoppingcar.iterator
@@ -339,42 +363,47 @@ object Main {
       content.appendChild(articleDiv)
 
       $("#delete-button-" + article.getID).click(() => {
-
-        println("Delete " + article.getID())
         shoppingcar.remove(article)
         createShoppingcarPage()
       })
     }
 
-    val usePoints = document.createElement("INPUT")
-    usePoints.setAttribute("type", "Checkbox")
-    usePoints.id = "use-points-box"
-    content.appendChild(document.createTextNode("Treuepunkte einlösen?"))
-    content.appendChild(usePoints)
-    content.appendChild(document.createTextNode("Gesamtpreis: " + summe + "€"))
-    val buyButton = createButton("Kaufen", "buy-button")
-    content.appendChild(buyButton)
-    $("#buy-button").click(() => {
-      println("Gekauft")
-    })
-
+    if (!shoppingcar.isEmpty()) {
+      val usePoints = document.createElement("INPUT")
+      usePoints.setAttribute("type", "Checkbox")
+      usePoints.id = "use-points-box"
+      content.appendChild(document.createTextNode("Treuepunkte einlösen?"))
+      content.appendChild(usePoints)
+      content.appendChild(
+        document.createTextNode("Gesamtpreis: " + summe + "€")
+      )
+      val buyButton = createButton("Kaufen", "buy-button")
+      content.appendChild(buyButton)
+      $("#buy-button").click(() => {
+        println("Gekauft")
+      })
+    }
   }
 
+  /**
+    * Erstellt Login Page
+    */
   def createLogInPage: Unit = {
     clearContent()
     val content = document.getElementById("content")
     val button = createButton("Ok", "log-in-button")
     val nameField = document.createElement("INPUT")
-    nameField.setAttribute("type", "text")
-    nameField.id = "name-field"
     val passwordField = document.createElement("INPUT")
-    passwordField.setAttribute("type", "password")
-    passwordField.id = "password-field"
-
     val nameLabel = document.createElement("label")
     val nameT = document.createTextNode("Name:")
     val pwLabel = document.createElement("label")
     val pwT = document.createTextNode("Passwort:")
+
+    nameField.setAttribute("type", "text")
+    nameField.id = "name-field"
+    passwordField.setAttribute("type", "password")
+    passwordField.id = "password-field"
+
     nameLabel.appendChild(nameT)
     pwLabel.appendChild(pwT)
     content.appendChild(nameLabel)
@@ -382,23 +411,29 @@ object Main {
     content.appendChild(pwLabel)
     content.appendChild(passwordField)
     content.appendChild(button)
-
   }
 
-  def createWarehousePage(filter: String = null): Unit = {
+  /**
+    * Erstellt die Lagerseite
+    *
+    * @param filter
+    */
+  def createWarehousePage(): Unit = {
     clearContent()
-    val content = document.getElementById("content")
 
-    val a1 = new Article(1, "M1", "D1", "N1", 20f, 12)
-    val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
-    val exampleArticle = List(a1, a2)
+    val content = document.getElementById("content")
+    val allArticles = document.createElement("div")
     val searchBar = document.createElement("INPUT")
+    val newArticleButton = createButton("Neuer Artikel", "new-article-button")
+
     searchBar.id = "stock-search"
     searchBar.setAttribute("type", "Text")
     searchBar.setAttribute("placeholder", "Suche...")
     content.appendChild(searchBar)
 
-    val allArticles = document.createElement("div")
+    val a1 = new Article(1, "M1", "D1", "N1", 20f, 12)
+    val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
+    val exampleArticle = List(a1, a2)
 
     for (article <- exampleArticle) {
       allArticles.appendChild(createStorageDiv(article))
@@ -412,11 +447,9 @@ object Main {
       }
     }
 
-    //content.appendChild(allArticles)
-    val newArticleButton = createButton("Neuer Artikel", "new-article-button")
     content.appendChild(newArticleButton)
-    $("#new-article-button").click { () => createAlterArticlePage() }
 
+    $("#new-article-button").click { () => createAlterArticlePage() }
     $("#stock-search").change { () =>
       {
         while (allArticles.firstChild != null) {
@@ -425,6 +458,7 @@ object Main {
         val exampleArticle2 = List(a2)
         for (article <- exampleArticle2) {
           allArticles.appendChild(createStorageDiv(article))
+
           $("#alter-button-" + article.getID()).click { () =>
             createAlterArticlePage(article)
           }
@@ -432,15 +466,19 @@ object Main {
             createRestockPage(article)
           }
         }
-
       }
     }
   }
 
+  /**
+    * Erstellt ArticleDiv für die Lagerseite
+    *
+    * @param article Artikel der dargestellt werden soll
+    * @return Div Element
+    */
   def createStorageDiv(article: Article): org.scalajs.dom.raw.Node = {
     val articleDiv = createArticleDiv(article, "test")
-    val articleStock =
-      document.createTextNode("Bestand: " + article.getStock())
+    val articleStock = document.createTextNode("Bestand: " + article.getStock())
     val alterButton =
       createButton("Bearbeiten", "alter-button-" + article.getID())
     val restockButton =
@@ -448,11 +486,12 @@ object Main {
     articleDiv.appendChild(articleStock)
     articleDiv.appendChild(alterButton)
     articleDiv.appendChild(restockButton)
-
     return articleDiv
-
   }
 
+  /**
+    * Erstellt die Übersichtsseite aller Bestellungen
+    */
   def createOrdersPage(): Unit = {
     clearContent()
     val content = document.getElementById("content")
@@ -466,6 +505,7 @@ object Main {
 
     for (order <- orders) {
       val orderDiv = document.createElement("div")
+      val moreButton = createButton("Details", "more-button-" + order.getID())
       orderDiv.appendChild(
         document.createTextNode("BestellNr: " + order.getID())
       )
@@ -482,25 +522,42 @@ object Main {
         document.createTextNode("Adresse: " + order.getCustomer.getID())
       )
       orderDiv.appendChild(document.createElement("BR"))
-      orderDiv.appendChild(
-        document.createTextNode("Status: " + order.state)
-      )
-      val moreButton = createButton("Details", "more-button-" + order.getID())
+      orderDiv.appendChild(document.createTextNode("Status: " + order.state))
       orderDiv.appendChild(moreButton)
       content.appendChild(orderDiv)
+
       $("#more-button-" + order.getID()).click { () =>
         createOrderDetailsPage(order)
       }
-
     }
-
   }
 
+  /**
+    * Erstellt die detailierte Ansicht einer Bestellung
+    *
+    * @param order Bestellung die dargestellt werden soll
+    */
   def createOrderDetailsPage(order: Order): Unit = {
     clearContent()
     val content = document.getElementById("content")
-
     val headerDiv = document.createElement("Div")
+    val comboBox = document.createElement("SELECT")
+    val option1 = document.createElement("option")
+    val option2 = document.createElement("option")
+    val option3 = document.createElement("option")
+    val option4 = document.createElement("option")
+    val saveButton = createButton("Speichern", "save-button")
+
+    comboBox.id = "select-box"
+    option1.textContent = "Unbearbeitet"
+    option2.textContent = "In Bearbeitung"
+    option3.textContent = "Unterwegs"
+    option4.textContent = "Ausgestellt"
+    comboBox.appendChild(option1)
+    comboBox.appendChild(option2)
+    comboBox.appendChild(option3)
+    comboBox.appendChild(option4)
+
     headerDiv.appendChild(
       document.createTextNode("BestellNr: " + order.getID())
     )
@@ -513,72 +570,61 @@ object Main {
     headerDiv.appendChild(document.createElement("BR"))
     headerDiv.appendChild(document.createTextNode("Adresse: Testweg 12"))
     headerDiv.appendChild(document.createElement("BR"))
-
-    val comboBox = document.createElement("SELECT")
-    comboBox.id = "select-box"
-    val option1 = document.createElement("option")
-    option1.textContent = "Unbearbeitet"
-    val option2 = document.createElement("option")
-    option2.textContent = "In Bearbeitung"
-    val option3 = document.createElement("option")
-    option3.textContent = "Unterwegs"
-    val option4 = document.createElement("option")
-    option4.textContent = "Ausgestellt"
-    comboBox.appendChild(option1)
-    comboBox.appendChild(option2)
-    comboBox.appendChild(option3)
-    comboBox.appendChild(option4)
-    //fixme
-    //comboBox.selectedIndex=2
-    headerDiv.appendChild(comboBox)
     content.appendChild(headerDiv)
 
     val a1 = new Article(1, "M1", "D1", "N1", 20f, 12)
     val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
     var articles = List(a1, a2)
+
     for (article <- articles) {
       val articleBox = document.createElement("INPUT")
       articleBox.setAttribute("type", "checkbox")
-
       content.appendChild(
         document.createTextNode(
-          "Artikel: " + article.getName() + " ID: " + article
-            .getID() + " Anzahl: 2"
+          "Artikel: " + article.getName() + "   ID: " + article
+            .getID() + "   Anzahl: TEMP   "
         )
       )
       content.appendChild(articleBox)
       content.appendChild(document.createElement("BR"))
     }
-    val saveButton = createButton("Speichern", "save-button")
-    content.appendChild(saveButton)
 
+    headerDiv.appendChild(comboBox)
+    content.appendChild(saveButton)
   }
 
+  /**
+    * Erstellt die "Artikel bearbeiten/ Neuen Artikel hinzufügen" Seite
+    *
+    * @param article Artikel welcher bearbeitet werden soll. Empty wenn ein neuer Artikel angelegt werden soll
+    */
   def createAlterArticlePage(
       article: Article =
         new Article(-1, "Hersteller", "Beschreibung", "Name", 0, 0)
   ): Unit = {
     clearContent()
+
     val content = document.getElementById("content")
     val nameField = document.createElement("INPUT")
+    val desField = document.createElement("INPUT")
+    val manField = document.createElement("INPUT")
+    val priceField = document.createElement("INPUT")
+    val OkButton = createButton("Speichern", "alter-article-button")
+    val ExitButton = createButton("Abbrechen", "exit-alter-button")
+
     nameField.id = "name-field"
     nameField.setAttribute("type", "text")
     nameField.setAttribute("value", article.getName())
-    content.appendChild(nameField)
-    val desField = document.createElement("INPUT")
     desField.id = "des-field"
     desField.setAttribute("type", "text")
     desField.setAttribute("value", article.getDescription())
-    val manField = document.createElement("INPUT")
     manField.id = "man-field"
     manField.setAttribute("type", "text")
     manField.setAttribute("value", article.getManufacture())
-    val priceField = document.createElement("INPUT")
     priceField.id = "price-field"
     priceField.setAttribute("type", "number")
     priceField.setAttribute("value", "" + article.getPrice())
-    val OkButton = createButton("Speichern", "alter-article-button")
-    val ExitButton = createButton("Abbrechen", "exit-alter-button")
+
     content.appendChild(nameField)
     content.appendChild(desField)
     content.appendChild(manField)
@@ -589,53 +635,40 @@ object Main {
     //FIXME nur startwerte werden gelesen
     //EVTL change listener an felder mit .value = wasdrinnesteht
 
-    $("#alter-article-button").click { () =>
-      article.setName(
-        document.getElementById("name-field").getAttribute("value")
-      )
-      article.setManufacture(
-        document.getElementById("man-field").getAttribute("value")
-      )
-      article.setPrice(
-        document.getElementById("price-field").getAttribute("value").toFloat
-      )
-      article.setDescription(
-        document.getElementById("des-field").getAttribute("value")
-      )
-      article.pushChanges()
-    }
+    $("#alter-article-button").click { () => println("Still buggy") }
     $("#exit-alter-button").click { () => createWarehousePage() }
 
   }
 
+  /**
+    * Erstellt die Auffüllseite für einen Artikel
+    *
+    * @param article Artikel der aufgefüllt werden soll
+    */
   def createRestockPage(article: Article): Unit = {
     clearContent()
     val content = document.getElementById("content")
+    val number = document.createElement("Input")
+    val OkButton = createButton("Ok", "restock-button")
+    val exitButton = createButton("Abbrechen", "exit-restock-button")
+
+    number.id = "restock-input"
+    number.setAttribute("type", "number")
+
     content.appendChild(
       document.createTextNode(article.getName() + " " + article.getID())
     )
     content.appendChild(
       document.createTextNode("Auf Lager: " + article.getStock())
     )
-    val number = document.createElement("Input")
-    number.id = "restock-input"
-    number.setAttribute("type", "number")
     content.appendChild(number)
     content.appendChild(document.createTextNode("Hinzufügen"))
-    val OkButton = createButton("Ok", "restock-button")
-    val exitButton = createButton("Abbrechen", "exit-restock-button")
     content.appendChild(OkButton)
     content.appendChild(exitButton)
 
     $("#exit-restock-button").click { () => createWarehousePage() }
-    //FIXME
-    $("#restock-button").click { () =>
-      article.restock(
-        document.getElementById("restock-input").getAttribute("value").toInt
-      )
-      article.pushChanges()
-      createWarehousePage()
-    }
+
+    $("#restock-button").click { () => println("Still Buggy") }
   }
 
 }
