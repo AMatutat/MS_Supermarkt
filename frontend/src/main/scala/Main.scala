@@ -313,8 +313,11 @@ object Main {
 
     val a1 = new Article(1, "M1", "D1", "N1", 20f, 12)
     val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
-    shoppingcar.add(a1)
-    shoppingcar.add(a2)
+    if (shoppingcar.isEmpty()) {
+      shoppingcar.add(a1)
+      shoppingcar.add(a2)
+    }
+
     var summe = 0f;
     val it = shoppingcar.iterator
     while (it.hasNext()) {
@@ -330,7 +333,17 @@ object Main {
         document.createTextNode("" + article.getPrice() + "€")
       )
       summe += article.getPrice()
+      val deleteButton =
+        createButton("Löschen", "delete-button-" + article.getID())
+      articleDiv.appendChild(deleteButton)
       content.appendChild(articleDiv)
+
+      $("#delete-button-" + article.getID).click(() => {
+
+        println("Delete " + article.getID())
+        shoppingcar.remove(article)
+        createShoppingcarPage()
+      })
     }
 
     val usePoints = document.createElement("INPUT")
