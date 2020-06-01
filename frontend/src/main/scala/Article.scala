@@ -19,5 +19,7 @@ class Article(
   def setDescription(des: String): Unit = this.description = des
   def restock(anzahl: Int): Unit = getStock() + anzahl
   def pushChanges():Unit = println("test")
-
+  def compare(otherArticle: Article): Boolean = {
+      return this.id==otherArticle.getID()
+  }
 }

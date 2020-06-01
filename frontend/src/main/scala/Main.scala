@@ -2,6 +2,7 @@ import org.scalajs.dom
 import dom.document
 import org.querki.jquery._
 import java.util.ArrayList
+import scala.collection.mutable.HashMap
 
 object Main {
 
@@ -13,8 +14,9 @@ object Main {
   /**
     * Einkaufswagen vom aktuellen User
     */
-  val shoppingcar = new ArrayList[Article]
-
+  //val shoppingcar = new ArrayList[Article]
+  //Key= Article value= anzahl
+  var shoppingcar = HashMap[Article, Int]()
   def main(args: Array[String]): Unit = {
     createHomePage()
   }
@@ -256,8 +258,21 @@ object Main {
     content.appendChild(articleDiv)
 
     //FIXME anzahl auslesen
-    $("#buy-button").click { () => shoppingcar.add(article) }
-
+    $("#buy-button").click { () =>
+      var changes = false
+      //für jeden artikel im wagen=k
+      for ((k, v) <- shoppingcar) {
+        if (k.compare(article)) {
+          val num = v + 1
+          shoppingcar.remove(k)
+          shoppingcar.put(article, num)
+          changes = true
+        }
+      }
+      if (!changes) {
+        shoppingcar.put(article, 1)
+      }
+    }
     //Write Review
     //if loged in
     if (user != null) {
@@ -340,23 +355,27 @@ object Main {
     */
   def createShoppingcarPage(): Unit = {
     clearContent()
+    println(shoppingcar)
     var content = document.getElementById("content")
 
     var summe = 0f;
-    val it = shoppingcar.iterator
-    while (it.hasNext()) {
-      val article = it.next()
+    for ((article, number) <- shoppingcar) {
       val articleDiv = document.createElement("div")
       val img = document.createElement("IMG")
       img.setAttribute("src", "../src/main/scala/tmp.png")
       img.setAttribute("width", "50")
       img.setAttribute("height", "50")
       articleDiv.appendChild(img)
-      articleDiv.appendChild(document.createTextNode(article.getName()))
       articleDiv.appendChild(
-        document.createTextNode("" + article.getPrice() + "€")
+        document.createTextNode(article.getName() + "       ")
       )
-      summe += article.getPrice()
+      articleDiv.appendChild(document.createTextNode(number + "x       "))
+      articleDiv.appendChild(
+        document.createTextNode(
+          "Preis für alle: " + article.getPrice() * number + "€          "
+        )
+      )
+      summe += article.getPrice() * number
       val deleteButton =
         createButton("Löschen", "delete-button-" + article.getID())
       articleDiv.appendChild(deleteButton)
@@ -368,7 +387,7 @@ object Main {
       })
     }
 
-    if (!shoppingcar.isEmpty()) {
+    if (!shoppingcar.isEmpty) {
       val usePoints = document.createElement("INPUT")
       usePoints.setAttribute("type", "Checkbox")
       usePoints.id = "use-points-box"
