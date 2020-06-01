@@ -219,7 +219,7 @@ object Main {
       $("#" + article.getName()).click { () => createArticlePage(article) }
     }
     //Only work on enter
-    $("#article-search").change { () =>
+    $("#article-search").keyup { () =>
       {
         while (allArticles.firstChild != null) {
           allArticles.removeChild(allArticles.firstChild)
@@ -263,19 +263,20 @@ object Main {
       //für jeden artikel im wagen=k
       for ((k, v) <- shoppingcar) {
         if (k.compare(article)) {
-          val num = v + 1
+          val num = v + $("#number").value().toString().toInt
           shoppingcar.remove(k)
           shoppingcar.put(article, num)
           changes = true
         }
       }
       if (!changes) {
-        shoppingcar.put(article, 1)
+        shoppingcar.put(article, $("#number").value().toString().toInt)
       }
     }
     //Write Review
     //if loged in
     if (user != null) {
+
       val writeReviewDiv = document.createElement("div")
       val textField = document.createElement("INPUT")
       val sendButton = createButton("Senden", "send-button")
@@ -294,15 +295,23 @@ object Main {
 
       //FIXME
       $("#send-button").click { () =>
-        //new Review -> article.addReview
-        println("still buggy")
-      }
-    }
+        val reviewText = $("#text-field").value().toString()
+        val reviewRating = $("#your-rating").value()
+        val r = new Review(
+          reviewText,
+          reviewRating.toString().toInt,
+          user,
+          article.getID()
+        )
+        r.push()
+        println(r.getRating())
+        println(r.getText())
 
-    //Show Reviews
+      }
+    } //Show Reviews
     val allReviewDiv = document.createElement("div")
-    val review1 = new Review("Gut", 3, null, article)
-    val review2 = new Review("Gut", 3, null, article)
+    val review1 = new Review("Gut", 3, null, article.getID())
+    val review2 = new Review("Gut", 3, null, article.getID())
     val reviews = List(review1, review2)
 
     for (review <- reviews) {
@@ -343,7 +352,7 @@ object Main {
       for (article <- articles) {
         val articleName = document.createTextNode(article.getName)
         orderDiv.appendChild(articleName)
-        orderDiv.appendChild(document.createTextNode("Anzahl: 2"))
+        orderDiv.appendChild(document.createTextNode("Anzahl: tbd"))
       }
       orderDiv.appendChild(orderState)
       content.appendChild(orderDiv)
@@ -389,15 +398,38 @@ object Main {
 
     if (!shoppingcar.isEmpty) {
       val usePoints = document.createElement("INPUT")
+      val summeDiv = document.createElement("div")
+      val buyButton = createButton("Kaufen", "buy-button")
+      var usePointsChecked = false
       usePoints.setAttribute("type", "Checkbox")
       usePoints.id = "use-points-box"
-      content.appendChild(document.createTextNode("Treuepunkte einlösen?"))
-      content.appendChild(usePoints)
-      content.appendChild(
+      summeDiv.id = "summe-div"
+      summeDiv.appendChild(
         document.createTextNode("Gesamtpreis: " + summe + "€")
       )
-      val buyButton = createButton("Kaufen", "buy-button")
+      content.appendChild(summeDiv)
+      content.appendChild(document.createTextNode("Treuepunkte einlösen?"))
+      content.appendChild(usePoints)
       content.appendChild(buyButton)
+
+      $("#use-points-box").change(() => {
+        var rabatt = 0
+        //jeder punkt ist 1Cent wert
+        if (!usePointsChecked)
+          rabatt = user.getTreuepunkte() / 100
+
+        summeDiv.removeChild(summeDiv.firstChild)
+        summeDiv.appendChild(
+          document.createTextNode("Gesamtpreis: " + (summe - rabatt) + "€")
+        )
+        usePointsChecked = (!usePointsChecked)
+
+      })
+
+      /* $("#use-points-box:unchecked").change(()=>{
+        summeDiv.removeChild(summeDiv.firstChild)
+        summeDiv.appendChild(document.createTextNode("Gesamtpreis: "+summe+ "€"))
+      })*/
       $("#buy-button").click(() => {
         println("Gekauft")
       })
@@ -469,7 +501,7 @@ object Main {
     content.appendChild(newArticleButton)
 
     $("#new-article-button").click { () => createAlterArticlePage() }
-    $("#stock-search").change { () =>
+    $("#stock-search").keyup { () =>
       {
         while (allArticles.firstChild != null) {
           allArticles.removeChild(allArticles.firstChild)
