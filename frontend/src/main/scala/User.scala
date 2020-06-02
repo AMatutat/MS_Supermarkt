@@ -5,5 +5,6 @@ class User(
 ) {
   def getTreuepunkte(): Int = this.treuepunkte
   def istWorker(): Boolean = this.istWorker
+  def setPoints(points: Int):Unit= this.treuepunkte=points
   def getID(): Int = this.id
 }

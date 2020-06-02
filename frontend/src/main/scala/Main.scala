@@ -193,6 +193,13 @@ object Main {
   def createArticleOverview(filterCat: String = null): Unit = {
     clearContent()
 
+
+    // GET mit Filtern
+    //Später ne liste mit :Article
+    val a1 = new Article(1, "M1", "D1", "N1", 20f, 12)
+    val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
+    val exampleArticle = List(a1, a2)
+
     val content = document.getElementById("content")
     val searchBar = document.createElement("INPUT")
 
@@ -203,11 +210,7 @@ object Main {
     createCatNavigator()
     content.appendChild(searchBar)
 
-    // GET mit Filtern
-    //Später ne liste mit :Article
-    val a1 = new Article(1, "M1", "D1", "N1", 20f, 12)
-    val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
-    val exampleArticle = List(a1, a2)
+    
 
     val allArticles = document.createElement("div")
     allArticles.id = "all-article-div"
@@ -304,9 +307,7 @@ object Main {
           article.getID()
         )
         r.push()
-        println(r.getRating())
-        println(r.getText())
-
+        createArticlePage(article)
       }
     } //Show Reviews
     val allReviewDiv = document.createElement("div")
@@ -319,8 +320,8 @@ object Main {
       val text = document.createTextNode(review.getText)
       val author = document.createTextNode("" + review.getUser)
       val rating = document.createTextNode("" + review.getRating)
-      //val date = document.createTextNode(review.getDate)
-      //reviewDiv.appendChild(date)
+      val date = document.createTextNode(review.getDate)
+      reviewDiv.appendChild(date)
       reviewDiv.appendChild(author)
       reviewDiv.appendChild(text)
       reviewDiv.appendChild(rating)
@@ -347,13 +348,14 @@ object Main {
     for (order <- orders) {
       val orderDiv = document.createElement("div")
       val orderState = document.createTextNode(order.getState)
-      //Order Datum noch anzeigen
+      
       //GET Articles to order
       for (article <- articles) {
         val articleName = document.createTextNode(article.getName)
         orderDiv.appendChild(articleName)
         orderDiv.appendChild(document.createTextNode("Anzahl: tbd"))
       }
+      orderDiv.appendChild(document.createTextNode("Bestellt am: "+order.getDate()))
       orderDiv.appendChild(orderState)
       content.appendChild(orderDiv)
     }
@@ -431,7 +433,14 @@ object Main {
         summeDiv.appendChild(document.createTextNode("Gesamtpreis: "+summe+ "€"))
       })*/
       $("#buy-button").click(() => {
-        println("Gekauft")
+        if (usePointsChecked)
+        user.setPoints(-user.getTreuepunkte())
+        else
+          //Für jeden Euro gibt es einen Punkt 
+          user.setPoints(user.getTreuepunkte()+summe.toInt)
+
+        //API CALL 
+
       })
     }
   }
@@ -462,6 +471,15 @@ object Main {
     content.appendChild(pwLabel)
     content.appendChild(passwordField)
     content.appendChild(button)
+
+
+
+     $("#login-button").click { () =>
+        val email=$("#name-field").value.toString
+        val pw=$("#password-field").value.toString
+        println(email+"  "+pw)
+      }
+
   }
 
   /**
@@ -597,7 +615,6 @@ object Main {
     val option2 = document.createElement("option")
     val option3 = document.createElement("option")
     val option4 = document.createElement("option")
-    val saveButton = createButton("Speichern", "save-button")
 
     comboBox.id = "select-box"
     option1.textContent = "Unbearbeitet"
@@ -640,8 +657,12 @@ object Main {
       content.appendChild(document.createElement("BR"))
     }
 
-    headerDiv.appendChild(comboBox)
-    content.appendChild(saveButton)
+    headerDiv.appendChild(comboBox) 
+
+    $("#select-box").change(()=>{      
+      order.setStatus($("#select-box").value().toString()) 
+    })
+ 
   }
 
   /**
@@ -660,9 +681,10 @@ object Main {
     val desField = document.createElement("INPUT")
     val manField = document.createElement("INPUT")
     val priceField = document.createElement("INPUT")
-    val OkButton = createButton("Speichern", "alter-article-button")
-    val ExitButton = createButton("Abbrechen", "exit-alter-button")
-
+    val okButton = createButton("Speichern", "alter-article-button")
+    val exitButton = createButton("Abbrechen", "exit-alter-button")
+    val catSelection = document.createElement("SELECT")
+    
     nameField.id = "name-field"
     nameField.setAttribute("type", "text")
     nameField.setAttribute("value", article.getName())
@@ -680,13 +702,17 @@ object Main {
     content.appendChild(desField)
     content.appendChild(manField)
     content.appendChild(priceField)
-    content.appendChild(OkButton)
-    content.appendChild(ExitButton)
+    content.appendChild(catSelection)
+    content.appendChild(okButton)
+    content.appendChild(exitButton)
 
-    //FIXME nur startwerte werden gelesen
-    //EVTL change listener an felder mit .value = wasdrinnesteht
-
-    $("#alter-article-button").click { () => println("Still buggy") }
+    $("#alter-article-button").click { () => 
+      article.setDescription($("#des-field").value().toString())
+      article.setManufacture($("#man-field").value().toString())
+      article.setName($("#name-field").value().toString())
+      article.setPrice($("#price-field").value().toString().toFloat)
+      article.pushChanges()     
+    }
     $("#exit-alter-button").click { () => createWarehousePage() }
 
   }
@@ -700,7 +726,7 @@ object Main {
     clearContent()
     val content = document.getElementById("content")
     val number = document.createElement("Input")
-    val OkButton = createButton("Ok", "restock-button")
+    val okButton = createButton("Ok", "restock-button")
     val exitButton = createButton("Abbrechen", "exit-restock-button")
 
     number.id = "restock-input"
@@ -714,12 +740,15 @@ object Main {
     )
     content.appendChild(number)
     content.appendChild(document.createTextNode("Hinzufügen"))
-    content.appendChild(OkButton)
+    content.appendChild(okButton)
     content.appendChild(exitButton)
 
     $("#exit-restock-button").click { () => createWarehousePage() }
 
-    $("#restock-button").click { () => println("Still Buggy") }
+    $("#restock-button").click { () => 
+      article.restock($("#restock-input").value().toString().toInt)
+      createWarehousePage()    
+    }
   }
 
 }
