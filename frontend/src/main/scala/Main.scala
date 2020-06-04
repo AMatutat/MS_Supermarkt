@@ -4,6 +4,9 @@ import org.querki.jquery._
 import java.util.ArrayList
 import scala.collection.mutable.HashMap
 
+import scala.concurrent.Future
+import scala.util.Success
+import scala.util.Failure
 object Main {
 
   /**
@@ -19,6 +22,13 @@ object Main {
   var shoppingcar = HashMap[Article, Int]()
   def main(args: Array[String]): Unit = {
     createHomePage()
+  /*  val c = new Connector()
+    var r = c.getAllArticle
+    r.onComplete{
+      case Success(value) => println(value)
+      case Failure(t) => println("ERROR")
+    }
+    */
   }
 
   /**
@@ -752,18 +762,5 @@ object Main {
   }
 
 }
-//API GET CALL EXAMPLE
-/* def test : Unit ={
-    val xhr = new dom.XMLHttpRequest()
-    xhr.open("GET","http://localhost:9000/allArticle")
-    xhr.onload = { (e: dom.Event) =>
-      if (xhr.status == 200) {
-         dom.window.alert("YAY "+ xhr.responseText)
-      } else {
-        dom.window.alert("ERROR MSG: " + xhr.responseText)
-      }
-    }
-    xhr.send()
 
-  }*/
 //Befehl zum compilen sbt ~fastOptJS pder sbt fullOptJS
