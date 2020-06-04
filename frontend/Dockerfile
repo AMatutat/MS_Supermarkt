@@ -22,6 +22,7 @@ WORKDIR /build
 COPY build.sbt .
 COPY src/ src/
 COPY project/ project/
+COPY css/ css/
 
 
 #RUN sbt 

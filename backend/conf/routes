@@ -9,6 +9,8 @@
 #LOGIN
 GET /login/:name/:pw controllers.HomeController.login(name:String, pw:String)
 
+GET /categorys controllers.HomeController.getAllCategorys
+
 #GET ARTICLE
 GET     /allArticle controllers.HomeController.getAllArticle
 GET     /articleByID/:id controllers.HomeController.getArticleByID(id: Int)

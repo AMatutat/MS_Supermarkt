@@ -1,13 +1,15 @@
-class Bewertung(
+class Review(
     val text: String,
     val rating: Int,
     val author: User,
-    val toArticle: Article
+    val toArticle: Int
 ) {
 
   def getText(): String = this.text
   def getRating(): Int = this.rating
   def getUser(): User = this.author
-  def getArticle(): Article = this.toArticle
-  def push():Unit = 0 //api call Put 
+  def getArticle(): Int = this.toArticle
+  def getDate(): String = "Date will be deliviered soon"
+  def push(): Unit = {}
+
 }
