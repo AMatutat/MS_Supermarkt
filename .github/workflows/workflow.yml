@@ -26,7 +26,7 @@ env:
   IMAGE_frontend: ms-supermark-frontend
   IMAGE_backend: ms-supermarkt-backend
   REGISTRY_HOSTNAME: gcr.io
-  DEPLOYMENT_NAME: ms-supermarkt-frontend
+  DEPLOYMENT_NAME: ms-supermarkt
 
 jobs:
   setup-build-publish-deploy:
