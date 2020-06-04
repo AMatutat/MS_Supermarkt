@@ -1,0 +1,26 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: ms-supermarkt
+  name: ms-supermarkt
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: ms-supermarkt
+    spec:
+      containers:
+      - image: ms-supermarkt-frontend
+        name: ms-supermarkt-frontend
+        ports:
+        - containerPort: 80
+      - image: ms-supermarkt-backend
+        name: ms-supermarkt-backend
+        ports:
+        - containerPort: 8080
+        - containerPort: 50051
+      restartPolicy: Always
+status: {}
