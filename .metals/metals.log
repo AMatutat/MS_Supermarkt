@@ -2,3 +2,8 @@
 2020.06.04 15:03:28 INFO  time: initialize in 1.64s
 2020.06.04 15:03:29 WARN  no build tool detected in workspace 'F:\Module\Software Engineering\MS_Supermarkt'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. 
 2020.06.04 15:12:41 INFO  shutting down Metals
+2020.06.05 16:35:13 INFO  started: Metals version 0.9.0 in workspace 'F:\Module\Software Engineering\MS_Supermarkt'
+2020.06.05 16:35:15 INFO  time: initialize in 1.53s
+2020.06.05 16:35:17 WARN  no build tool detected in workspace 'F:\Module\Software Engineering\MS_Supermarkt'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. 
+2020.06.05 16:58:16 INFO  no build target: using presentation compiler with only scala-library
+2020.06.05 16:58:20 WARN  no build target for: F:\Module\Software Engineering\MS_Supermarkt\frontend\src\test\scala\ArticleTests.scala
