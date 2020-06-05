@@ -22,7 +22,7 @@ WORKDIR /build
 COPY build.sbt .
 COPY src/ src/
 COPY project/ project/
-COPY css/ css/
+
 
 
 #RUN sbt 
@@ -36,6 +36,7 @@ FROM nginx:stable-alpine as production-stage
 WORKDIR /usr/share/nginx/html
 RUN mkdir target
 COPY html/index.html .
+COPY html/main.css .
 COPY --from=build-stage /build/target/ /usr/share/nginx/html/target
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

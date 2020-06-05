@@ -1,0 +1,41 @@
+div {
+  border-color: black;
+  border-width: 1px;
+  border-style: solid;
+}
+
+#navigtor {
+  padding: 5px 20px 5px 20px;
+}
+#navigtor li {
+  display: inline; /* li nebeneinander anzeigen */
+  list-style-type: none; /* ohne Aufzählungspunkte */
+}
+#navigtor button {
+  border: none;
+  color: rgb(5, 95, 12);
+}
+
+#catDiv {
+  width: 120px;
+}
+#catDiv li {
+  list-style-type: none; /* ohne Aufzählungspunkte */
+}
+
+#catDiv button {
+  border: none;
+}
+
+#info-div {
+  text-align: center;  
+}
+
+
+.article-div {
+  width: 300px;
+}
+
+.article-div h3 {
+  text-align: center;
+}
