@@ -4,10 +4,9 @@ import org.querki.jquery._
 import java.util.ArrayList
 import scala.collection.mutable.HashMap
 
-import scala.concurrent.Future
-import scala.util.Success
-import scala.util.Failure
 object Main {
+  val port = "9000"
+  val backend = "http://localhost:" + port
 
   /**
     * Aktueller User
@@ -22,13 +21,7 @@ object Main {
   var shoppingcar = HashMap[Article, Int]()
   def main(args: Array[String]): Unit = {
     createHomePage()
-  /*  val c = new Connector()
-    var r = c.getAllArticle
-    r.onComplete{
-      case Success(value) => println(value)
-      case Failure(t) => println("ERROR")
-    }
-    */
+
   }
 
   /**
@@ -175,24 +168,35 @@ object Main {
     * Erstellt Kategorie Naviagor für die ArticleOverviewPage
     */
   def createCatNavigator(): Unit = {
-    val content = document.getElementById("content")
-    val navDiv = document.createElement("div")
-    val categoryList = document.createElement("ul")
-    navDiv.id = "catDiv"
+    val xhr = new dom.XMLHttpRequest()
+    xhr.open("GET", backend + "/categorys")
 
-    //DB Abfrage
-    val example = List("Hase", "Tier", "Gemüse", "Obst", "käse")
-    for (cat <- example) {
-      val li = document.createElement("li")
-      val c = createButton(cat, "filter-" + cat)
-      li.appendChild(c)
-      categoryList.appendChild(li)
+    xhr.onload = { (e: dom.Event) =>
+      if (xhr.status == 200) {
+        println("Kategorien: " + xhr.responseText)
+        val content = document.getElementById("content")
+        val navDiv = document.createElement("div")
+        val categoryList = document.createElement("ul")
+        navDiv.id = "catDiv"
+
+        //DB Abfrage
+        val example = List("Hase", "Tier", "Gemüse", "Obst", "käse")
+        for (cat <- example) {
+          val li = document.createElement("li")
+          val c = createButton(cat, "filter-" + cat)
+          li.appendChild(c)
+          categoryList.appendChild(li)
+        }
+        navDiv.appendChild(categoryList)
+        content.appendChild(navDiv)
+        for (cat <- example) {
+          $("#filter-" + cat).click { () => createArticleOverview(cat) }
+        }
+
+      } else println("ERROR createCatNavigator")
     }
-    navDiv.appendChild(categoryList)
-    content.appendChild(navDiv)
-    for (cat <- example) {
-      $("#filter-" + cat).click { () => createArticleOverview(cat) }
-    }
+    xhr.send()
+
   }
 
   /**
@@ -202,48 +206,81 @@ object Main {
     */
   def createArticleOverview(filterCat: String = null): Unit = {
     clearContent()
-
-
-    // GET mit Filtern
-    //Später ne liste mit :Article
-    val a1 = new Article(1, "M1", "D1", "N1", 20f, 12)
-    val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
-    val exampleArticle = List(a1, a2)
-
-    val content = document.getElementById("content")
-    val searchBar = document.createElement("INPUT")
-
-    searchBar.id = "article-search"
-    searchBar.setAttribute("type", "Text")
-    searchBar.setAttribute("placeholder", "Suche...")
-
     createCatNavigator()
-    content.appendChild(searchBar)
+    val xhr = new dom.XMLHttpRequest()
+    if (filterCat == null)
+      xhr.open("GET", backend + "/allArticle")
+    else
+      xhr.open("GET", backend + "/article/" + filterCat + "/_")
 
-    
+    xhr.onload = { (e: dom.Event) =>
+      if (xhr.status == 200) {
+        println("Artikel: " + xhr.responseText)
+        val a1 = new Article(1, "M1", "D1", "N1", 20f, 12)
+        val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
+        val exampleArticle = List(a1, a2)
 
-    val allArticles = document.createElement("div")
-    allArticles.id = "all-article-div"
-    for (article <- exampleArticle) {
-      allArticles.appendChild(createArticleDiv(article, article.getName()))
-    }
-    content.appendChild(allArticles)
-    for (article <- exampleArticle) {
-      $("#" + article.getName()).click { () => createArticlePage(article) }
-    }
-    //Only work on enter
-    $("#article-search").keyup { () =>
-      {
-        while (allArticles.firstChild != null) {
-          allArticles.removeChild(allArticles.firstChild)
-        }
-        val exampleArticle2 = List(a1)
-        for (article <- exampleArticle2) {
+        val content = document.getElementById("content")
+        val searchBar = document.createElement("INPUT")
+
+        searchBar.id = "article-search"
+        searchBar.setAttribute("type", "Text")
+        searchBar.setAttribute("placeholder", "Suche...")
+
+        content.appendChild(searchBar)
+
+        val allArticles = document.createElement("div")
+        allArticles.id = "all-article-div"
+        for (article <- exampleArticle) {
           allArticles.appendChild(createArticleDiv(article, article.getName()))
+        }
+        content.appendChild(allArticles)
+        for (article <- exampleArticle) {
           $("#" + article.getName()).click { () => createArticlePage(article) }
         }
+
+        $("#article-search").keyup { () =>
+          {
+            val filter = $("#article-search").value
+            if (filter == "") createArticleOverview(filterCat)
+            else {
+              while (allArticles.firstChild != null) {
+                allArticles.removeChild(allArticles.firstChild)
+              }
+
+              if (filterCat == null)
+                xhr.open(
+                  "GET",
+                  backend + "/article/" + "_/" + filter
+                )
+              else
+                xhr.open(
+                  "GET",
+                  backend + "/article/" + filterCat + "/" + filter
+                )
+
+              xhr.onload = { (e: dom.Event) =>
+                println("Article mit Textfilter: " + xhr.responseText)
+                val exampleArticle2 = List(a1)
+                for (article <- exampleArticle2) {
+                  allArticles.appendChild(
+                    createArticleDiv(article, article.getName())
+                  )
+                  $("#" + article.getName()).click { () =>
+                    createArticlePage(article)
+                  }
+                }
+
+              }
+              xhr.send()
+            }
+          }
+        }
+
       }
+
     }
+    xhr.send()
   }
 
   /**
@@ -270,7 +307,6 @@ object Main {
     articleDiv.appendChild(buyButton)
     content.appendChild(articleDiv)
 
-    //FIXME anzahl auslesen
     $("#buy-button").click { () =>
       var changes = false
       //für jeden artikel im wagen=k
@@ -306,7 +342,6 @@ object Main {
       writeReviewDiv.appendChild(sendButton)
       content.appendChild(writeReviewDiv)
 
-      //FIXME
       $("#send-button").click { () =>
         val reviewText = $("#text-field").value().toString()
         val reviewRating = $("#your-rating").value()
@@ -320,25 +355,33 @@ object Main {
         createArticlePage(article)
       }
     } //Show Reviews
-    val allReviewDiv = document.createElement("div")
-    val review1 = new Review("Gut", 3, null, article.getID())
-    val review2 = new Review("Gut", 3, null, article.getID())
-    val reviews = List(review1, review2)
 
-    for (review <- reviews) {
-      val reviewDiv = document.createElement("div")
-      val text = document.createTextNode(review.getText)
-      val author = document.createTextNode("" + review.getUser)
-      val rating = document.createTextNode("" + review.getRating)
-      val date = document.createTextNode(review.getDate)
-      reviewDiv.appendChild(date)
-      reviewDiv.appendChild(author)
-      reviewDiv.appendChild(text)
-      reviewDiv.appendChild(rating)
-      allReviewDiv.appendChild(reviewDiv)
-      allReviewDiv.appendChild(document.createElement("BR"))
+    val xhr = new dom.XMLHttpRequest()
+    xhr.open("GET", backend + "/articleComments/" + article.getID)
+
+    xhr.onload = { (e: dom.Event) =>
+      println("Reviews: " + xhr.responseText)
+      val allReviewDiv = document.createElement("div")
+      val review1 = new Review("Gut", 3, null, article.getID())
+      val review2 = new Review("Gut", 3, null, article.getID())
+      val reviews = List(review1, review2)
+
+      for (review <- reviews) {
+        val reviewDiv = document.createElement("div")
+        val text = document.createTextNode(review.getText)
+        val author = document.createTextNode("" + review.getUser)
+        val rating = document.createTextNode("" + review.getRating)
+        val date = document.createTextNode(review.getDate)
+        reviewDiv.appendChild(date)
+        reviewDiv.appendChild(author)
+        reviewDiv.appendChild(text)
+        reviewDiv.appendChild(rating)
+        allReviewDiv.appendChild(reviewDiv)
+        allReviewDiv.appendChild(document.createElement("BR"))
+      }
+      content.appendChild(allReviewDiv)
     }
-    content.appendChild(allReviewDiv)
+    xhr.send()
   }
 
   /**
@@ -348,27 +391,37 @@ object Main {
     clearContent()
     var content = document.getElementById("content")
 
-    val a1 = new Article(1, "M1", "D1", "N1", 20f, 12)
-    val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
-    val o1 = new Order(1, user, "On the Way")
-    val o2 = new Order(2, user, "In Bearbeitung")
-    var articles = List(a1, a2)
-    val orders = List(o1, o2)
+    val xhr = new dom.XMLHttpRequest()
+    xhr.open("GET", backend + "/orderByCustomerID/" + user.getID)
 
-    for (order <- orders) {
-      val orderDiv = document.createElement("div")
-      val orderState = document.createTextNode(order.getState)
-      
-      //GET Articles to order
-      for (article <- articles) {
-        val articleName = document.createTextNode(article.getName)
-        orderDiv.appendChild(articleName)
-        orderDiv.appendChild(document.createTextNode("Anzahl: tbd"))
+    xhr.onload = { (e: dom.Event) =>
+      println("MyOrders: " + xhr.responseText)
+
+      val a1 = new Article(1, "M1", "D1", "N1", 20f, 12)
+      val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
+      val o1 = new Order(1, user, "On the Way")
+      val o2 = new Order(2, user, "In Bearbeitung")
+      var articles = List(a1, a2)
+      val orders = List(o1, o2)
+
+      for (order <- orders) {
+        val orderDiv = document.createElement("div")
+        val orderState = document.createTextNode(order.getState)
+
+        //GET Articles to order
+        for (article <- articles) {
+          val articleName = document.createTextNode(article.getName)
+          orderDiv.appendChild(articleName)
+          orderDiv.appendChild(document.createTextNode("Anzahl: tbd"))
+        }
+        orderDiv.appendChild(
+          document.createTextNode("Bestellt am: " + order.getDate())
+        )
+        orderDiv.appendChild(orderState)
+        content.appendChild(orderDiv)
       }
-      orderDiv.appendChild(document.createTextNode("Bestellt am: "+order.getDate()))
-      orderDiv.appendChild(orderState)
-      content.appendChild(orderDiv)
     }
+    xhr.send()
   }
 
   /**
@@ -438,18 +491,14 @@ object Main {
 
       })
 
-      /* $("#use-points-box:unchecked").change(()=>{
-        summeDiv.removeChild(summeDiv.firstChild)
-        summeDiv.appendChild(document.createTextNode("Gesamtpreis: "+summe+ "€"))
-      })*/
       $("#buy-button").click(() => {
         if (usePointsChecked)
-        user.setPoints(-user.getTreuepunkte())
+          user.setPoints(-user.getTreuepunkte())
         else
-          //Für jeden Euro gibt es einen Punkt 
-          user.setPoints(user.getTreuepunkte()+summe.toInt)
+          //Für jeden Euro gibt es einen Punkt
+          user.setPoints(user.getTreuepunkte() + summe.toInt)
 
-        //API CALL 
+        //API CALL
 
       })
     }
@@ -482,13 +531,11 @@ object Main {
     content.appendChild(passwordField)
     content.appendChild(button)
 
-
-
-     $("#login-button").click { () =>
-        val email=$("#name-field").value.toString
-        val pw=$("#password-field").value.toString
-        println(email+"  "+pw)
-      }
+    $("#login-button").click { () =>
+      val email = $("#name-field").value.toString
+      val pw = $("#password-field").value.toString
+      println(email + "  " + pw)
+    }
 
   }
 
@@ -501,52 +548,74 @@ object Main {
     clearContent()
 
     val content = document.getElementById("content")
-    val allArticles = document.createElement("div")
-    val searchBar = document.createElement("INPUT")
-    val newArticleButton = createButton("Neuer Artikel", "new-article-button")
 
-    searchBar.id = "stock-search"
-    searchBar.setAttribute("type", "Text")
-    searchBar.setAttribute("placeholder", "Suche...")
-    content.appendChild(searchBar)
+    val xhr = new dom.XMLHttpRequest()
+    xhr.open("GET", backend + "/allArticle")
 
-    val a1 = new Article(1, "M1", "D1", "N1", 20f, 12)
-    val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
-    val exampleArticle = List(a1, a2)
+    xhr.onload = { (e: dom.Event) =>
+      println("Lager: " + xhr.responseText)
+      val allArticles = document.createElement("div")
+      val searchBar = document.createElement("INPUT")
+      val newArticleButton = createButton("Neuer Artikel", "new-article-button")
 
-    for (article <- exampleArticle) {
-      allArticles.appendChild(createStorageDiv(article))
-      content.appendChild(allArticles)
+      searchBar.id = "stock-search"
+      searchBar.setAttribute("type", "Text")
+      searchBar.setAttribute("placeholder", "Suche...")
+      content.appendChild(searchBar)
 
-      $("#alter-button-" + article.getID()).click { () =>
-        createAlterArticlePage(article)
-      }
-      $("#restock-button-" + article.getID()).click { () =>
-        createRestockPage(article)
-      }
-    }
+      val a1 = new Article(1, "M1", "D1", "N1", 20f, 12)
+      val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
+      val exampleArticle = List(a1, a2)
 
-    content.appendChild(newArticleButton)
+      for (article <- exampleArticle) {
+        allArticles.appendChild(createStorageDiv(article))
+        content.appendChild(allArticles)
 
-    $("#new-article-button").click { () => createAlterArticlePage() }
-    $("#stock-search").keyup { () =>
-      {
-        while (allArticles.firstChild != null) {
-          allArticles.removeChild(allArticles.firstChild)
+        $("#alter-button-" + article.getID()).click { () =>
+          createAlterArticlePage(article)
         }
-        val exampleArticle2 = List(a2)
-        for (article <- exampleArticle2) {
-          allArticles.appendChild(createStorageDiv(article))
-
-          $("#alter-button-" + article.getID()).click { () =>
-            createAlterArticlePage(article)
-          }
-          $("#restock-button-" + article.getID()).click { () =>
-            createRestockPage(article)
-          }
+        $("#restock-button-" + article.getID()).click { () =>
+          createRestockPage(article)
         }
       }
+
+      content.appendChild(newArticleButton)
+
+      $("#new-article-button").click { () => createAlterArticlePage() }
+      $("#stock-search").keyup { () =>
+        {
+          val filter = $("#stock-search").value
+          if (filter == "") createWarehousePage
+          else {
+
+            val xhr = new dom.XMLHttpRequest()
+            xhr.open("GET", backend + "/article/_/" + filter)
+
+            xhr.onload = { (e: dom.Event) =>
+              println("lager with filter: " + xhr.responseText)
+
+              while (allArticles.firstChild != null) {
+                allArticles.removeChild(allArticles.firstChild)
+              }
+              val exampleArticle2 = List(a2)
+              for (article <- exampleArticle2) {
+                allArticles.appendChild(createStorageDiv(article))
+
+                $("#alter-button-" + article.getID()).click { () =>
+                  createAlterArticlePage(article)
+                }
+                $("#restock-button-" + article.getID()).click { () =>
+                  createRestockPage(article)
+                }
+              }
+            }
+
+            xhr.send()
+          }
+        }
+      }
     }
+    xhr.send()
   }
 
   /**
@@ -573,42 +642,50 @@ object Main {
     */
   def createOrdersPage(): Unit = {
     clearContent()
+
     val content = document.getElementById("content")
+    val xhr = new dom.XMLHttpRequest()
+    xhr.open("GET", backend + "/allOrder")
 
-    val a1 = new Article(1, "M1", "D1", "N1", 20f, 12)
-    val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
-    val o1 = new Order(1, user, "Unterwegs")
-    val o2 = new Order(2, user, "In Bearbeitung")
-    var articles = List(a1, a2)
-    val orders = List(o1, o2)
+    xhr.onload = { (e: dom.Event) =>
+      println("AllOrders: " + xhr.responseText)
+      val a1 = new Article(1, "M1", "D1", "N1", 20f, 12)
+      val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
+      val o1 = new Order(1, user, "Unterwegs")
+      val o2 = new Order(2, user, "In Bearbeitung")
+      var articles = List(a1, a2)
+      val orders = List(o1, o2)
 
-    for (order <- orders) {
-      val orderDiv = document.createElement("div")
-      val moreButton = createButton("Details", "more-button-" + order.getID())
-      orderDiv.appendChild(
-        document.createTextNode("BestellNr: " + order.getID())
-      )
-      orderDiv.appendChild(document.createElement("BR"))
-      orderDiv.appendChild(
-        document.createTextNode("KundenNr: " + order.getCustomer.getID())
-      )
-      orderDiv.appendChild(document.createElement("BR"))
-      orderDiv.appendChild(
-        document.createTextNode("Kunde: " + order.getCustomer.getID())
-      )
-      orderDiv.appendChild(document.createElement("BR"))
-      orderDiv.appendChild(
-        document.createTextNode("Adresse: " + order.getCustomer.getID())
-      )
-      orderDiv.appendChild(document.createElement("BR"))
-      orderDiv.appendChild(document.createTextNode("Status: " + order.state))
-      orderDiv.appendChild(moreButton)
-      content.appendChild(orderDiv)
+      for (order <- orders) {
+        val orderDiv = document.createElement("div")
+        val moreButton = createButton("Details", "more-button-" + order.getID())
+        orderDiv.appendChild(
+          document.createTextNode("BestellNr: " + order.getID())
+        )
+        orderDiv.appendChild(document.createElement("BR"))
+        orderDiv.appendChild(
+          document.createTextNode("KundenNr: " + order.getCustomer.getID())
+        )
+        orderDiv.appendChild(document.createElement("BR"))
+        orderDiv.appendChild(
+          document.createTextNode("Kunde: " + order.getCustomer.getID())
+        )
+        orderDiv.appendChild(document.createElement("BR"))
+        orderDiv.appendChild(
+          document.createTextNode("Adresse: " + order.getCustomer.getID())
+        )
+        orderDiv.appendChild(document.createElement("BR"))
+        orderDiv.appendChild(document.createTextNode("Status: " + order.state))
+        orderDiv.appendChild(moreButton)
+        content.appendChild(orderDiv)
 
-      $("#more-button-" + order.getID()).click { () =>
-        createOrderDetailsPage(order)
+        $("#more-button-" + order.getID()).click { () =>
+          createOrderDetailsPage(order)
+        }
       }
+
     }
+    xhr.send()
   }
 
   /**
@@ -618,61 +695,68 @@ object Main {
     */
   def createOrderDetailsPage(order: Order): Unit = {
     clearContent()
-    val content = document.getElementById("content")
-    val headerDiv = document.createElement("Div")
-    val comboBox = document.createElement("SELECT")
-    val option1 = document.createElement("option")
-    val option2 = document.createElement("option")
-    val option3 = document.createElement("option")
-    val option4 = document.createElement("option")
 
-    comboBox.id = "select-box"
-    option1.textContent = "Unbearbeitet"
-    option2.textContent = "In Bearbeitung"
-    option3.textContent = "Unterwegs"
-    option4.textContent = "Ausgestellt"
-    comboBox.appendChild(option1)
-    comboBox.appendChild(option2)
-    comboBox.appendChild(option3)
-    comboBox.appendChild(option4)
+    val xhr = new dom.XMLHttpRequest()
+    xhr.open("GET", backend + "/orderByID/" + order.getID)
 
-    headerDiv.appendChild(
-      document.createTextNode("BestellNr: " + order.getID())
-    )
-    headerDiv.appendChild(document.createElement("BR"))
-    headerDiv.appendChild(
-      document.createTextNode("KundenNr: " + order.getCustomer().getID())
-    )
-    headerDiv.appendChild(document.createElement("BR"))
-    headerDiv.appendChild(document.createTextNode("Kunde: Test Meier"))
-    headerDiv.appendChild(document.createElement("BR"))
-    headerDiv.appendChild(document.createTextNode("Adresse: Testweg 12"))
-    headerDiv.appendChild(document.createElement("BR"))
-    content.appendChild(headerDiv)
+    xhr.onload = { (e: dom.Event) =>
+      println("Bestellung: " + xhr.responseText)
+      val content = document.getElementById("content")
+      val headerDiv = document.createElement("Div")
+      val comboBox = document.createElement("SELECT")
+      val option1 = document.createElement("option")
+      val option2 = document.createElement("option")
+      val option3 = document.createElement("option")
+      val option4 = document.createElement("option")
 
-    val a1 = new Article(1, "M1", "D1", "N1", 20f, 12)
-    val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
-    var articles = List(a1, a2)
+      comboBox.id = "select-box"
+      option1.textContent = "Unbearbeitet"
+      option2.textContent = "In Bearbeitung"
+      option3.textContent = "Unterwegs"
+      option4.textContent = "Ausgestellt"
+      comboBox.appendChild(option1)
+      comboBox.appendChild(option2)
+      comboBox.appendChild(option3)
+      comboBox.appendChild(option4)
 
-    for (article <- articles) {
-      val articleBox = document.createElement("INPUT")
-      articleBox.setAttribute("type", "checkbox")
-      content.appendChild(
-        document.createTextNode(
-          "Artikel: " + article.getName() + "   ID: " + article
-            .getID() + "   Anzahl: TEMP   "
-        )
+      headerDiv.appendChild(
+        document.createTextNode("BestellNr: " + order.getID())
       )
-      content.appendChild(articleBox)
-      content.appendChild(document.createElement("BR"))
+      headerDiv.appendChild(document.createElement("BR"))
+      headerDiv.appendChild(
+        document.createTextNode("KundenNr: " + order.getCustomer().getID())
+      )
+      headerDiv.appendChild(document.createElement("BR"))
+      headerDiv.appendChild(document.createTextNode("Kunde: Test Meier"))
+      headerDiv.appendChild(document.createElement("BR"))
+      headerDiv.appendChild(document.createTextNode("Adresse: Testweg 12"))
+      headerDiv.appendChild(document.createElement("BR"))
+      content.appendChild(headerDiv)
+
+      val a1 = new Article(1, "M1", "D1", "N1", 20f, 12)
+      val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
+      var articles = List(a1, a2)
+
+      for (article <- articles) {
+        val articleBox = document.createElement("INPUT")
+        articleBox.setAttribute("type", "checkbox")
+        content.appendChild(
+          document.createTextNode(
+            "Artikel: " + article.getName() + "   ID: " + article
+              .getID() + "   Anzahl: TEMP   "
+          )
+        )
+        content.appendChild(articleBox)
+        content.appendChild(document.createElement("BR"))
+      }
+
+      headerDiv.appendChild(comboBox)
+
+      $("#select-box").change(() => {
+        order.setStatus($("#select-box").value().toString())
+      })
     }
-
-    headerDiv.appendChild(comboBox) 
-
-    $("#select-box").change(()=>{      
-      order.setStatus($("#select-box").value().toString()) 
-    })
- 
+    xhr.send()
   }
 
   /**
@@ -694,7 +778,7 @@ object Main {
     val okButton = createButton("Speichern", "alter-article-button")
     val exitButton = createButton("Abbrechen", "exit-alter-button")
     val catSelection = document.createElement("SELECT")
-    
+
     nameField.id = "name-field"
     nameField.setAttribute("type", "text")
     nameField.setAttribute("value", article.getName())
@@ -716,12 +800,12 @@ object Main {
     content.appendChild(okButton)
     content.appendChild(exitButton)
 
-    $("#alter-article-button").click { () => 
+    $("#alter-article-button").click { () =>
       article.setDescription($("#des-field").value().toString())
       article.setManufacture($("#man-field").value().toString())
       article.setName($("#name-field").value().toString())
       article.setPrice($("#price-field").value().toString().toFloat)
-      article.pushChanges()     
+      article.pushChanges()
     }
     $("#exit-alter-button").click { () => createWarehousePage() }
 
@@ -755,9 +839,9 @@ object Main {
 
     $("#exit-restock-button").click { () => createWarehousePage() }
 
-    $("#restock-button").click { () => 
+    $("#restock-button").click { () =>
       article.restock($("#restock-input").value().toString().toInt)
-      createWarehousePage()    
+      createWarehousePage()
     }
   }
 
