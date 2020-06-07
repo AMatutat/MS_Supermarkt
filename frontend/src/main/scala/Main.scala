@@ -7,7 +7,8 @@ import scala.collection.mutable.HashMap
 object Main {
   //val port = "8080"
   //val backend = "http://localhost:" + port
-  val backend= "http://supermarkt.dvess.network/api"
+  val backend = "http://supermarkt.dvess.network/api"
+
   /**
     * Aktueller User
     */
@@ -168,14 +169,16 @@ object Main {
     * Erstellt Kategorie Naviagor für die ArticleOverviewPage
     */
   def createCatNavigator(): Unit = {
+    val content = document.getElementById("content")
+    val navDiv = document.createElement("div")
+    content.appendChild(navDiv)
     val xhr = new dom.XMLHttpRequest()
     xhr.open("GET", backend + "/categorys")
 
     xhr.onload = { (e: dom.Event) =>
       if (xhr.status == 200) {
         println("Kategorien: " + xhr.responseText)
-        val content = document.getElementById("content")
-        val navDiv = document.createElement("div")
+
         val categoryList = document.createElement("ul")
         navDiv.id = "catDiv"
 
@@ -188,7 +191,7 @@ object Main {
           categoryList.appendChild(li)
         }
         navDiv.appendChild(categoryList)
-        content.appendChild(navDiv)
+
         for (cat <- example) {
           $("#filter-" + cat).click { () => createArticleOverview(cat) }
         }
