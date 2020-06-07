@@ -13,3 +13,4 @@ libraryDependencies += "com.lightbend.play" %% "play-grpc-runtime" % "0.8.2"
 
 libraryDependencies += guice
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % Test
+PlayKeys.devSettings := Seq("play.server.http.port" -> "8080")
