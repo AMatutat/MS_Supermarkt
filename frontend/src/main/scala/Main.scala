@@ -1,5 +1,6 @@
 import org.scalajs.dom
 import dom.document
+import dom.window
 import org.querki.jquery._
 import java.util.ArrayList
 import scala.collection.mutable.HashMap
@@ -7,7 +8,8 @@ import scala.collection.mutable.HashMap
 object Main {
   //val port = "8080"
   //val backend = "http://localhost:" + port
-  val backend= "http://supermarkt.dvess.network/api"
+  val backend = "http://supermarkt.dvess.network/api"
+
   /**
     * Aktueller User
     */
@@ -106,12 +108,14 @@ object Main {
     val shoppingcar = createButton("Einkaufswagen", "shoppingcar-button")
     val warehouse = createButton("Lager", "warehouse-button")
     val orders = createButton("Bestellung", "orders-button")
+    val portal = createButton("Portal","portal-button")
     val li0 = document.createElement("li")
     val li1 = document.createElement("li")
     val li2 = document.createElement("li")
     val li3 = document.createElement("li")
     val li4 = document.createElement("li")
     val li5 = document.createElement("li")
+    val li6 = document.createElement("li")
 
     li0.appendChild(homeButton)
     userList.appendChild(li0)
@@ -138,7 +142,11 @@ object Main {
     } else
       logButton.textContent = ("LogIn")
     userList.appendChild(li1)
+    li6.appendChild(portal)
+    userList.appendChild(li6)
     userNavi.appendChild(userList)
+
+
 
     //Navigator-Button listener
     $("#home-button").click { () => { createArticleOverview() } }
@@ -161,6 +169,9 @@ object Main {
     $("#shoppingcar-button").click { () => createShoppingcarPage }
     $("#warehouse-button").click { () => createWarehousePage() }
     $("#orders-button").click { () => createOrdersPage }
+    $("#portal-button").click { () => 
+      window.open("http://portal.dvess.network/","_self")
+    }
 
   }
 
@@ -168,14 +179,16 @@ object Main {
     * Erstellt Kategorie Naviagor für die ArticleOverviewPage
     */
   def createCatNavigator(): Unit = {
+    val content = document.getElementById("content")
+    val navDiv = document.createElement("div")
+    content.appendChild(navDiv)
     val xhr = new dom.XMLHttpRequest()
     xhr.open("GET", backend + "/categorys")
 
     xhr.onload = { (e: dom.Event) =>
       if (xhr.status == 200) {
         println("Kategorien: " + xhr.responseText)
-        val content = document.getElementById("content")
-        val navDiv = document.createElement("div")
+
         val categoryList = document.createElement("ul")
         navDiv.id = "catDiv"
 
@@ -188,7 +201,7 @@ object Main {
           categoryList.appendChild(li)
         }
         navDiv.appendChild(categoryList)
-        content.appendChild(navDiv)
+
         for (cat <- example) {
           $("#filter-" + cat).click { () => createArticleOverview(cat) }
         }
@@ -242,7 +255,7 @@ object Main {
         $("#article-search").keyup { () =>
           {
             val filter = $("#article-search").value
-            if (filter == "") createArticleOverview(filterCat)
+            if (filter.equals("")) createArticleOverview(filterCat)
             else {
               while (allArticles.firstChild != null) {
                 allArticles.removeChild(allArticles.firstChild)
@@ -585,7 +598,7 @@ object Main {
       $("#stock-search").keyup { () =>
         {
           val filter = $("#stock-search").value
-          if (filter == "") createWarehousePage
+          if (filter.equals("")) createWarehousePage
           else {
 
             val xhr = new dom.XMLHttpRequest()
