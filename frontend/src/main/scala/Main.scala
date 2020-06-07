@@ -96,26 +96,49 @@ object Main {
     createArticleOverview()
   }
 
+  def createHREF(
+      label: String,
+      cssclass: String = null,
+      link: String,
+      id: String
+  ): org.scalajs.dom.raw.Node = {
+    val ref = document.createElement("a")
+    if (cssclass != null)
+      ref.setAttribute("class", cssclass)
+    ref.textContent = label
+    ref.setAttribute("href", link)
+    ref.id=id
+    return ref;
+
+  }
+
   /**
     * Erstellt Navigator im oberen Bereich der Seite
     */
   def createNavigator(): Unit = {
-    val userNavi = document.getElementById("navigtor")
-    val userList = document.createElement("ul")
-    val homeButton = createButton("Home", "home-button")
-    val logButton = createButton("LogIn", "log-button")
-    val myOrders = createButton("Meine Bestellungen", "my-orders-button")
-    val shoppingcar = createButton("Einkaufswagen", "shoppingcar-button")
-    val warehouse = createButton("Lager", "warehouse-button")
-    val orders = createButton("Bestellung", "orders-button")
-    val portal = createButton("Portal","portal-button")
+    val userList = document.getElementById("navbar")
+    //val homeButton = createButton("Home", "home-button")
+    val homeButton = createHREF("Home", "nav-link", "#","home-button")
+    val logButton = createHREF("Login", "nav-link", "#","log-button")
+    val myOrders = createHREF("Meine Bestellungen", "nav-link", "#","my-orders-button")
+    val shoppingcar = createHREF("Einkaufswagen", "nav-link", "#","shoppingcar-button")
+    val warehouse = createHREF("Lager", "nav-link", "#","warehouse-button")
+    val orders = createHREF("Alle Bestellungen", "nav-link", "#","orders-button")
+    val portal = createHREF("Portal", "nav-link", "http://portal.dvess.network/","portal-button")
     val li0 = document.createElement("li")
+    li0.setAttribute("class", "nav-item")
     val li1 = document.createElement("li")
+    li1.setAttribute("class", "nav-item")
     val li2 = document.createElement("li")
+    li2.setAttribute("class", "nav-item")
     val li3 = document.createElement("li")
+    li3.setAttribute("class", "nav-item")
     val li4 = document.createElement("li")
+    li4.setAttribute("class", "nav-item")
     val li5 = document.createElement("li")
+    li5.setAttribute("class", "nav-item")
     val li6 = document.createElement("li")
+    li6.setAttribute("class", "nav-item")
 
     li0.appendChild(homeButton)
     userList.appendChild(li0)
@@ -144,9 +167,6 @@ object Main {
     userList.appendChild(li1)
     li6.appendChild(portal)
     userList.appendChild(li6)
-    userNavi.appendChild(userList)
-
-
 
     //Navigator-Button listener
     $("#home-button").click { () => { createArticleOverview() } }
@@ -156,7 +176,7 @@ object Main {
           createLogInPage
         else {
           user = null
-          var navbar = document.getElementById("navigtor")
+          var navbar = document.getElementById("navbar")
           while (navbar.firstChild != null) {
             navbar.removeChild(navbar.firstChild)
 
@@ -169,8 +189,8 @@ object Main {
     $("#shoppingcar-button").click { () => createShoppingcarPage }
     $("#warehouse-button").click { () => createWarehousePage() }
     $("#orders-button").click { () => createOrdersPage }
-    $("#portal-button").click { () => 
-      window.open("http://portal.dvess.network/","_self")
+    $("#portal-button").click { () =>
+      window.open("http://portal.dvess.network/", "_self")
     }
 
   }
@@ -180,7 +200,7 @@ object Main {
     */
   def createCatNavigator(): Unit = {
     val content = document.getElementById("content")
-    val navDiv = document.createElement("div")
+    val navDiv = document.createElement("div") 
     content.appendChild(navDiv)
     val xhr = new dom.XMLHttpRequest()
     xhr.open("GET", backend + "/categorys")

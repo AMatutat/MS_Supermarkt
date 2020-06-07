@@ -37,6 +37,7 @@ WORKDIR /usr/share/nginx/html
 RUN mkdir target
 COPY html/index.html .
 COPY html/main.css .
+COPY html/header.png .
 COPY --from=build-stage /build/target/ /usr/share/nginx/html/target
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
