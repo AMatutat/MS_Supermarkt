@@ -26,5 +26,5 @@ COPY test/ test/
 COPY project/ project/
 
 
-EXPOSE 9000
+EXPOSE 8080
 CMD ["sbt", "run"]
