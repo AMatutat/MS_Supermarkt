@@ -27,4 +27,4 @@ COPY project/ project/
 
 
 EXPOSE 9000
-CMD ["sbt", "run"]
+CMD ["sbt", "run 8080"]
