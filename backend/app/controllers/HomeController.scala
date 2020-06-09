@@ -4,108 +4,211 @@ import javax.inject._
 import play.api._
 import play.api.mvc._
 import play.api.libs.json._
+
+import java.sql.Connection
+import java.sql.DriverManager
+import java.sql.ResultSet
+import java.sql.SQLException
+import java.sql.Statement
+
 /**
- * This controller creates an `Action` to handle HTTP requests to the
- * application's home page.
- */
+  * This controller creates an `Action` to handle HTTP requests to the
+  * application's home page.
+  */
 @Singleton
-class HomeController @Inject()(val controllerComponents: ControllerComponents) extends BaseController {
+class HomeController @Inject() (val controllerComponents: ControllerComponents)
+    extends BaseController {
 
-  val tmpArticle= Json.obj("id"->1, "manufacutre"->"LeckerSchmecker","name"->"Bratwurst","decription"->"100% reinste Bratwurst perfekt auf den Grill oder in der Pfane." ,"price"-> 1.5f, "picture"->"tbd", "stock"->55)
-  /*val tmpArticle2= Json.obj("id"->2, "manufacutre"->"Saftspaß","name"->"O-Saft","decription"->"Unsere Säfte werden aus natürlichen Früchten und ohne die Zugabe von Zucker hergestellt." ,"price"-> 2.8f, "picture"->"t", "stock"->30)
-  val tmpCat1=Json.obj("id"->1,"name"->"grillgut") 
-  val tmpCat2=Json.obj("id"->2,"name"->"Säfte") 
-  val articleCat1=Json.obj("catid"->1,"articleid"->1)
-   val articleCat2=Json.obj("catid"->2,"articleid"->2)
+  val dbuser = "postgres"
+  val dbpw = "postgres"
+  val dbURL = "jdbc:postgresql://database:5432/smartmarkt2"
 
-  val tmpReview1= Json.obj("id"->1, "text"->"Tolles produkt. Immer wieder gerne","rating"->5,"date"-"Datum","forArticle"->1, "author"->1)
-  val tmpReview2= Json.obj("id"->2, "text"->"Tolles produkt. Immer wieder gerne. Versand war etwas langsam.","rating"->4,"date"-"Datum","forArticle"->1, "author"->2)
-  val tmpReview3= Json.obj("id"->3, "text"->"Tolles produkt. Immer wieder gerne","rating"->5,"date"-"Datum","forArticle"->2, "author"->1)
-  val tmpReview4= Json.obj("id"->4, "text"->"Tolles produkt. Immer wieder gerne. Versand war etwas langsam.","rating"->4,"date"-"Datum","forArticle"->2, "author"->2)
+  val tmpArticle = Json.obj(
+    "id" -> 1,
+    "manufacutre" -> "LeckerSchmecker",
+    "name" -> "Bratwurst",
+    "decription" -> "100% reinste Bratwurst perfekt auf den Grill oder in der Pfane.",
+    "price" -> 1.5f,
+    "picture" -> "tbd",
+    "stock" -> 55
+  )
 
-  val tmpUser1= Json.obj("id"->1,"points"->200,"isWorker"->true)
-  val tmpUser2= Json.obj("id"->1,"points"->200,"isWorker"->false)
-  val tmpUserData1 = Json.obj("userid"->1,"name"->"Hans Meier","adresse"->"Beispielweg 66")
-  val tmpUserData2 = Json.obj("userid"->2,"name"->"Carla Meier","adresse"->"Beispielweg 66")
+  def login(name: String, pw: String) = Action { _ => Ok(tmpArticle) }
 
-
-  val tmpOrder1 = Json.obj("id"->1,"state"->"Unterwegs","date"->"Heute","user"->1)
-  val tmpOrder2 = Json.obj("id"->2,"state"->"In Bearbeitung","date"->"Heute","user"->1)
-  val tmpOrder3 = Json.obj("id"->3,"state"->"Unbearbeitet","date"->"Heute","user"->1)
-  val tmpOrder4 = Json.obj("id"->4,"state"->"Unbearbeitet","date"->"Heute","user"->2)
-  val tmpOrder5 = Json.obj("id"->5,"state"->"Ausgestellt","date"->"Heute","user"-2)
-  val orderArticle1= Json.obj("orderid"->1,"articleid"->1,"number"->5) 
-  val orderArticle2= Json.obj("orderid"->2,"articleid"->2,"number"->2) 
-  val orderArticle3= Json.obj("orderid"->3,"articleid"->2,"number"->1) 
-  val orderArticle4= Json.obj("orderid"->4,"articleid"->2,"number"->3) 
-  val orderArticle5= Json.obj("orderid"->5,"articleid"->1,"number"->5) 
-*/
-   
-  
-  def login(name: String, pw: String)= Action{ _ => 
-    Ok(tmpArticle)
-  } 
-
- def getAllCategorys= Action{ _ => 
-    val a=List("grillgut","säfte")  
-    Ok(Json.toJson(a))
+  def getAllCategorys = Action { _ =>
+    val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
+    var statement = connection.createStatement()
+    var resultSet = statement.executeQuery("SELECT c_name FROM category")
+    var js = new JsArray()
+    while (resultSet.next()) {
+      var r = Json.obj("name" -> resultSet.getString("c_name"))
+      js = js.append(r)
+    }
+    Ok(Json.toJson(js))
   }
 
-  def getAllArticle= Action{ _ => 
-
-    Ok(tmpArticle)
-  }
-  
-  def getArticleByID(id: Int) = Action{ _ => 
-    Ok(tmpArticle)
-  }
-
-  def getArticle(category: String, name: String) = Action {_ =>
-    Ok(tmpArticle)
-  }
-
-  def getArticleComments(id: Int)= Action{ _ => 
-   Ok(tmpArticle)
-  }
-     
-  def getCustomerByID(id: Int) = Action{ _ => 
-     Ok(tmpArticle)
+  def getAllArticle = Action { _ =>
+    val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
+    var statement = connection.createStatement()
+    var resultSet = statement.executeQuery("SELECT * FROM Article")
+    var js = new JsArray()
+    while (resultSet.next()) {
+      var r = Json.obj(
+        "id" -> resultSet.getInt("id"),
+        "manufacutre" -> resultSet.getString("manufacture"),
+        "name" -> resultSet.getString("name"),
+        "decription" -> resultSet.getString("description"),
+        "price" -> resultSet.getFloat("price"),
+        "stock" -> resultSet.getInt("stock")
+      )
+      js = js.append(r)
+    }
+    Ok(Json.toJson(js))
   }
 
-  def getAllOrder= Action{ _ => 
-       Ok(tmpArticle)
+  def getArticleByID(id: Int) = Action { _ =>
+    val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
+    var statement = connection.createStatement()
+    var resultSet =
+      statement.executeQuery(s"SELECT * FROM Article WHERE id = $id")
+    var js = new JsArray()
+    while (resultSet.next()) {
+      var r = Json.obj(
+        "id" -> resultSet.getInt("id"),
+        "manufacutre" -> resultSet.getString("manufacture"),
+        "name" -> resultSet.getString("name"),
+        "decription" -> resultSet.getString("description"),
+        "price" -> resultSet.getFloat("price"),
+        "stock" -> resultSet.getInt("stock")
+      )
+      js = js.append(r)
+    }
+    Ok(Json.toJson(js))
   }
 
-  def getOrderByID(id: Int) = Action{ _ => 
-     Ok(tmpArticle)
+  def getArticle(category: String, name: String) = Action { _ =>
+    val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
+    var statement = connection.createStatement()
+    //JOINTS
+    var resultSet = statement.executeQuery("SELECT * FROM Article WHERE ")
+    var js = new JsArray()
+    while (resultSet.next()) {
+      var r = Json.obj(
+        "id" -> resultSet.getInt("id"),
+        "manufacutre" -> resultSet.getString("manufacture"),
+        "name" -> resultSet.getString("name"),
+        "decription" -> resultSet.getString("description"),
+        "price" -> resultSet.getFloat("price"),
+        "stock" -> resultSet.getInt("stock")
+      )
+      //Gutes design ist, wenn dein Array ein neues Array return wenn du etwas hinzufügst ..... SCALA
+      js = js.append(r)
+    }
+    Ok(Json.toJson(js))
   }
 
-  def getOrderByCustomerID(cid: Int) = Action{ _ =>   
-    Ok(tmpArticle)
+  def getArticleComments(id: Int) = Action { _ =>
+    val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
+    var statement = connection.createStatement()
+    var resultSet =
+      statement.executeQuery(s"SELECT * FROM rating WHERE articleID = $id")
+    var js = new JsArray()
+    while (resultSet.next()) {
+      var r = Json.obj(
+        "id" -> resultSet.getInt("id"),
+        "text" -> resultSet.getString("text"),
+        "rating" -> resultSet.getString("rating"),
+        "userID" -> resultSet.getInt("userID"),
+        "articleID" -> resultSet.getInt("articleID")
+      )
+      js = js.append(r)
+    }
+    Ok(Json.toJson(js))
+
   }
+
+  def getCustomerByID(id: Int) = Action { _ =>
+    val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
+    var statement = connection.createStatement()
+    var resultSet =
+      statement.executeQuery(s"SELECT * FROM markt_user WHERE id = $id")
+    var js = new JsArray()
+    while (resultSet.next()) {
+      var r = Json.obj(
+        "id" -> resultSet.getInt("id"),
+        "points" -> resultSet.getInt("points"),
+        "isWorker" -> resultSet.getInt("isWorker")
+      )
+      js = js.append(r)
+    }
+    Ok(Json.toJson(js))
+  }
+
+  def getAllOrder = Action { _ =>
+    val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
+    var statement = connection.createStatement()
+    var getOrder = statement.executeQuery("SELECT * FROM markt_order")
+    var js = new JsArray()
+    while (getOrder.next()) {
+      var statement2 = connection.createStatement()
+      var getArticle = statement2.executeQuery(
+        "SELECT * FROM  article INNER JOIN order_article ON article.id = order_article.articleID WHERE order_article.orderID=" + getOrder
+          .getInt(
+            "id"
+          )
+      )
+      var js2 = new JsArray()
+      while (getArticle.next()) {
+        var a = Json.obj(
+          "id" -> getArticle.getInt("id"),
+          "manufacutre" -> getArticle.getString("manufacture"),
+          "name" -> getArticle.getString("name"),
+          "decription" -> getArticle.getString("description"),
+          "price" -> getArticle.getFloat("price"),
+          "stock" -> getArticle.getInt("stock"),
+          "number" -> getArticle.getInt("number")
+        )
+        js2 = js2.append(a)
+
+      }
+      var r = Json.obj(
+        "id" -> getOrder.getInt("id"),
+        "userID" -> getOrder.getInt("userID"),
+        "state" -> getOrder.getString("state"),
+        "date" -> getOrder.getString("date"),
+        "article" -> js2
+      )
+      js = js.append(r)
+    }
+    Ok(Json.toJson(js))
+
+  }
+
+  def getOrderByID(id: Int) = Action { _ => Ok(tmpArticle) }
+
+  def getOrderByCustomerID(cid: Int) = Action { _ => Ok(tmpArticle) }
 
   def newOrder = Action(parse.json) { implicit request =>
-     Ok(Json.toJson(request.body))
-  }
-
-    def newComment = Action(parse.json) { implicit request => 
     Ok(Json.toJson(request.body))
   }
 
-    def newArticle = Action(parse.json) { implicit request =>
+  def newComment = Action(parse.json) { implicit request =>
     Ok(Json.toJson(request.body))
   }
 
-
-     def updateOrder = Action(parse.json) { implicit request =>  
+  def newArticle = Action(parse.json) { implicit request =>
     Ok(Json.toJson(request.body))
   }
 
-     def fillStock = Action(parse.json) { implicit request =>  
+  def updateOrder = Action(parse.json) { implicit request =>
     Ok(Json.toJson(request.body))
   }
 
-     def updatePrice = Action(parse.json) { implicit request =>    
+  def fillStock = Action(parse.json) { implicit request =>
+    Ok(Json.toJson(request.body))
+  }
+
+  def updatePrice = Action(parse.json) { implicit request =>
     Ok(Json.toJson(request.body))
   }
 }

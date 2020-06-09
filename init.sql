@@ -71,3 +71,12 @@ INSERT INTO markt_user(id,points,isWorker)
 VALUES
 (-1,500,TRUE),
 (-2,1000,FALSE);
+
+INSERT INTO markt_order (userID,state,DATE)
+VALUES
+(-1,"Auf den Weg","2013-06-01");
+
+INSERT INTO order_article(articleID,orderID,number)
+VALUES
+(1,1,20),
+(20,1,20);

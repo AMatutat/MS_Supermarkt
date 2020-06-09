@@ -6,9 +6,9 @@ import java.util.ArrayList
 import scala.collection.mutable.HashMap
 
 object Main {
-  //val port = "8080"
-  //val backend = "http://localhost:" + port
-  val backend = "http://supermarkt.dvess.network/api"
+  val port = "8080"
+  val backend = "http://localhost:" + port
+  //val backend = "http://supermarkt.dvess.network/api"
 
   /**
     * Aktueller User
