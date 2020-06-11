@@ -25,6 +25,5 @@ COPY lib/ lib/
 COPY conf/ conf/
 COPY project/ project/
 
-
 EXPOSE 8080
 CMD ["sbt", "run"]
