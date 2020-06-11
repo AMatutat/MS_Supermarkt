@@ -11,6 +11,7 @@ USER postgres
 # Note: here we use ``&&\`` to run commands one after the other - the ``\``
 #       allows the RUN command to span multiple lines.
 RUN    /etc/init.d/postgresql start &&\
+    psql --command "ALTER ROLE postgres WITH PASSWORD 'postgres';" &&\
     psql --command "CREATE DATABASE smartmarkt;" &&\
     psql --command "\c smartmarkt" &&\
     psql --command "CREATE TABLE category(id SERIAL PRIMARY KEY NOT NULL,c_name TEXT NOT NULL);" &&\
