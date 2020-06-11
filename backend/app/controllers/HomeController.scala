@@ -19,12 +19,14 @@ import java.sql.Statement
 class HomeController @Inject() (configuration: play.api.Configuration, val controllerComponents: ControllerComponents)
     extends BaseController {
 
-  val dbuser = configuration.underlying.getString("POSTGRES_USER")
-  val dbpw =configuration.underlying.getString("POSTGRES_PASSWORD")
-  val url= configuration.underlying.getString("POSTGRES_DB")
+  val dbuser = configuration.underlying.getString("myPOSTGRES_USER")
+  val dbpw =configuration.underlying.getString("myPOSTGRES_PASSWORD")
+  val url= configuration.underlying.getString("myPOSTGRES_DB")
+ 
   val dbURL = f"jdbc:postgresql://localhost:5432/$url"
 
   def login(name: String, pw: String) = Action { _ =>
+    println(dbuser)
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
     var resultSet = statement.executeQuery("SELECT * FROM USER WHERE id= 1")
