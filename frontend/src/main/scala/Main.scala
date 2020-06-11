@@ -15,7 +15,7 @@ object Main {
   /**
     * Aktueller User
     */
-  var user = new User(-1, true, 220)
+  var user = new User(1, true, 220)
 
   /**
     * Einkaufswagen vom aktuellen User
