@@ -1,3 +1,4 @@
+
 class Article(
     val id: Int,
     var manufacture: String,
@@ -18,7 +19,7 @@ class Article(
   def setName(name: String): Unit = this.name = name
   def setDescription(des: String): Unit = this.description = des
   def restock(anzahl: Int): Unit = this.stock=getStock() + anzahl
-  def pushChanges():Unit = {
+  def pushChanges(url: String):Unit = {
     println(this.name)
     println(this.description)
     println(this.price)

@@ -412,59 +412,11 @@ class HomeController @Inject() (val controllerComponents: ControllerComponents)
 
   }
 
-  def fillStock = Action(parse.json) { implicit request =>
-    try {
-      val article = Json.toJson(request.body)
-      val stock = article("stock")
-      val id = article("id")
-
-      val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-      val sql = s"UPDATE article SET stock=$stock WHERE id=$id"
-      val statement =
-        connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
-      val affectedRows =
-        statement.executeUpdate()
-
-      if (affectedRows == 0)
-        Ok("ERROR")
-      else {
-        val generatedKey = statement.getGeneratedKeys()
-        generatedKey.next()
-        Ok(Json.toJson(generatedKey.getLong(1)))
-      }
-    } catch {
-      case e: Exception => Ok("ERROR")
-    }
-  }
-
-  def updatePrice = Action(parse.json) { implicit request =>
-    try {
-      val article = Json.toJson(request.body)
-      val price = article("price")
-      val id = article("id")
-
-      val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-      val sql = s"UPDATE article SET price=$price WHERE id=$id"
-      val statement =
-        connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
-      val affectedRows = statement.executeUpdate()
-      if (affectedRows == 0)
-        Ok("ERROR")
-      else {
-        val generatedKey = statement.getGeneratedKeys()
-        generatedKey.next()
-        Ok(Json.toJson(generatedKey.getLong(1)))
-      }
-    } catch {
-      case e: Exception => Ok("ERROR")
-    }
-  }
-
   def alterArticle = Action(parse.json) { implicit request =>
     try {
       val article = Json.toJson(request.body)
-      val price = article("price")
       val id = article("id")
+      val price = article("price")
       val manufacture = article("manufacture").toString().replace('\"', '\'')
       val name = article("name").toString().replace('\"', '\'')
       val description = article("description").toString().replace('\"', '\'')
