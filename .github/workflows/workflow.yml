@@ -28,6 +28,9 @@ env:
   IMAGE_database: ms-supermarkt-database
   REGISTRY_HOSTNAME: gcr.io
   DEPLOYMENT_NAME: ms-supermarkt
+  POSTGRES_USER: ${{secrets.POSTGRES_USER}}
+  POSTGRES_PASSWORD: ${{secrets.POSTGRES_PASSWORD}}
+  POSTGRES_DB: ${{secrets.POSTGRES_DB}}
 
 jobs:
   setup-build-publish-deploy:
@@ -84,6 +87,9 @@ jobs:
         ./kustomize edit set image ms-supermarkt-backend=$REGISTRY_HOSTNAME/$GKE_PROJECT/$IMAGE_backend:${GITHUB_SHA}
         ./kustomize edit set image ms-supermarkt-frontend=$REGISTRY_HOSTNAME/$GKE_PROJECT/$IMAGE_frontend:${GITHUB_SHA}
         ./kustomize edit set image ms-supermarkt-database=$REGISTRY_HOSTNAME/$GKE_PROJECT/$IMAGE_database:${GITHUB_SHA}
+        ./kustomize edit add secret ms-supermarkt --from-literal POSTGRES_USER=$POSTGRES_USER
+        ./kustomize edit add secret ms-supermarkt --from-literal POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+        ./kustomize edit add secret ms-supermarkt --from-literal POSTGRES_DB=$POSTGRES_DB
         ./kustomize build . | kubectl apply -f -
         kubectl rollout status deployment/$DEPLOYMENT_NAME
         kubectl get services -o wide

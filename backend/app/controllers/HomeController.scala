@@ -16,12 +16,13 @@ import java.sql.Statement
   * application's home page.
   */
 @Singleton
-class HomeController @Inject() (val controllerComponents: ControllerComponents)
+class HomeController @Inject() (configuration: play.api.Configuration, val controllerComponents: ControllerComponents)
     extends BaseController {
 
-  val dbuser = "postgres"
-  val dbpw = "postgres"
-  val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
+  val dbuser = configuration.underlying.getString("POSTGRES_USER")
+  val dbpw =configuration.underlying.getString("POSTGRES_PASSWORD")
+  val url= configuration.underlying.getString("POSTGRES_DB")
+  val dbURL = f"jdbc:postgresql://localhost:5432/$url"
 
   def login(name: String, pw: String) = Action { _ =>
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
