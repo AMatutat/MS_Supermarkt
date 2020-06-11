@@ -30,7 +30,7 @@ class HomeController @Inject() (configuration: play.api.Configuration, val contr
     println(dbuser)
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
-    var resultSet = statement.executeQuery("SELECT * FROM smartmarkt.markt_user WHERE id= 1")
+    var resultSet = statement.executeQuery("SELECT * FROM markt_user WHERE id= 1")
     var user = Json.obj()
     if (resultSet.next()) {
       user = Json.obj(
@@ -48,7 +48,7 @@ class HomeController @Inject() (configuration: play.api.Configuration, val contr
   def getAllCategorys = Action { _ =>
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
-    var resultSet = statement.executeQuery("SELECT c_name FROM smartmarkt.category")
+    var resultSet = statement.executeQuery("SELECT c_name FROM category")
     var categorys = new JsArray()
     while (resultSet.next()) {
       var category = Json.obj("name" -> resultSet.getString("c_name"))
@@ -60,7 +60,7 @@ class HomeController @Inject() (configuration: play.api.Configuration, val contr
   def getAllArticle = Action { _ =>
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
-    var resultSet = statement.executeQuery("SELECT * FROM smartmarkt.Article")
+    var resultSet = statement.executeQuery("SELECT * FROM Article")
     var articleList = new JsArray()
     while (resultSet.next()) {
       var article = Json.obj(
@@ -80,7 +80,7 @@ class HomeController @Inject() (configuration: play.api.Configuration, val contr
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
     var resultSet =
-      statement.executeQuery(s"SELECT * FROM smartmarkt.Article WHERE id = $id")
+      statement.executeQuery(s"SELECT * FROM Article WHERE id = $id")
     var article = Json.obj()
     if (resultSet.next()) {
       article = Json.obj(
@@ -103,24 +103,24 @@ class HomeController @Inject() (configuration: play.api.Configuration, val contr
     //Nur Kategorie angegeben
     if (!category.equals("_") && name.equals("_")) {
       resultSet = statement.executeQuery(
-        s"SELECT * FROM smartmarkt.article INNER JOIN (smartmarkt.category INNER JOIN smartmarkt.article_category ON smartmarkt.article_category.categoryID = category.id) ON article.id=article_category.articleID WHERE c_name='$category'"
+        s"SELECT * FROM article INNER JOIN (category INNER JOIN article_category ON article_category.categoryID = category.id) ON article.id=article_category.articleID WHERE c_name='$category'"
       )
     }
     // Nur Name angegeben
     else if (category.equals("_") && !name.equals("_")) {
       resultSet = statement.executeQuery(
-        f"SELECT * FROM smartmarkt.article WHERE name LIKE'$name%%'"
+        f"SELECT * FROM article WHERE name LIKE'$name%%'"
       )
     }
     //Beides angegeben
     else if (!category.equals("_") && !name.equals("_")) {
       resultSet = statement.executeQuery(
-        s"SELECT * FROM smartmarkt.article INNER JOIN (smartmarkt.category INNER JOIN smartmarkt.article_category ON smartmarkt.article_category.categoryID = category.id) ON article.id=article_category.articleID WHERE c_name='$category' AND name LIKE '$name%%'"
+        s"SELECT * FROM article INNER JOIN (category INNER JOIN article_category ON article_category.categoryID = category.id) ON article.id=article_category.articleID WHERE c_name='$category' AND name LIKE '$name%%'"
       )
     }
     //Nichts angegeben -> All Article
     else {
-      resultSet = statement.executeQuery("SELECT * FROM smartmarkt.article")
+      resultSet = statement.executeQuery("SELECT * FROM article")
     }
 
     var articleList = new JsArray()
