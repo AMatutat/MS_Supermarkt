@@ -22,8 +22,8 @@ class HomeController @Inject() (configuration: play.api.Configuration, val contr
   //val dbuser = configuration.underlying.getString("myPOSTGRES_USER")
   //val dbpw =configuration.underlying.getString("myPOSTGRES_PASSWORD")
   //val url= configuration.underlying.getString("myPOSTGRES_DB")
-      val dbuser ="docker"
-      val dbpw="docker"
+      val dbuser ="postgres"
+      val dbpw="postgres"
   val dbURL = "jdbc:postgresql://localhost:5432/smartmarkt"
 
   def login(name: String, pw: String) = Action { _ =>
