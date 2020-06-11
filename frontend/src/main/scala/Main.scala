@@ -4,6 +4,8 @@ import dom.window
 import org.querki.jquery._
 import java.util.ArrayList
 import scala.collection.mutable.HashMap
+import scala.scalajs.js.JSON
+import play.api.libs.json._
 
 object Main {
   //val port = "8080"
@@ -74,7 +76,7 @@ object Main {
     articleName.innerHTML = article.getName
     articleInfoDiv.id = "info-div"
     articleImg.id = "article-img"
-    articleImg.setAttribute("src", "../src/main/scala/tmp.png")
+    articleImg.setAttribute("src", "https://de.seaicons.com/wp-content/uploads/2015/06/Fruits-Vegetables-icon.png")
     articleImg.setAttribute("width", "80")
     articleImg.setAttribute("height", "80")
 
@@ -194,7 +196,6 @@ object Main {
     }
 
   }
-
   /**
     * Erstellt Kategorie Naviagor für die ArticleOverviewPage
     */
@@ -204,11 +205,13 @@ object Main {
     content.appendChild(navDiv)
     val xhr = new dom.XMLHttpRequest()
     xhr.open("GET", backend + "/categorys")
-
     xhr.onload = { (e: dom.Event) =>
-      if (xhr.status == 200) {
-        println("Kategorien: " + xhr.responseText)
-
+      if (xhr.status == 200) {    
+        println(xhr.response) 
+        val r = JSON.parse(xhr.response.toString)  
+        val item1 = r.pop()
+        println(item1)
+        println(item1.toString)
         val categoryList = document.createElement("ul")
         navDiv.id = "catDiv"
 
@@ -838,7 +841,7 @@ object Main {
       article.setManufacture($("#man-field").value().toString())
       article.setName($("#name-field").value().toString())
       article.setPrice($("#price-field").value().toString().toFloat)
-      article.pushChanges()
+      article.pushChanges(backend)
     }
     $("#exit-alter-button").click { () => createWarehousePage() }
 

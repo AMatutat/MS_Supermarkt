@@ -27,8 +27,8 @@ isWorker BOOLEAN NOT NULL
 CREATE TABLE markt_order(
 id SERIAL PRIMARY KEY NOT NULL,
 userID INTEGER REFERENCES markt_user(id),
-state TEXT NOT NULL,
-date DATE NOT NULL
+state TEXT NOT NULL DEFAULT 'Unbearbeitet',
+date DATE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -69,5 +69,14 @@ VALUES
 
 INSERT INTO markt_user(id,points,isWorker)
 VALUES
-(-1,500,TRUE),
-(-2,1000,FALSE);
+(1,500,TRUE),
+(2,1000,FALSE);
+
+INSERT INTO markt_order (userID,state)
+VALUES
+(1,'Auf den Weg');
+
+INSERT INTO order_article(articleID,orderID,number)
+VALUES
+(1,1,5),
+(2,1,5);

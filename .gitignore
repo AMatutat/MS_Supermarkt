@@ -16,3 +16,5 @@ frontend/project/project
 frontend/project/target
 settings
 .git
+.metals
+.vscode

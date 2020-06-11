@@ -13,14 +13,57 @@ spec:
         app: ms-supermarkt
     spec:
       containers:
-      - image: ms-supermarkt-frontend
-        name: ms-supermarkt-frontend
-        ports:
-        - containerPort: 80
-      - image: ms-supermarkt-backend
-        name: ms-supermarkt-backend
-        ports:
-        - containerPort: 8080
-        - containerPort: 50051
+        - image: ms-supermarkt-frontend
+          name: ms-supermarkt-frontend
+          ports:
+            - containerPort: 80
+        - image: ms-supermarkt-backend
+          name: ms-supermarkt-backend
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: ms-supermarkt
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: ms-supermarkt
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ms-supermarkt
+                  key: POSTGRES_PASSWORD
+          ports:
+            - containerPort: 8080
+            - containerPort: 50051
+        - image: ms-supermarkt-database
+          name: ms-supermarkt-database
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: ms-supermarkt
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: ms-supermarkt
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ms-supermarkt
+                  key: POSTGRES_PASSWORD
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data/
+              name: database
+              subPath: supermarkt-database
       restartPolicy: Always
+      volumes:
+        - name: database
+          gcePersistentDisk:
+            pdName: ms-supermarkt
+            fsType: ext4
 status: {}

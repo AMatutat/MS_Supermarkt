@@ -21,10 +21,9 @@ RUN \
 WORKDIR /build 
 COPY build.sbt .
 COPY app/ app/
+COPY lib/ lib/ 
 COPY conf/ conf/
-COPY test/ test/
 COPY project/ project/
-
 
 EXPOSE 8080
 CMD ["sbt", "run"]

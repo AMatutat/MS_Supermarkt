@@ -13,7 +13,7 @@ message OrderID {
 
 message OrderInformation{
     int32 userID=1;
-    int32 artickeID=2;
+    int32 articleID=2;
     int32 howMany=3;
 }
 

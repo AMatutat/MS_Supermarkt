@@ -32,8 +32,6 @@ POST /newArticle controllers.HomeController.newArticle
 
 #UPDATE
 POST /updateOrder controllers.HomeController.updateOrder 
-POST /fillStock controllers.HomeController.fillStock
-POST /updatePrice controllers.HomeController.updatePrice
-
-
+POST /alterArticle controllers.HomeController.alterArticle
+POST /alterUser controllers.HomeController.alterUser
 
