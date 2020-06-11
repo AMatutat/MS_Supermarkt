@@ -13,59 +13,56 @@ spec:
         app: ms-supermarkt
     spec:
       containers:
-      - image: ms-supermarkt-frontend
-        name: ms-supermarkt-frontend
-        ports:
-        - containerPort: 80
-      - image: ms-supermarkt-backend
-        name: ms-supermarkt-backend
-        env:
-          - name: POSTGRES_DB
-            valueFrom:
-              secretKeyRef:
-                name: ms-supermarkt
-                key: POSTGRES_DB
-          - name: POSTGRES_USER
-            valueFrom:
-              secretKeyRef:
-                name: ms-supermarkt
-                key: POSTGRES_USER
-          - name: POSTGRES_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: ms-supermarkt
-                key: POSTGRES_PASSWORD
-        ports:
-        - containerPort: 8080
-        - containerPort: 50051
-
-        - image: postgres
-        name: ms-supermarkt-db
-        env:
-          - name: POSTGRES_DB
-            valueFrom:
-              secretKeyRef:
-                name: ms-supermarkt
-                key: POSTGRES_DB
-          - name: POSTGRES_USER
-            valueFrom:
-              secretKeyRef:
-                name: ms-supermarkt
-                key: POSTGRES_USER
-          - name: POSTGRES_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: ms-supermarkt
-                key: POSTGRES_PASSWORD
-        volumeMounts:
-        - mountPath: /var/lib/postgresql/data/
-          name: db
-          subPath: ms-supermarkt-db
-        ports:
-        - containerPort: 5432
+        - image: ms-supermarkt-frontend
+          name: ms-supermarkt-frontend
+          ports:
+            - containerPort: 80
+        - image: ms-supermarkt-backend
+          name: ms-supermarkt-backend
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: ms-supermarkt
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: ms-supermarkt
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ms-supermarkt
+                  key: POSTGRES_PASSWORD
+          ports:
+            - containerPort: 8080
+            - containerPort: 50051
+        - image: ms-supermarkt-database
+          name: ms-supermarkt-database
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: ms-supermarkt
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: ms-supermarkt
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ms-supermarkt
+                  key: POSTGRES_PASSWORD
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data/
+              name: database
+              subPath: supermarkt-database
       restartPolicy: Always
       volumes:
-        - name: db
+        - name: database
           gcePersistentDisk:
             pdName: ms-supermarkt
             fsType: ext4
