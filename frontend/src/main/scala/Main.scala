@@ -74,7 +74,7 @@ object Main {
     articleName.innerHTML = article.getName
     articleInfoDiv.id = "info-div"
     articleImg.id = "article-img"
-    articleImg.setAttribute("src", "../src/main/scala/tmp.png")
+    articleImg.setAttribute("src", "https://de.seaicons.com/wp-content/uploads/2015/06/Fruits-Vegetables-icon.png")
     articleImg.setAttribute("width", "80")
     articleImg.setAttribute("height", "80")
 
