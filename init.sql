@@ -64,7 +64,7 @@ VALUES
     ('Milchprodukte'),
     ('Tiernahrung'),
     ('Haushaltsmittel'),
-    ('Vegetarisch/Vegan'),
+    ('Vegetarisch'),
     ('Sonstiges');
 
 
@@ -105,3 +105,5 @@ VALUES
     (3, 9),
     (4, 8),
     (4, 9);
+
+INSERT INTO rating (text,rating,userID,articleID) VALUES('Toll',5,1,1);

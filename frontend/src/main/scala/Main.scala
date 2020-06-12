@@ -4,6 +4,7 @@ import dom.window
 import org.querki.jquery._
 import java.util.ArrayList
 import scala.collection.mutable.HashMap
+import scala.scalajs.js
 import scala.scalajs.js.JSON
 import play.api.libs.json._
 
@@ -76,7 +77,10 @@ object Main {
     articleName.innerHTML = article.getName
     articleInfoDiv.id = "info-div"
     articleImg.id = "article-img"
-    articleImg.setAttribute("src", "https://de.seaicons.com/wp-content/uploads/2015/06/Fruits-Vegetables-icon.png")
+    articleImg.setAttribute(
+      "src",
+      "https://de.seaicons.com/wp-content/uploads/2015/06/Fruits-Vegetables-icon.png"
+    )
     articleImg.setAttribute("width", "80")
     articleImg.setAttribute("height", "80")
 
@@ -109,7 +113,7 @@ object Main {
       ref.setAttribute("class", cssclass)
     ref.textContent = label
     ref.setAttribute("href", link)
-    ref.id=id
+    ref.id = id
     return ref;
 
   }
@@ -120,13 +124,21 @@ object Main {
   def createNavigator(): Unit = {
     val userList = document.getElementById("navbar")
     //val homeButton = createButton("Home", "home-button")
-    val homeButton = createHREF("Home", "nav-link", "#","home-button")
-    val logButton = createHREF("Login", "nav-link", "#","log-button")
-    val myOrders = createHREF("Meine Bestellungen", "nav-link", "#","my-orders-button")
-    val shoppingcar = createHREF("Einkaufswagen", "nav-link", "#","shoppingcar-button")
-    val warehouse = createHREF("Lager", "nav-link", "#","warehouse-button")
-    val orders = createHREF("Alle Bestellungen", "nav-link", "#","orders-button")
-    val portal = createHREF("Portal", "nav-link", "http://portal.dvess.network/","portal-button")
+    val homeButton = createHREF("Home", "nav-link", "#", "home-button")
+    val logButton = createHREF("Login", "nav-link", "#", "log-button")
+    val myOrders =
+      createHREF("Meine Bestellungen", "nav-link", "#", "my-orders-button")
+    val shoppingcar =
+      createHREF("Einkaufswagen", "nav-link", "#", "shoppingcar-button")
+    val warehouse = createHREF("Lager", "nav-link", "#", "warehouse-button")
+    val orders =
+      createHREF("Alle Bestellungen", "nav-link", "#", "orders-button")
+    val portal = createHREF(
+      "Portal",
+      "nav-link",
+      "http://portal.dvess.network/",
+      "portal-button"
+    )
     val li0 = document.createElement("li")
     li0.setAttribute("class", "nav-item")
     val li1 = document.createElement("li")
@@ -196,28 +208,37 @@ object Main {
     }
 
   }
+
+  import scala.collection.mutable.ListBuffer
+
   /**
     * Erstellt Kategorie Naviagor für die ArticleOverviewPage
     */
   def createCatNavigator(): Unit = {
     val content = document.getElementById("content")
-    val navDiv = document.createElement("div") 
+    val navDiv = document.createElement("div")
     content.appendChild(navDiv)
+
     val xhr = new dom.XMLHttpRequest()
     xhr.open("GET", backend + "/categorys")
     xhr.onload = { (e: dom.Event) =>
-      if (xhr.status == 200) {    
-        println(xhr.response) 
-        val r = JSON.parse(xhr.response.toString)  
-        val item1 = r.pop()
-        println(item1)
-        println(item1.toString)
+      if (xhr.status == 200) {
+
+        var catList = new ListBuffer[String]()
+        val respons = js.JSON.parse(xhr.responseText)
+        respons match {
+          case jsonlist: js.Array[js.Dynamic] =>
+            for (cat <- jsonlist) {
+              catList += cat.name.toString
+            }
+        }
+        val categorys = catList.toList
         val categoryList = document.createElement("ul")
         navDiv.id = "catDiv"
 
         //DB Abfrage
-        val example = List("Hase", "Tier", "Gemüse", "Obst", "käse")
-        for (cat <- example) {
+        //val example = List("Hase", "Tier", "Gemüse", "Obst", "käse")
+        for (cat <- categorys) {
           val li = document.createElement("li")
           val c = createButton(cat, "filter-" + cat)
           li.appendChild(c)
@@ -225,7 +246,7 @@ object Main {
         }
         navDiv.appendChild(categoryList)
 
-        for (cat <- example) {
+        for (cat <- categorys) {
           $("#filter-" + cat).click { () => createArticleOverview(cat) }
         }
 
@@ -251,11 +272,24 @@ object Main {
 
     xhr.onload = { (e: dom.Event) =>
       if (xhr.status == 200) {
-        println("Artikel: " + xhr.responseText)
-        val a1 = new Article(1, "M1", "D1", "N1", 20f, 12)
-        val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
-        val exampleArticle = List(a1, a2)
 
+        var articleList = new ListBuffer[Article]()
+        val respons = js.JSON.parse(xhr.responseText)
+        respons match {
+          case jsonlist: js.Array[js.Dynamic] =>
+            for (article <- jsonlist) {
+              articleList += new Article(
+                article.id.toString.toInt,
+                article.manufacture.toString,
+                article.description.toString,
+                article.name.toString,
+                article.price.toString.toFloat,
+                article.stock.toString.toInt
+              )
+
+            }
+        }
+        val articles = articleList.toList
         val content = document.getElementById("content")
         val searchBar = document.createElement("INPUT")
 
@@ -267,12 +301,14 @@ object Main {
 
         val allArticles = document.createElement("div")
         allArticles.id = "all-article-div"
-        for (article <- exampleArticle) {
-          allArticles.appendChild(createArticleDiv(article, article.getName()))
+        for (article <- articles) {
+          allArticles.appendChild(
+            createArticleDiv(article, article.getID().toString)
+          )
         }
         content.appendChild(allArticles)
-        for (article <- exampleArticle) {
-          $("#" + article.getName()).click { () => createArticlePage(article) }
+        for (article <- articles) {
+          $("#" + article.getID()).click { () => createArticlePage(article) }
         }
 
         $("#article-search").keyup { () =>
@@ -296,9 +332,25 @@ object Main {
                 )
 
               xhr.onload = { (e: dom.Event) =>
-                println("Article mit Textfilter: " + xhr.responseText)
-                val exampleArticle2 = List(a1)
-                for (article <- exampleArticle2) {
+                var articleListFilter = new ListBuffer[Article]()
+                val responsFilter = js.JSON.parse(xhr.responseText)
+                responsFilter match {
+                  case jsonlist: js.Array[js.Dynamic] =>
+                    for (article <- jsonlist) {
+                      articleListFilter += new Article(
+                        article.id.toString.toInt,
+                        article.manufacture.toString,
+                        article.description.toString,
+                        article.name.toString,
+                        article.price.toString.toFloat,
+                        article.stock.toString.toInt
+                      )
+
+                    }
+                }
+                val articlesFilter = articleListFilter.toList
+
+                for (article <- articlesFilter) {
                   allArticles.appendChild(
                     createArticleDiv(article, article.getName())
                   )
@@ -387,7 +439,7 @@ object Main {
           user,
           article.getID()
         )
-        r.push()
+        r.push
         createArticlePage(article)
       }
     } //Show Reviews
@@ -396,19 +448,35 @@ object Main {
     xhr.open("GET", backend + "/articleComments/" + article.getID)
 
     xhr.onload = { (e: dom.Event) =>
-      println("Reviews: " + xhr.responseText)
       val allReviewDiv = document.createElement("div")
-      val review1 = new Review("Gut", 3, null, article.getID())
-      val review2 = new Review("Gut", 3, null, article.getID())
-      val reviews = List(review1, review2)
 
-      for (review <- reviews) {
+      var reviewList = new ListBuffer[Review]()
+      val respons = js.JSON.parse(xhr.responseText)
+      respons match {
+        case jsonlist: js.Array[js.Dynamic] =>
+          for (review <- jsonlist) {
+            reviewList += new Review(
+              review.text.toString,
+              review.rating.toString.toInt,
+              new User(
+                review.userID.toString.toInt,
+                false,
+                0
+              ), //isWoker und treuepunkte sind für Kommentar schreiber egal
+              review.articleID.toString.toInt
+            )
+          }
+      }
+
+      val reviews = reviewList.toList
+
+      for (rev <- reviews) {
         val reviewDiv = document.createElement("div")
-        val text = document.createTextNode(review.getText)
-        val author = document.createTextNode("" + review.getUser)
-        val rating = document.createTextNode("" + review.getRating)
-        val date = document.createTextNode(review.getDate)
-        reviewDiv.appendChild(date)
+        val text = document.createTextNode(rev.getText)
+        val author = document.createTextNode("" + rev.getUser.getID)
+        val rating = document.createTextNode("" + rev.getRating)
+       // val date = document.createTextNode(rev.getDate)
+       // reviewDiv.appendChild(date)
         reviewDiv.appendChild(author)
         reviewDiv.appendChild(text)
         reviewDiv.appendChild(rating)
@@ -431,24 +499,51 @@ object Main {
     xhr.open("GET", backend + "/orderByCustomerID/" + user.getID)
 
     xhr.onload = { (e: dom.Event) =>
-      println("MyOrders: " + xhr.responseText)
+      var orderList = new ListBuffer[Order]()
+      val respons = js.JSON.parse(xhr.responseText)
+     
+      respons match {
+        case jsonlist: js.Array[js.Dynamic] =>
+          for (order <- jsonlist) {          
+            val articleListe = new ListBuffer[Article]
+            order.article match {
+              case jsonlist2: js.Array[js.Dynamic] =>
+                for (article <- jsonlist2) {                 
+                  articleListe += new Article(
+                    article.id.toString.toInt,
+                    article.manufacture.toString,
+                    article.description.toString,
+                    article.name.toString,
+                    article.price.toString.toFloat,
+                    article.number.toString.toInt //stock als bestellanzahl verwenden
+                  )         
+                }
+            }
+            orderList +=
+              new Order(
+                order.id.toString.toInt,
+                this.user,
+                order.state.toString,
+                order.date.toString,
+                articleListe.toList
+              )
+          }
+        
+      }
 
-      val a1 = new Article(1, "M1", "D1", "N1", 20f, 12)
-      val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
-      val o1 = new Order(1, user, "On the Way")
-      val o2 = new Order(2, user, "In Bearbeitung")
-      var articles = List(a1, a2)
-      val orders = List(o1, o2)
+      val orders = orderList.toList
 
       for (order <- orders) {
         val orderDiv = document.createElement("div")
         val orderState = document.createTextNode(order.getState)
 
         //GET Articles to order
-        for (article <- articles) {
+        for (article <- order.getArticle) {
           val articleName = document.createTextNode(article.getName)
           orderDiv.appendChild(articleName)
-          orderDiv.appendChild(document.createTextNode("Anzahl: tbd"))
+          orderDiv.appendChild(
+            document.createTextNode("Anzahl: " + article.getStock)
+          )
         }
         orderDiv.appendChild(
           document.createTextNode("Bestellt am: " + order.getDate())
@@ -472,7 +567,10 @@ object Main {
     for ((article, number) <- shoppingcar) {
       val articleDiv = document.createElement("div")
       val img = document.createElement("IMG")
-      img.setAttribute("src", "https://de.seaicons.com/wp-content/uploads/2015/06/Fruits-Vegetables-icon.png")
+      img.setAttribute(
+        "src",
+        "https://de.seaicons.com/wp-content/uploads/2015/06/Fruits-Vegetables-icon.png"
+      )
       img.setAttribute("width", "50")
       img.setAttribute("height", "50")
       articleDiv.appendChild(img)
@@ -584,26 +682,38 @@ object Main {
     clearContent()
 
     val content = document.getElementById("content")
+    val allArticles = document.createElement("div")
+    val searchBar = document.createElement("INPUT")
+    val newArticleButton = createButton("Neuer Artikel", "new-article-button")
+
+    searchBar.id = "stock-search"
+    searchBar.setAttribute("type", "Text")
+    searchBar.setAttribute("placeholder", "Suche...")
+    content.appendChild(searchBar)
 
     val xhr = new dom.XMLHttpRequest()
     xhr.open("GET", backend + "/allArticle")
 
     xhr.onload = { (e: dom.Event) =>
-      println("Lager: " + xhr.responseText)
-      val allArticles = document.createElement("div")
-      val searchBar = document.createElement("INPUT")
-      val newArticleButton = createButton("Neuer Artikel", "new-article-button")
+      var articleList = new ListBuffer[Article]()
+      val respons = js.JSON.parse(xhr.responseText)
+      respons match {
+        case jsonlist: js.Array[js.Dynamic] =>
+          for (article <- jsonlist) {
+            articleList += new Article(
+              article.id.toString.toInt,
+              article.manufacture.toString,
+              article.description.toString,
+              article.name.toString,
+              article.price.toString.toFloat,
+              article.stock.toString.toInt
+            )
 
-      searchBar.id = "stock-search"
-      searchBar.setAttribute("type", "Text")
-      searchBar.setAttribute("placeholder", "Suche...")
-      content.appendChild(searchBar)
+          }
+      }
+      val articles = articleList.toList
 
-      val a1 = new Article(1, "M1", "D1", "N1", 20f, 12)
-      val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
-      val exampleArticle = List(a1, a2)
-
-      for (article <- exampleArticle) {
+      for (article <- articles) {
         allArticles.appendChild(createStorageDiv(article))
         content.appendChild(allArticles)
 
@@ -628,13 +738,28 @@ object Main {
             xhr.open("GET", backend + "/article/_/" + filter)
 
             xhr.onload = { (e: dom.Event) =>
-              println("lager with filter: " + xhr.responseText)
-
               while (allArticles.firstChild != null) {
                 allArticles.removeChild(allArticles.firstChild)
               }
-              val exampleArticle2 = List(a2)
-              for (article <- exampleArticle2) {
+              var articleList = new ListBuffer[Article]()
+              val respons = js.JSON.parse(xhr.responseText)
+              respons match {
+                case jsonlist: js.Array[js.Dynamic] =>
+                  for (article <- jsonlist) {
+                    articleList += new Article(
+                      article.id.toString.toInt,
+                      article.manufacture.toString,
+                      article.description.toString,
+                      article.name.toString,
+                      article.price.toString.toFloat,
+                      article.stock.toString.toInt
+                    )
+
+                  }
+              }
+              val articles = articleList.toList
+
+              for (article <- articles) {
                 allArticles.appendChild(createStorageDiv(article))
 
                 $("#alter-button-" + article.getID()).click { () =>
@@ -684,13 +809,39 @@ object Main {
     xhr.open("GET", backend + "/allOrder")
 
     xhr.onload = { (e: dom.Event) =>
-      println("AllOrders: " + xhr.responseText)
-      val a1 = new Article(1, "M1", "D1", "N1", 20f, 12)
-      val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
-      val o1 = new Order(1, user, "Unterwegs")
-      val o2 = new Order(2, user, "In Bearbeitung")
-      var articles = List(a1, a2)
-      val orders = List(o1, o2)
+      var orderList = new ListBuffer[Order]()
+      val respons = js.JSON.parse(xhr.responseText)
+     
+      respons match {
+        case jsonlist: js.Array[js.Dynamic] =>
+          for (order <- jsonlist) {          
+            val articleListe = new ListBuffer[Article]
+            order.article match {
+              case jsonlist2: js.Array[js.Dynamic] =>
+                for (article <- jsonlist2) {                 
+                  articleListe += new Article(
+                    article.id.toString.toInt,
+                    article.manufacture.toString,
+                    article.description.toString,
+                    article.name.toString,
+                    article.price.toString.toFloat,
+                    article.number.toString.toInt //stock als bestellanzahl verwenden
+                  )         
+                }
+            }
+            orderList +=
+              new Order(
+                order.id.toString.toInt,
+                new User(order.userID.toString.toInt,false,0),
+                order.state.toString,
+                order.date.toString,
+                articleListe.toList
+              )
+          }
+        
+      }
+
+      val orders = orderList.toList
 
       for (order <- orders) {
         val orderDiv = document.createElement("div")
@@ -704,14 +855,14 @@ object Main {
         )
         orderDiv.appendChild(document.createElement("BR"))
         orderDiv.appendChild(
-          document.createTextNode("Kunde: " + order.getCustomer.getID())
+          document.createTextNode("Kunde: " + "INSERT NAMEE")
         )
         orderDiv.appendChild(document.createElement("BR"))
         orderDiv.appendChild(
-          document.createTextNode("Adresse: " + order.getCustomer.getID())
+          document.createTextNode("Adresse: " + "INSERT ADRESSE")
         )
         orderDiv.appendChild(document.createElement("BR"))
-        orderDiv.appendChild(document.createTextNode("Status: " + order.state))
+        orderDiv.appendChild(document.createTextNode("Status: " + order.getState))
         orderDiv.appendChild(moreButton)
         content.appendChild(orderDiv)
 
@@ -719,7 +870,7 @@ object Main {
           createOrderDetailsPage(order)
         }
       }
-
+    
     }
     xhr.send()
   }
@@ -732,11 +883,7 @@ object Main {
   def createOrderDetailsPage(order: Order): Unit = {
     clearContent()
 
-    val xhr = new dom.XMLHttpRequest()
-    xhr.open("GET", backend + "/orderByID/" + order.getID)
-
-    xhr.onload = { (e: dom.Event) =>
-      println("Bestellung: " + xhr.responseText)
+   
       val content = document.getElementById("content")
       val headerDiv = document.createElement("Div")
       val comboBox = document.createElement("SELECT")
@@ -763,23 +910,22 @@ object Main {
         document.createTextNode("KundenNr: " + order.getCustomer().getID())
       )
       headerDiv.appendChild(document.createElement("BR"))
-      headerDiv.appendChild(document.createTextNode("Kunde: Test Meier"))
+      headerDiv.appendChild(document.createTextNode("Kunde: INSERT NAME"))
       headerDiv.appendChild(document.createElement("BR"))
-      headerDiv.appendChild(document.createTextNode("Adresse: Testweg 12"))
+      headerDiv.appendChild(document.createTextNode("Adresse: INSERT ADRESSE"))
       headerDiv.appendChild(document.createElement("BR"))
       content.appendChild(headerDiv)
 
-      val a1 = new Article(1, "M1", "D1", "N1", 20f, 12)
-      val a2 = new Article(2, "M2", "D2", "N2", 2f, 12)
-      var articles = List(a1, a2)
+      
+      var articles = order.getArticle
 
       for (article <- articles) {
         val articleBox = document.createElement("INPUT")
         articleBox.setAttribute("type", "checkbox")
         content.appendChild(
           document.createTextNode(
-            "Artikel: " + article.getName() + "   ID: " + article
-              .getID() + "   Anzahl: TEMP   "
+            "Artikel: " + article.getName + "   ID: " + article
+              .getID + "   Anzahl:    "+article.getStock
           )
         )
         content.appendChild(articleBox)
@@ -791,8 +937,7 @@ object Main {
       $("#select-box").change(() => {
         order.setStatus($("#select-box").value().toString())
       })
-    }
-    xhr.send()
+
   }
 
   /**
@@ -863,10 +1008,10 @@ object Main {
     number.setAttribute("type", "number")
 
     content.appendChild(
-      document.createTextNode(article.getName() + " " + article.getID())
+      document.createTextNode(article.getName() + "    ID:" + article.getID())
     )
     content.appendChild(
-      document.createTextNode("Auf Lager: " + article.getStock())
+      document.createTextNode("    Auf Lager: " + article.getStock())
     )
     content.appendChild(number)
     content.appendChild(document.createTextNode("Hinzufügen"))
@@ -883,4 +1028,4 @@ object Main {
 
 }
 
-//Befehl zum compilen sbt ~fastOptJS pder sbt fullOptJS
+//Befehl zum compilen sbt ~fastOptJS oder sbt fullOptJS
