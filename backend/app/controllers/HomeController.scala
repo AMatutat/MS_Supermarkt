@@ -31,8 +31,7 @@ class HomeController @Inject() (
 
   def createDB: Unit = {
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-    var statement = connection.createStatement() 
-    connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
+    var statement = connection.createStatement()   
     try {
 
    
