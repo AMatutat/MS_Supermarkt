@@ -1,7 +1,6 @@
 FROM ubuntu:16.04
 
 
-COPY init.sql /docker-entrypoint-initdb.d/
 
 RUN apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main" > /etc/apt/sources.list.d/pgdg.list
@@ -16,8 +15,8 @@ USER postgres
 #       allows the RUN command to span multiple lines.
 
 RUN    /etc/init.d/postgresql start &&\
-    psql --command "ALTER ROLE postgres WITH PASSWORD 'postgres';" 
-    #psql --command "CREATE DATABASE smartmarkt" &&\
+    psql --command "ALTER ROLE postgres WITH PASSWORD 'postgres';" &&\
+    psql --command "CREATE DATABASE smartmarkt;"
     #psql --command "\c smartmarkt" &&\
     #psql --command "CREATE TABLE category(id SERIAL PRIMARY KEY NOT NULL,c_name TEXT NOT NULL);" &&\
     #psql --command "CREATE TABLE article(id SERIAL PRIMARY KEY NOT NULL,manufacture TEXT NOT NULL,name TEXT NOT NULL,description TEXT NOT NULL, price FLOAT NOT NULL,picture BYTEA,stock INTEGER NOT NULL);" &&\

@@ -26,21 +26,16 @@ class HomeController @Inject() (
   //val url= configuration.underlying.getString("myPOSTGRES_DB")
   val dbuser = "postgres"
   val dbpw = "postgres"
-  val dbURL = "jdbc:postgresql:/localhost:5432/smartmarkt"
+  val dbURL = "jdbc:postgresql://localhost:5432/smartmarkt"
   createDB
 
   def createDB: Unit = {
-    var connection = DriverManager.getConnection(
-      "jdbc:postgresql:/localhost:5432",
-      dbuser,
-      dbpw
-    )
-    var statement = connection.createStatement()
-    var sql = "CREATE DATABASE smartmarkt;"
-    statement.execute(sql)
-    connection.close()
-    connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-    sql =
+    val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
+    var statement = connection.createStatement()   
+    try {
+
+   
+    var sql =
       "CREATE TABLE category(id SERIAL PRIMARY KEY NOT NULL,c_name TEXT NOT NULL);"
     statement.execute(sql)
     sql =
@@ -70,6 +65,10 @@ class HomeController @Inject() (
     sql =
       "INSERT INTO article_category(articleID,categoryID)VALUES(1, 5),(2, 3),(2, 9),(2, 4),(3, 2),(3, 8),(3, 9),(4, 8),(4, 9);"
     statement.execute(sql)
+
+       } catch {
+      case e: Exception => println("DB ALREADY EXIST")
+    }
   }
 
   def login(name: String, pw: String) = Action { _ =>
