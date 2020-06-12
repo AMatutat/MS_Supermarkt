@@ -472,7 +472,7 @@ object Main {
     for ((article, number) <- shoppingcar) {
       val articleDiv = document.createElement("div")
       val img = document.createElement("IMG")
-      img.setAttribute("src", "../src/main/scala/tmp.png")
+      img.setAttribute("src", "https://de.seaicons.com/wp-content/uploads/2015/06/Fruits-Vegetables-icon.png")
       img.setAttribute("width", "50")
       img.setAttribute("height", "50")
       articleDiv.appendChild(img)
