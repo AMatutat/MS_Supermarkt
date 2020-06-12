@@ -1,4 +1,8 @@
 FROM ubuntu:16.04
+
+
+COPY init.sql /docker-entrypoint-initdb.d/
+
 RUN apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main" > /etc/apt/sources.list.d/pgdg.list
 RUN apt-get update && apt-get install -y python-software-properties software-properties-common postgresql-9.3 postgresql-client-9.3 postgresql-contrib-9.3
@@ -10,20 +14,23 @@ USER postgres
 # then create a database `docker` owned by the ``docker`` role.
 # Note: here we use ``&&\`` to run commands one after the other - the ``\``
 #       allows the RUN command to span multiple lines.
+
 RUN    /etc/init.d/postgresql start &&\
-    psql --command "ALTER ROLE postgres WITH PASSWORD 'postgres';" &&\
-    psql --command "CREATE DATABASE smartmarkt;" &&\
-    psql --command "\c smartmarkt" &&\
-    psql --command "CREATE TABLE category(id SERIAL PRIMARY KEY NOT NULL,c_name TEXT NOT NULL);" &&\
-    psql --command "CREATE TABLE article(id SERIAL PRIMARY KEY NOT NULL,manufacture TEXT NOT NULL,name TEXT NOT NULL,description TEXT NOT NULL, price FLOAT NOT NULL,picture BYTEA,stock INTEGER NOT NULL);" &&\
-    psql --command "CREATE TABLE article_category(articleID INTEGER REFERENCES article(id),categoryID INTEGER REFERENCES category(id));" &&\
-    psql --command "CREATE TABLE markt_user(id INTEGER PRIMARY KEY NOT NULL,points INTEGER,isWorker BOOLEAN NOT NULL);" &&\
-    psql --command "CREATE TABLE markt_order(id SERIAL PRIMARY KEY NOT NULL,userID INTEGER REFERENCES markt_user(id),state TEXT NOT NULL DEFAULT 'Unbearbeitet',date DATE NOT NULL DEFAULT CURRENT_TIMESTAMP);"&&\
-    psql --command "CREATE TABLE order_article(articleID INTEGER REFERENCES article(id),orderID INTEGER REFERENCES markt_order(id),number INTEGER NOT NULL);" &&\
-    psql --command "CREATE TABLE rating(id SERIAL PRIMARY KEY NOT NULL,text TEXT NOT NULL,rating INTEGER NOT NULL,userID INTEGER REFERENCES markt_user(id),articleID INTEGER REFERENCES article(id));" &&\
-    psql --command "INSERT INTO category(c_name)VALUES('Gemuese'),('Obst'),('Fleisch'),('Backwaren'),('Milchprodukte'),('Tiernahrung'),('Haushaltsmittel'),('Vegetarisch/Vegan'),('Sonstiges');" &&\
-    psql --command "INSERT INTO article (manufacture,name,description,price,stock)VALUES('Schrott&Teuer','Ziegenkaese 200g','Lecker schmecker Ziegenkaese',1.5,5),('Schrott&Teuer','Fertig Pizza Salami','Lecker schmecker Pizza',2.5,5),('Schrott&Teuer','Erdbeer Marmelade 100g','Lecker schmecker Marmelade',0.5,5),('Schrott&Teuer','Cola 2L','Lecker schmecker Cola',1.0,5);" &&\
-    psql --command "INSERT INTO article_category (articleID,categoryID) VALUES (1,5),(2,3),(2,9),(2,4),(3,2),(3,8),(3,9),(4,8),(4,9);"
+    psql --command "ALTER ROLE postgres WITH PASSWORD 'postgres';" 
+    #psql --command "CREATE DATABASE smartmarkt" &&\
+    #psql --command "\c smartmarkt" &&\
+    #psql --command "CREATE TABLE category(id SERIAL PRIMARY KEY NOT NULL,c_name TEXT NOT NULL);" &&\
+    #psql --command "CREATE TABLE article(id SERIAL PRIMARY KEY NOT NULL,manufacture TEXT NOT NULL,name TEXT NOT NULL,description TEXT NOT NULL, price FLOAT NOT NULL,picture BYTEA,stock INTEGER NOT NULL);" &&\
+    #psql --command "CREATE TABLE article_category(articleID INTEGER REFERENCES article(id),categoryID INTEGER REFERENCES category(id));" &&\
+    #psql --command "CREATE TABLE markt_user(id INTEGER PRIMARY KEY NOT NULL,points INTEGER,isWorker BOOLEAN NOT NULL);" &&\
+    #psql --command "CREATE TABLE markt_order(id SERIAL PRIMARY KEY NOT NULL,userID INTEGER REFERENCES markt_user(id),state TEXT NOT NULL DEFAULT 'Unbearbeitet',date DATE NOT NULL DEFAULT CURRENT_TIMESTAMP);"&&\
+    #psql --command "CREATE TABLE order_article(articleID INTEGER REFERENCES article(id),orderID INTEGER REFERENCES markt_order(id),number INTEGER NOT NULL);" &&\
+    #psql --command "CREATE TABLE rating(id SERIAL PRIMARY KEY NOT NULL,text TEXT NOT NULL,rating INTEGER NOT NULL,userID INTEGER REFERENCES markt_user(id),articleID INTEGER REFERENCES article(id));" &&\
+    #psql --command "INSERT INTO category(c_name)VALUES('Gemuese'),('Obst'),('Fleisch'),('Backwaren'),('Milchprodukte'),('Tiernahrung'),('Haushaltsmittel'),('Vegetarisch/Vegan'),('Sonstiges');" &&\
+    #psql --command "INSERT INTO article (manufacture,name,description,price,stock)VALUES('Schrott&Teuer','Ziegenkaese 200g','Lecker schmecker Ziegenkaese',1.5,5),('Schrott&Teuer','Fertig Pizza Salami','Lecker schmecker Pizza',2.5,5),('Schrott&Teuer','Erdbeer Marmelade 100g','Lecker schmecker Marmelade',0.5,5),('Schrott&Teuer','Cola 2L','Lecker schmecker Cola',1.0,5);" &&\
+    #psql --command "INSERT INTO article_category (articleID,categoryID) VALUES (1,5),(2,3),(2,9),(2,4),(3,2),(3,8),(3,9),(4,8),(4,9);"
+
+
 
 EXPOSE 5432
 # Add VOLUMEs to allow backup of config, logs and databases

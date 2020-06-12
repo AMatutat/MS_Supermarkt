@@ -1,3 +1,6 @@
+ALTER ROLE postgres WITH PASSWORD 'postgres'; 
+CREATE DATABASE smartmarkt;
+\c smartmarkt
 CREATE TABLE category
 (
     id SERIAL PRIMARY KEY NOT NULL,
