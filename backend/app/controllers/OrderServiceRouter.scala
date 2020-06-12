@@ -20,7 +20,7 @@ class OrderServiceRouter @Inject() (implicit actorSystem: ActorSystem)
 
   val dbuser = "postgres"
   val dbpw = "postgres"
-  val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
+  val dbURL = "jdbc:postgresql://database:5432"
 
   override def makeOrder(in: OrderInformation): Future[OrderID] = {
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
