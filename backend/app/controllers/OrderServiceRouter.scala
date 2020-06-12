@@ -20,7 +20,7 @@ class OrderServiceRouter @Inject() (implicit actorSystem: ActorSystem)
 
   val dbuser = "postgres"
   val dbpw = "postgres"
-  val dbURL = "jdbc:postgresql://database:5432"
+  val dbURL = "jdbc:postgresql://localhost:5432/smartmarkt"
 
   override def makeOrder(in: OrderInformation): Future[OrderID] = {
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
@@ -47,19 +47,16 @@ class OrderServiceRouter @Inject() (implicit actorSystem: ActorSystem)
     var stock = currentStock.getInt("stock")
     stock = stock - number
     sql = s"UPDATE article SET stock=$stock WHERE id=$articleID"
-
     Future.successful(OrderID(orderID.toInt))
   }
 
   override def trackOrder(in: OrderID): Future[OrderState] = {
-
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
-    val id=in.orderID
+    val id = in.orderID
     var resultSet =
       statement.executeQuery(s"SELECT status FROM markt_order WHERE id = $id")
     resultSet.next()
-
     Future.successful(OrderState(resultSet.getString("status")))
   }
 }

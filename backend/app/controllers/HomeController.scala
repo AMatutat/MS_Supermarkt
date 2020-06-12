@@ -21,52 +21,51 @@ class HomeController @Inject() (
     val controllerComponents: ControllerComponents
 ) extends BaseController {
 
-  //val dbuser = configuration.underlying.getString("myPOSTGRES_USER")
-  //val dbpw =configuration.underlying.getString("myPOSTGRES_PASSWORD")
-  //val url= configuration.underlying.getString("myPOSTGRES_DB")
-  val dbuser = "postgres"
-  val dbpw = "postgres"
-  val dbURL = "jdbc:postgresql://localhost:5432/smartmarkt"
+  val dbuser = configuration.underlying.getString("myPOSTGRES_USER")
+  val dbpw =configuration.underlying.getString("myPOSTGRES_PASSWORD")
+  val url= configuration.underlying.getString("myPOSTGRES_DB")
+  //val dbuser = "postgres"
+  //val dbpw = "postgres"
+  val dbURL =f"jdbc:postgresql://localhost:5432/$url"
   createDB
 
   def createDB: Unit = {
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-    var statement = connection.createStatement()   
+    var statement = connection.createStatement()
     try {
 
-   
-    var sql =
-      "CREATE TABLE category(id SERIAL PRIMARY KEY NOT NULL,c_name TEXT NOT NULL);"
-    statement.execute(sql)
-    sql =
-      "CREATE TABLE article(id SERIAL PRIMARY KEY NOT NULL,manufacture TEXT NOT NULL,name TEXT NOT NULL,description TEXT NOT NULL,price FLOAT NOT NULL,picture BYTEA,stock INTEGER NOT NULL);"
-    statement.execute(sql)
-    sql =
-      "CREATE TABLE article_category(articleID INTEGER REFERENCES article(id),categoryID INTEGER REFERENCES category(id));"
-    statement.execute(sql)
-    sql =
-      "CREATE TABLE markt_user(id INTEGER PRIMARY KEY NOT NULL,points INTEGER,isWorker BOOLEAN NOT NULL);"
-    statement.execute(sql)
-    sql =
-      "CREATE TABLE markt_order(id SERIAL PRIMARY KEY NOT NULL,userID INTEGER REFERENCES markt_user(id),state TEXT NOT NULL DEFAULT 'Unbearbeitet',date DATE NOT NULL DEFAULT CURRENT_TIMESTAMP);"
-    statement.execute(sql)
-    sql =
-      "CREATE TABLE order_article(articleID INTEGER REFERENCES article(id),orderID INTEGER REFERENCES markt_order(id),number INTEGER NOT NULL);"
-    statement.execute(sql)
-    sql =
-      "CREATE TABLE rating(id SERIAL PRIMARY KEY NOT NULL,text TEXT NOT NULL,rating INTEGER NOT NULL,userID INTEGER REFERENCES markt_user(id),articleID INTEGER REFERENCES article(id));"
-    statement.execute(sql)
-    sql =
-      "INSERT INTO category(c_name)VALUES('Gemuese'),('Obst'),('Fleisch'),('Backwaren'),('Milchprodukte'),('Tiernahrung'),('Haushaltsmittel'),('Vegetarisch/Vegan'),('Sonstiges');"
-    statement.execute(sql)
-    sql =
-      "INSERT INTO article(manufacture,name,description,price,stock)VALUES('Schrott&Teuer', 'Ziegenkaese 200g', 'Lecker schmecker Ziegenkaese', 1.5, 5),('Schrott&Teuer', 'Fertig Pizza Salami', 'Lecker schmecker Pizza', 2.5, 5),('Schrott&Teuer', 'Erdbeer Marmelade 100g', 'Lecker schmecker Marmelade', 0.5, 5),('Schrott&Teuer', 'Cola 2L', 'Lecker schmecker Cola', 1.0, 5);"
-    statement.execute(sql)
-    sql =
-      "INSERT INTO article_category(articleID,categoryID)VALUES(1, 5),(2, 3),(2, 9),(2, 4),(3, 2),(3, 8),(3, 9),(4, 8),(4, 9);"
-    statement.execute(sql)
+      var sql =
+        "CREATE TABLE category(id SERIAL PRIMARY KEY NOT NULL,c_name TEXT NOT NULL);"
+      statement.execute(sql)
+      sql =
+        "CREATE TABLE article(id SERIAL PRIMARY KEY NOT NULL,manufacture TEXT NOT NULL,name TEXT NOT NULL,description TEXT NOT NULL,price FLOAT NOT NULL,picture BYTEA,stock INTEGER NOT NULL);"
+      statement.execute(sql)
+      sql =
+        "CREATE TABLE article_category(articleID INTEGER REFERENCES article(id),categoryID INTEGER REFERENCES category(id));"
+      statement.execute(sql)
+      sql =
+        "CREATE TABLE markt_user(id INTEGER PRIMARY KEY NOT NULL,points INTEGER,isWorker BOOLEAN NOT NULL);"
+      statement.execute(sql)
+      sql =
+        "CREATE TABLE markt_order(id SERIAL PRIMARY KEY NOT NULL,userID INTEGER REFERENCES markt_user(id),state TEXT NOT NULL DEFAULT 'Unbearbeitet',date DATE NOT NULL DEFAULT CURRENT_TIMESTAMP);"
+      statement.execute(sql)
+      sql =
+        "CREATE TABLE order_article(articleID INTEGER REFERENCES article(id),orderID INTEGER REFERENCES markt_order(id),number INTEGER NOT NULL);"
+      statement.execute(sql)
+      sql =
+        "CREATE TABLE rating(id SERIAL PRIMARY KEY NOT NULL,text TEXT NOT NULL,rating INTEGER NOT NULL,userID INTEGER REFERENCES markt_user(id),articleID INTEGER REFERENCES article(id));"
+      statement.execute(sql)
+      sql =
+        "INSERT INTO category(c_name)VALUES('Gemuese'),('Obst'),('Fleisch'),('Backwaren'),('Milchprodukte'),('Tiernahrung'),('Haushaltsmittel'),('Vegetarisch/Vegan'),('Sonstiges');"
+      statement.execute(sql)
+      sql =
+        "INSERT INTO article(manufacture,name,description,price,stock)VALUES('Schrott&Teuer', 'Ziegenkaese 200g', 'Lecker schmecker Ziegenkaese', 1.5, 5),('Schrott&Teuer', 'Fertig Pizza Salami', 'Lecker schmecker Pizza', 2.5, 5),('Schrott&Teuer', 'Erdbeer Marmelade 100g', 'Lecker schmecker Marmelade', 0.5, 5),('Schrott&Teuer', 'Cola 2L', 'Lecker schmecker Cola', 1.0, 5);"
+      statement.execute(sql)
+      sql =
+        "INSERT INTO article_category(articleID,categoryID)VALUES(1, 5),(2, 3),(2, 9),(2, 4),(3, 2),(3, 8),(3, 9),(4, 8),(4, 9);"
+      statement.execute(sql)
 
-       } catch {
+    } catch {
       case e: Exception => println("DB ALREADY EXIST")
     }
   }
