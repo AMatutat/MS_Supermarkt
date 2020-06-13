@@ -12,7 +12,7 @@ import java.sql.SQLException
 import java.sql.Statement
 
 import scala.concurrent.duration._
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import scala.util.Failure
 import scala.util.Success
 import akka.Done
@@ -22,6 +22,7 @@ import akka.grpc.GrpcClientSettings
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import user._
+import akka.dispatch.Futures
 
 /**
   * This controller creates an `Action` to handle HTTP requests to the
@@ -81,56 +82,68 @@ class HomeController @Inject() (
     }
   }
 
-  def login(token: String) = Action { _ =>
-    implicit val sys = ActorSystem("SmartMarkt")
-    implicit val mat = ActorMaterializer()
-    implicit val ec = sys.dispatcher
+  /*def verifiyUser(token: String): Future[String] =
+    Future {
+      implicit val sys = ActorSystem("SmartMarkt")
+      implicit val mat = ActorMaterializer()
+      implicit val ec = sys.dispatcher
+      val client = UserServiceClient(GrpcClientSettings.fromConfig("user.UserService"))
+      val reply = client.verifyUser(UserToken(token))
+      reply.onComplete {
+        case Success(msg: UserId) => msg.uid.toString()
+        case Failure(exception) => exception.toString()
+        case _ => "Something went wrong on verifyUser"
+      }
+    }*/
+import scala.concurrent.ExecutionContext.Implicits.global
+  def login(token: String) = Action { _ =>   
+    
+    val f = Future {
+      implicit val sys = ActorSystem("SmartMarkt")
+      implicit val mat = ActorMaterializer()
+      implicit val ec = sys.dispatcher
+      val client = UserServiceClient(GrpcClientSettings.fromConfig("user.UserService"))
+      val reply = client.verifyUser(UserToken(token))
+      reply.onComplete {
+        case Success(msg: UserId) => msg.uid.toString()
+        case Failure(exception) => exception.toString()
+        case _ => "Something went wrong on verifyUser"
+      }
+    }   
+    val id = Await.result(f, Duration(10000,MILLISECONDS))   
+    val uid=id.toString()
 
-    val client = UserServiceClient(
-      GrpcClientSettings.fromConfig("user.UserService")
-    )
-    val reply = client.verifyUser(UserToken(token))
-    reply.onComplete {
-      case Success(msg) =>
-        var userID: UserId = msg
-        var uid = userID.uid
-        val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-        var statement = connection.createStatement()
-        var resultSet =
-          statement.executeQuery(f"SELECT * FROM markt_user WHERE id= $uid")
-        var user = Json.obj()
+    val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
+    var statement = connection.createStatement()
+    var resultSet =
+      statement.executeQuery(f"SELECT * FROM markt_user WHERE id= $uid")
+    var user = Json.obj()
 
-        if (resultSet.next()) {
-          user = Json.obj(
-            "name" -> "Beispiel Nutzer",
-            "adresse" -> "Beispielweg 22",
-            "points" -> resultSet.getInt("points"),
-            "isWorker" -> resultSet.getString("isWorker"),
-            "id" -> resultSet.getInt("id")
-          )
-        } else {
-          //neue User kriegen 500 Startpunkte
-          var statement2 = connection.prepareStatement(
-            f"INSERT INTO markt_user (id,points,isWorker) VALUES ($uid,500,false"
-          )
-          statement2.executeUpdate()
-          user = Json.obj(
-            "name" -> "Beispiel Nutzer",
-            "adresse" -> "Beispielweg 22",
-            "points" -> 500,
-            "isWorker" -> false,
-            "id" -> uid
-          )
-        }
-        Ok(user)
-      case Failure(e) =>
-        Ok(e.toString())
-
-      case _ => Ok("Something went wrong")
+    if (resultSet.next()) {
+      user = Json.obj(
+        "name" -> "Beispiel Nutzer",
+        "adresse" -> "Beispielweg 22",
+        "points" -> resultSet.getInt("points"),
+        "isWorker" -> resultSet.getString("isWorker"),
+        "id" -> resultSet.getInt("id")
+      )
+    } else {
+      //neue User kriegen 500 Startpunkte
+      var statement2 = connection.prepareStatement(
+        f"INSERT INTO markt_user (id,points,isWorker) VALUES ($uid,500,false)"
+      )
+      statement2.executeUpdate()
+      user = Json.obj(
+        "name" -> "Beispiel Nutzer",
+        "adresse" -> "Beispielweg 22",
+        "points" -> 500,
+        "isWorker" -> false,
+        "id" -> uid
+      )
     }
-    //Sehr schlecht. Sollte durch Future Handling ersetzt werden
-    while (true) {}
-    Ok("Something went extremly wrong")
+    Ok(user)
+
+ 
   }
 
   def getAllCategorys = Action { _ =>
