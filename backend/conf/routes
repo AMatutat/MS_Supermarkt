@@ -7,7 +7,7 @@
 ->     /   controllers.OrderServiceRouter
 
 #LOGIN
-GET /login/:name/:pw controllers.HomeController.login(name:String, pw:String)
+GET /login/:token controllers.HomeController.login(token:String)
 
 GET /categorys controllers.HomeController.getAllCategorys
 

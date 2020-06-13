@@ -37,7 +37,7 @@ class HomeController @Inject() (
   val dbpw = configuration.underlying.getString("myPOSTGRES_PASSWORD")
   val url = configuration.underlying.getString("myPOSTGRES_DB")
   //val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
-   val dbURL = f"jdbc:postgresql://localhost:5432/$url"
+  val dbURL = f"jdbc:postgresql://localhost:5432/$url"
   createDB
   def grpcLogin(): Unit = {}
 
@@ -81,43 +81,53 @@ class HomeController @Inject() (
     }
   }
 
-  def login(name: String, pw: String) = Action { _ =>
+  def login(token: String) = Action { _ =>
     implicit val sys = ActorSystem("SmartMarkt")
     implicit val mat = ActorMaterializer()
     implicit val ec = sys.dispatcher
 
     val client = UserServiceClient(
       GrpcClientSettings.fromConfig("user.UserService")
-    )
-
-    val usertoken = UserToken(name)
-    var returnv = ""
-    val reply = client.verifyUser(usertoken)
+    )    
+    val reply = client.verifyUser(UserToken(token))
     reply.onComplete {
       case Success(msg) =>
-        returnv = msg.toString()
+        var userID: UserId = msg
+        var uid = userID.uid
+        val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
+        var statement = connection.createStatement()
+        var resultSet =
+          statement.executeQuery(f"SELECT * FROM markt_user WHERE id= $uid")
+        var user = Json.obj()
+
+        if (resultSet.next()) {
+          user = Json.obj(
+            "name" -> "Beispiel Nutzer",
+            "adresse" -> "Beispielweg 22",
+            "points" -> resultSet.getInt("points"),
+            "isWorker" -> resultSet.getString("isWorker"),
+            "id" -> resultSet.getInt("id")
+          )
+        } else {
+          //neue User kriegen 500 Startpunkte
+          var statement2 = connection.prepareStatement(
+            f"INSERT INTO markt_user (id,points,isWorker) VALUES ($uid,500,false"
+          )
+          statement2.executeUpdate()
+          user = Json.obj(
+            "name" -> "Beispiel Nutzer",
+            "adresse" -> "Beispielweg 22",
+            "points" -> 500,
+            "isWorker" -> false,
+            "id" -> uid
+          )
+        }
+        Ok(user)
       case Failure(e) =>
-        returnv = e.toString()
-    }
-    Ok(returnv)
-
-  /*val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-    var statement = connection.createStatement()
-    var resultSet =
-      statement.executeQuery("SELECT * FROM markt_user WHERE id= 1")
-    var user = Json.obj()
-    if (resultSet.next()) {
-      user = Json.obj(
-        "name" -> "Beispiel Nutzer",
-        "adresse" -> "Beispielweg 22",
-        "points" -> resultSet.getInt("points"),
-        "isWorker" -> resultSet.getString("isWorker"),
-        "id" -> resultSet.getInt("id")
-      )
+        Ok(e.toString())
 
     }
-    Ok(user)*/
-
+    Ok("Something went wrong")
   }
 
   def getAllCategorys = Action { _ =>
