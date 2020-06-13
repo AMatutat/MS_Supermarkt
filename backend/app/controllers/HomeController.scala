@@ -56,7 +56,7 @@ class HomeController @Inject() (
         "CREATE TABLE article_category(articleID INTEGER REFERENCES article(id),categoryID INTEGER REFERENCES category(id));"
       statement.execute(sql)
       sql =
-        "CREATE TABLE markt_user(id INTEGER PRIMARY KEY NOT NULL,points INTEGER,isWorker BOOLEAN NOT NULL);"
+        "CREATE TABLE markt_user(id TEXT PRIMARY KEY NOT NULL,points INTEGER,isWorker BOOLEAN NOT NULL);"
       statement.execute(sql)
       sql =
         "CREATE TABLE markt_order(id SERIAL PRIMARY KEY NOT NULL,userID INTEGER REFERENCES markt_user(id),state TEXT NOT NULL DEFAULT 'Unbearbeitet',date DATE NOT NULL DEFAULT CURRENT_TIMESTAMP);"
@@ -251,7 +251,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
         "id" -> resultSet.getInt("id"),
         "text" -> resultSet.getString("text"),
         "rating" -> resultSet.getString("rating"),
-        "userID" -> resultSet.getInt("userID"),
+        "userID" -> resultSet.getString("userID"),
         "articleID" -> resultSet.getInt("articleID")
       )
       comments = comments.append(comment)
@@ -267,7 +267,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
     var user = Json.obj()
     if (resultSet.next()) {
       user = Json.obj(
-        "id" -> resultSet.getInt("id"),
+        "id" -> resultSet.getString("id"),
         "points" -> resultSet.getInt("points"),
         "isWorker" -> resultSet.getString("isWorker"),
         "name" -> "Beispiel Nutzer",
@@ -307,7 +307,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
       }
       var order = Json.obj(
         "id" -> getOrder.getInt("id"),
-        "userID" -> getOrder.getInt("userID"),
+        "userID" -> getOrder.getString("userID"),
         "state" -> getOrder.getString("state"),
         "date" -> getOrder.getString("date"),
         "article" -> articleInOrder
@@ -345,7 +345,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
       }
       var order = Json.obj(
         "id" -> getOrder.getInt("id"),
-        "userID" -> getOrder.getInt("userID"),
+        "userID" -> getOrder.getString("userID"),
         "state" -> getOrder.getString("state"),
         "date" -> getOrder.getString("date"),
         "article" -> articleInOrder
@@ -383,7 +383,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
       }
       var order = Json.obj(
         "id" -> getOrder.getInt("id"),
-        "userID" -> getOrder.getInt("userID"),
+        "userID" -> getOrder.getString("userID"),
         "state" -> getOrder.getString("state"),
         "date" -> getOrder.getString("date"),
         "article" -> articleList

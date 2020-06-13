@@ -19,8 +19,7 @@ object Main {
   /**
     * Aktueller User
     */
-  var user = new User(1, true, 220)
-
+  var user = new User("1", true, 220)
   /**
     * Einkaufswagen vom aktuellen User
     */
@@ -462,7 +461,7 @@ object Main {
               review.text.toString,
               review.rating.toString.toInt,
               new User(
-                review.userID.toString.toInt,
+                review.userID.toString,
                 false,
                 0
               ), //isWoker und treuepunkte sind für Kommentar schreiber egal
@@ -835,7 +834,7 @@ object Main {
             orderList +=
               new Order(
                 order.id.toString.toInt,
-                new User(order.userID.toString.toInt,false,0),
+                new User(order.userID.toString,false,0),
                 order.state.toString,
                 order.date.toString,
                 articleListe.toList
