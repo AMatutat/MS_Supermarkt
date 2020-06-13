@@ -102,16 +102,17 @@ import scala.concurrent.ExecutionContext.Implicits.global
       implicit val sys = ActorSystem("SmartMarkt")
       implicit val mat = ActorMaterializer()
       implicit val ec = sys.dispatcher
+      var uid=""
       val client = UserServiceClient(GrpcClientSettings.fromConfig("user.UserService"))
       val reply = client.verifyUser(UserToken(token))
       reply.onComplete {
-        case Success(msg: UserId) => msg.uid.toString()
-        case Failure(exception) => exception.toString()
-        case _ => "Something went wrong on verifyUser"
+        case Success(msg: UserId) => uid=msg.uid.toString()
+        case Failure(exception) => uid=exception.toString()
+        case _ => uid="Something went wrong on verifyUser"
       }
     }   
-    val id = Await.result(f, Duration(10000,MILLISECONDS))   
-    val uid=id.toString()
+    Await.result(f, Duration(10000,MILLISECONDS))   
+   
 
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
