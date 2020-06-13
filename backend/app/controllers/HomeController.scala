@@ -24,8 +24,7 @@ class HomeController @Inject() (
   val dbuser = configuration.underlying.getString("myPOSTGRES_USER")
   val dbpw =configuration.underlying.getString("myPOSTGRES_PASSWORD")
   val url= configuration.underlying.getString("myPOSTGRES_DB")
-  //val dbuser = "postgres"
-  //val dbpw = "postgres"
+  //val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
   val dbURL =f"jdbc:postgresql://localhost:5432/$url"
   createDB
 
@@ -33,7 +32,6 @@ class HomeController @Inject() (
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
     try {
-
       var sql =
         "CREATE TABLE category(id SERIAL PRIMARY KEY NOT NULL,c_name TEXT NOT NULL);"
       statement.execute(sql)
@@ -56,7 +54,7 @@ class HomeController @Inject() (
         "CREATE TABLE rating(id SERIAL PRIMARY KEY NOT NULL,text TEXT NOT NULL,rating INTEGER NOT NULL,userID INTEGER REFERENCES markt_user(id),articleID INTEGER REFERENCES article(id));"
       statement.execute(sql)
       sql =
-        "INSERT INTO category(c_name)VALUES('Gemuese'),('Obst'),('Fleisch'),('Backwaren'),('Milchprodukte'),('Tiernahrung'),('Haushaltsmittel'),('Vegetarisch/Vegan'),('Sonstiges');"
+        "INSERT INTO category(c_name)VALUES('Gemuese'),('Obst'),('Fleisch'),('Backwaren'),('Milchprodukte'),('Tiernahrung'),('Haushaltsmittel'),('Vegetarisch'),('Sonstiges');"
       statement.execute(sql)
       sql =
         "INSERT INTO article(manufacture,name,description,price,stock)VALUES('Schrott&Teuer', 'Ziegenkaese 200g', 'Lecker schmecker Ziegenkaese', 1.5, 5),('Schrott&Teuer', 'Fertig Pizza Salami', 'Lecker schmecker Pizza', 2.5, 5),('Schrott&Teuer', 'Erdbeer Marmelade 100g', 'Lecker schmecker Marmelade', 0.5, 5),('Schrott&Teuer', 'Cola 2L', 'Lecker schmecker Cola', 1.0, 5);"
@@ -110,9 +108,9 @@ class HomeController @Inject() (
     while (resultSet.next()) {
       var article = Json.obj(
         "id" -> resultSet.getInt("id"),
-        "manufacutre" -> resultSet.getString("manufacture"),
+        "manufacture" -> resultSet.getString("manufacture"),
         "name" -> resultSet.getString("name"),
-        "decription" -> resultSet.getString("description"),
+        "description" -> resultSet.getString("description"),
         "price" -> resultSet.getFloat("price"),
         "stock" -> resultSet.getInt("stock")
       )
@@ -121,6 +119,7 @@ class HomeController @Inject() (
     Ok(Json.toJson(articleList))
   }
 
+  //Maybe delete
   def getArticleByID(id: Int) = Action { _ =>
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
@@ -130,9 +129,9 @@ class HomeController @Inject() (
     if (resultSet.next()) {
       article = Json.obj(
         "id" -> resultSet.getInt("id"),
-        "manufacutre" -> resultSet.getString("manufacture"),
+        "manufacture" -> resultSet.getString("manufacture"),
         "name" -> resultSet.getString("name"),
-        "decription" -> resultSet.getString("description"),
+        "description" -> resultSet.getString("description"),
         "price" -> resultSet.getFloat("price"),
         "stock" -> resultSet.getInt("stock")
       )
@@ -172,9 +171,9 @@ class HomeController @Inject() (
     while (resultSet.next()) {
       var article = Json.obj(
         "id" -> resultSet.getInt("id"),
-        "manufacutre" -> resultSet.getString("manufacture"),
+        "manufacture" -> resultSet.getString("manufacture"),
         "name" -> resultSet.getString("name"),
-        "decription" -> resultSet.getString("description"),
+        "description" -> resultSet.getString("description"),
         "price" -> resultSet.getFloat("price"),
         "stock" -> resultSet.getInt("stock")
       )
@@ -238,9 +237,9 @@ class HomeController @Inject() (
       while (getArticle.next()) {
         var article = Json.obj(
           "id" -> getArticle.getInt("id"),
-          "manufacutre" -> getArticle.getString("manufacture"),
+          "manufacture" -> getArticle.getString("manufacture"),
           "name" -> getArticle.getString("name"),
-          "decription" -> getArticle.getString("description"),
+          "description" -> getArticle.getString("description"),
           "price" -> getArticle.getFloat("price"),
           "stock" -> getArticle.getInt("stock"),
           "number" -> getArticle.getInt("number")
@@ -260,13 +259,13 @@ class HomeController @Inject() (
     Ok(Json.toJson(orderList))
 
   }
-
+  //Maybe delete
   def getOrderByID(id: Int) = Action { _ =>
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     val statement = connection.createStatement()
     val getOrder =
       statement.executeQuery(f"SELECT * FROM markt_order WHERE id=$id")
-    var order = Json.obj()
+    var orderList = new JsArray()
     if (getOrder.next()) {
       val statement2 = connection.createStatement()
       val getArticle = statement2.executeQuery(
@@ -276,9 +275,9 @@ class HomeController @Inject() (
       while (getArticle.next()) {
         val article = Json.obj(
           "id" -> getArticle.getInt("id"),
-          "manufacutre" -> getArticle.getString("manufacture"),
+          "manufacture" -> getArticle.getString("manufacture"),
           "name" -> getArticle.getString("name"),
-          "decription" -> getArticle.getString("description"),
+          "description" -> getArticle.getString("description"),
           "price" -> getArticle.getFloat("price"),
           "stock" -> getArticle.getInt("stock"),
           "number" -> getArticle.getInt("number")
@@ -286,15 +285,16 @@ class HomeController @Inject() (
         articleInOrder = articleInOrder.append(article)
 
       }
-      order = Json.obj(
+      var order = Json.obj(
         "id" -> getOrder.getInt("id"),
         "userID" -> getOrder.getInt("userID"),
         "state" -> getOrder.getString("state"),
         "date" -> getOrder.getString("date"),
         "article" -> articleInOrder
       )
+      orderList = orderList.append(order)
     }
-    Ok(order)
+    Ok(Json.toJson(orderList))
   }
 
   def getOrderByCustomerID(cid: Int) = Action { _ =>
@@ -302,7 +302,7 @@ class HomeController @Inject() (
     val statement = connection.createStatement()
     val getOrder =
       statement.executeQuery(s"SELECT * FROM markt_order WHERE userID=$cid")
-    var order = Json.obj()
+    var orderList = new JsArray()
     if (getOrder.next()) {
       val statement2 = connection.createStatement()
       val getArticle = statement2.executeQuery(
@@ -313,9 +313,9 @@ class HomeController @Inject() (
       while (getArticle.next()) {
         val article = Json.obj(
           "id" -> getArticle.getInt("id"),
-          "manufacutre" -> getArticle.getString("manufacture"),
+          "manufacture" -> getArticle.getString("manufacture"),
           "name" -> getArticle.getString("name"),
-          "decription" -> getArticle.getString("description"),
+          "description" -> getArticle.getString("description"),
           "price" -> getArticle.getFloat("price"),
           "stock" -> getArticle.getInt("stock"),
           "number" -> getArticle.getInt("number")
@@ -323,16 +323,16 @@ class HomeController @Inject() (
         articleList = articleList.append(article)
 
       }
-      order = Json.obj(
+      var order = Json.obj(
         "id" -> getOrder.getInt("id"),
         "userID" -> getOrder.getInt("userID"),
         "state" -> getOrder.getString("state"),
         "date" -> getOrder.getString("date"),
         "article" -> articleList
       )
-
+      orderList = orderList.append(order)
     }
-    Ok(order)
+    Ok(Json.toJson(orderList))
   }
 
   def newOrder = Action(parse.json) { implicit request =>
