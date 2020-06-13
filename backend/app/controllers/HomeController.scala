@@ -59,13 +59,13 @@ class HomeController @Inject() (
         "CREATE TABLE markt_user(id TEXT PRIMARY KEY NOT NULL,points INTEGER,isWorker BOOLEAN NOT NULL);"
       statement.execute(sql)
       sql =
-        "CREATE TABLE markt_order(id SERIAL PRIMARY KEY NOT NULL,userID INTEGER REFERENCES markt_user(id),state TEXT NOT NULL DEFAULT 'Unbearbeitet',date DATE NOT NULL DEFAULT CURRENT_TIMESTAMP);"
+        "CREATE TABLE markt_order(id SERIAL PRIMARY KEY NOT NULL,userID TEXT REFERENCES markt_user(id),state TEXT NOT NULL DEFAULT 'Unbearbeitet',date DATE NOT NULL DEFAULT CURRENT_TIMESTAMP);"
       statement.execute(sql)
       sql =
         "CREATE TABLE order_article(articleID INTEGER REFERENCES article(id),orderID INTEGER REFERENCES markt_order(id),number INTEGER NOT NULL);"
       statement.execute(sql)
       sql =
-        "CREATE TABLE rating(id SERIAL PRIMARY KEY NOT NULL,text TEXT NOT NULL,rating INTEGER NOT NULL,userID INTEGER REFERENCES markt_user(id),articleID INTEGER REFERENCES article(id));"
+        "CREATE TABLE rating(id SERIAL PRIMARY KEY NOT NULL,text TEXT NOT NULL,rating INTEGER NOT NULL,userID TEXT REFERENCES markt_user(id),articleID INTEGER REFERENCES article(id));"
       statement.execute(sql)
       sql =
         "INSERT INTO category(c_name)VALUES('Gemuese'),('Obst'),('Fleisch'),('Backwaren'),('Milchprodukte'),('Tiernahrung'),('Haushaltsmittel'),('Vegetarisch'),('Sonstiges');"
@@ -94,13 +94,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
       val reply = client.verifyUser(UserToken(token))
       reply.onComplete {
         case Success(msg: UserId) => uid=msg.uid.toString()
-        case Failure(exception) => uid="ERROR"
-        case _ => uid="ERROR"
+        case Failure(exception) => InternalServerError(exception.toString())
+        case _ => InternalServerError("Unknown ERROR on verifyUser") 
       }
     }   
     Await.result(f, Duration(10000,MILLISECONDS))   
     
-    if (uid.equals("ERROR")) Ok("ERROR")
+    if (uid.equals("")) InternalServerError("Timeout")
 
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
