@@ -98,7 +98,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
         case _ => InternalServerError("Unknown ERROR on verifyUser") 
       }
     }   
-    Await.result(f, Duration(10000,MILLISECONDS))   
+    Await.ready(f, Duration(20000,MILLISECONDS))   
     
     if (uid.equals("")) InternalServerError("Timeout")
 
