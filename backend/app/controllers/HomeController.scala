@@ -88,7 +88,7 @@ class HomeController @Inject() (
 
     val client = UserServiceClient(
       GrpcClientSettings.fromConfig("user.UserService")
-    )    
+    )
     val reply = client.verifyUser(UserToken(token))
     reply.onComplete {
       case Success(msg) =>
@@ -126,8 +126,11 @@ class HomeController @Inject() (
       case Failure(e) =>
         Ok(e.toString())
 
+      case _ => Ok("Something went wrong")
     }
-    Ok("Something went wrong")
+    //Sehr schlecht. Sollte durch Future Handling ersetzt werden
+    while (true) {}
+    Ok("Something went extremly wrong")
   }
 
   def getAllCategorys = Action { _ =>
