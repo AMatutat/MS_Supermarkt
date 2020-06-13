@@ -82,37 +82,25 @@ class HomeController @Inject() (
     }
   }
 
-  /*def verifiyUser(token: String): Future[String] =
-    Future {
-      implicit val sys = ActorSystem("SmartMarkt")
-      implicit val mat = ActorMaterializer()
-      implicit val ec = sys.dispatcher
-      val client = UserServiceClient(GrpcClientSettings.fromConfig("user.UserService"))
-      val reply = client.verifyUser(UserToken(token))
-      reply.onComplete {
-        case Success(msg: UserId) => msg.uid.toString()
-        case Failure(exception) => exception.toString()
-        case _ => "Something went wrong on verifyUser"
-      }
-    }*/
 import scala.concurrent.ExecutionContext.Implicits.global
   def login(token: String) = Action { _ =>   
-    
+    var uid=""
     val f = Future {
       implicit val sys = ActorSystem("SmartMarkt")
       implicit val mat = ActorMaterializer()
       implicit val ec = sys.dispatcher
-      var uid=""
+     
       val client = UserServiceClient(GrpcClientSettings.fromConfig("user.UserService"))
       val reply = client.verifyUser(UserToken(token))
       reply.onComplete {
         case Success(msg: UserId) => uid=msg.uid.toString()
-        case Failure(exception) => uid=exception.toString()
-        case _ => uid="Something went wrong on verifyUser"
+        case Failure(exception) => uid="ERROR"
+        case _ => uid="ERROR"
       }
     }   
     Await.result(f, Duration(10000,MILLISECONDS))   
-   
+    
+    if (uid.equals("ERROR")) Ok("ERROR")
 
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
