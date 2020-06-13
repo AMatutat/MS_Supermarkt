@@ -7,11 +7,14 @@ import scala.collection.mutable.HashMap
 import scala.scalajs.js
 import scala.scalajs.js.JSON
 import play.api.libs.json._
+import scala.collection.mutable.ListBuffer
 
 object Main {
   //val port = "8080"
   //val backend = "http://localhost:" + port
   val backend = "http://supermarkt.dvess.network/api"
+
+
 
   /**
     * Aktueller User
@@ -209,7 +212,7 @@ object Main {
 
   }
 
-  import scala.collection.mutable.ListBuffer
+  
 
   /**
     * Erstellt Kategorie Naviagor für die ArticleOverviewPage

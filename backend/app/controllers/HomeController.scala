@@ -11,6 +11,18 @@ import java.sql.ResultSet
 import java.sql.SQLException
 import java.sql.Statement
 
+import scala.concurrent.duration._
+import scala.concurrent.Future
+import scala.util.Failure
+import scala.util.Success
+import akka.Done
+import akka.NotUsed
+import akka.actor.ActorSystem
+import akka.grpc.GrpcClientSettings
+import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.Source
+import user._
+
 /**
   * This controller creates an `Action` to handle HTTP requests to the
   * application's home page.
@@ -22,11 +34,15 @@ class HomeController @Inject() (
 ) extends BaseController {
 
   val dbuser = configuration.underlying.getString("myPOSTGRES_USER")
-  val dbpw =configuration.underlying.getString("myPOSTGRES_PASSWORD")
-  val url= configuration.underlying.getString("myPOSTGRES_DB")
-  //val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
-  val dbURL =f"jdbc:postgresql://localhost:5432/$url"
+  val dbpw = configuration.underlying.getString("myPOSTGRES_PASSWORD")
+  val url = configuration.underlying.getString("myPOSTGRES_DB")
+  val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
+  // val dbURL = f"jdbc:postgresql://localhost:5432/$url"
   createDB
+  println("---------------------")
+  println("Server Start")
+
+  def grpcLogin(): Unit = {}
 
   def createDB: Unit = {
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
@@ -69,8 +85,26 @@ class HomeController @Inject() (
   }
 
   def login(name: String, pw: String) = Action { _ =>
-    println(dbuser)
-    val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
+    implicit val sys = ActorSystem("SmartMarkt")
+    implicit val mat = ActorMaterializer()
+    implicit val ec = sys.dispatcher
+
+    val client = UserServiceClient(
+      GrpcClientSettings.fromConfig("user.UserService")
+    )
+
+    val usertoken = UserToken(name)
+    var returnv = ""
+    val reply = client.verifyUser(usertoken)
+    reply.onComplete {
+      case Success(msg) =>
+        returnv = msg.toString()
+      case Failure(e) =>
+        returnv = e.toString()
+    }
+    Ok(returnv)
+
+  /*val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
     var resultSet =
       statement.executeQuery("SELECT * FROM markt_user WHERE id= 1")
@@ -85,7 +119,8 @@ class HomeController @Inject() (
       )
 
     }
-    Ok(user)
+    Ok(user)*/
+
   }
 
   def getAllCategorys = Action { _ =>

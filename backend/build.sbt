@@ -8,6 +8,11 @@ lazy val root = (project in file("."))
 
 import play.grpc.gen.scaladsl.PlayScalaServerCodeGenerator
 akkaGrpcExtraGenerators += PlayScalaServerCodeGenerator
+
+// ALPN agent
+enablePlugins(JavaAgent)
+javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.10" % "runtime;test"
+
 libraryDependencies += "com.typesafe.akka" %% "akka-discovery" % "2.6.5"
 libraryDependencies += "com.lightbend.play" %% "play-grpc-runtime" % "0.8.2"
 

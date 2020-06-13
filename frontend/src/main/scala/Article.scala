@@ -1,12 +1,20 @@
+import org.scalajs.dom
+//import upickle.default.{ReadWriter => RW, macroRW}
 
-class Article(
+
+
+case class Article (
     val id: Int,
     var manufacture: String,
     var description: String,
     var name: String,
     var price: Float,
     var stock: Int
+
+
+
 ) {
+  
   def getID(): Int = this.id
   def getManufacture(): String = this.manufacture
   def getDescription(): String = this.description
@@ -18,15 +26,20 @@ class Article(
   def setPrice(newPrice: Float): Unit = this.price = newPrice
   def setName(name: String): Unit = this.name = name
   def setDescription(des: String): Unit = this.description = des
-  def restock(anzahl: Int): Unit = this.stock=getStock() + anzahl
-  def pushChanges(url: String):Unit = {
-    println(this.name)
-    println(this.description)
-    println(this.price)
-    println(this.manufacture)
+  def restock(anzahl: Int): Unit = this.stock = getStock() + anzahl
+  def pushChanges(url: String): Unit = {
+    
+    val xhr = new dom.XMLHttpRequest()
+    xhr.open("POST", "TEST" + "/scategorys")
 
+   
+    xhr.onload = { (e: dom.Event) => if (xhr.status == 200) {} }
+    xhr.send()
+    
   }
   def compare(otherArticle: Article): Boolean = {
-      return this.id==otherArticle.getID()
+    return this.id == otherArticle.getID()
   }
+
+
 }
