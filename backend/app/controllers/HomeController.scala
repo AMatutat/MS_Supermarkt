@@ -40,7 +40,7 @@ class HomeController @Inject() (
   //val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
   val dbURL = f"jdbc:postgresql://localhost:5432/$url"
   createDB
-  def grpcLogin(): Unit = {}
+
 
   def createDB: Unit = {
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
@@ -84,7 +84,7 @@ class HomeController @Inject() (
 
 import scala.concurrent.ExecutionContext.Implicits.global
   def login(token: String) = Action { _ =>   
-    var uid=""
+    var uid="STARTVALUE"
     val f = Future {
       implicit val sys = ActorSystem("SmartMarkt")
       implicit val mat = ActorMaterializer()
@@ -99,7 +99,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
       }
     }   
     Await.ready(f, Duration(20000,MILLISECONDS))   
-    
+    Ok(uid.toString())
     if (uid.equals("")) InternalServerError("Timeout")
 
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
