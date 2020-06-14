@@ -40,7 +40,7 @@ class HomeController @Inject() (
 
   //val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
   val dbURL = f"jdbc:postgresql://localhost:5432/$url"
-  //createDB
+  createDB
 
   def createDB: Unit = {
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
