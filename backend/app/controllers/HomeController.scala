@@ -90,11 +90,12 @@ class HomeController @Inject() (
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  def login(token: String) =Action.async { _ =>
+  def login(token: String) =Action //.async
+   { _ =>
      // val uid = await(verifyUser(token))
      // val user=await(getUser(uid))
     //  Ok(user)
-    Ok ("Test")
+    Ok("Test")
   }
 
   /*def verifyUser(token: String):String = { 
