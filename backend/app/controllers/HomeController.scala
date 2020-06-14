@@ -360,7 +360,7 @@ class HomeController @Inject() (
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     val statement = connection.createStatement()
     val getOrder =
-      statement.executeQuery(s"SELECT * FROM markt_order WHERE userID=$cid")
+      statement.executeQuery(s"SELECT * FROM markt_order WHERE userID='$cid'")
     var orderList = new JsArray()
     if (getOrder.next()) {
       val statement2 = connection.createStatement()
