@@ -40,14 +40,28 @@ class HomeController @Inject() (
 
   //val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
   val dbURL = s"jdbc:postgresql://localhost:5432/$url"
- 
 
   def createDB = Action { _ =>
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
     println("Try to create database")
     try {
-      var sql =
+      var sql = "DROP TABLE IF EXISTS category;"
+      statement.execute(sql)
+      sql = "DROP TABLE IF EXISTS article;"
+      statement.execute(sql)
+      sql = "DROP TABLE IF EXISTS article_category;"
+      statement.execute(sql)
+      sql = "DROP TABLE IF EXISTS markt_user;"
+      statement.execute(sql)
+      sql = "DROP TABLE IF EXISTS order_article;"
+      statement.execute(sql)
+      sql = "DROP TABLE IF EXISTS rating;"
+      statement.execute(sql)
+      sql = "DROP TABLE IF EXISTS markt_order;"
+      statement.execute(sql)
+
+      sql =
         "CREATE TABLE category(id SERIAL PRIMARY KEY NOT NULL,c_name TEXT NOT NULL);"
       statement.execute(sql)
       sql =
@@ -90,7 +104,7 @@ class HomeController @Inject() (
       Ok("DB CREATED")
 
     } catch {
-      case e: Exception =>Ok("DB ALREADY EXIST")
+      case e: Exception => Ok("DB ALREADY EXIST")
     }
   }
 
