@@ -36,8 +36,7 @@ class HomeController @Inject() (
 
   val dbuser = configuration.underlying.getString("myPOSTGRES_USER")
   val dbpw = configuration.underlying.getString("myPOSTGRES_PASSWORD")
-  val url = configuration.underlying.getString("myPOSTGRES_DB")
-
+  val url = configuration.underlying.getString("myPOSTGRES_DB")  
   //val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
   val dbURL = s"jdbc:postgresql://localhost:5432/$url"
 
@@ -46,7 +45,7 @@ class HomeController @Inject() (
     var sql=""
 
     try {
-    val rootConnection = DriverManager.getConnection("jdbc:postgresql://localhost:5432", dbuser, dbpw)
+    val rootConnection = DriverManager.getConnection("jdbc:postgresql://database:5432", dbuser, dbpw)
     var rootStatement = rootConnection.createStatement()
       sql=s"SELECT 'CREATE DATABASE $url' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$url');"
     val affectedRows=rootStatement.executeUpdate(sql)

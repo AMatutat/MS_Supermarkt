@@ -23,15 +23,14 @@ env:
   GITHUB_SHA: ${{ github.sha }}
   GKE_ZONE: europe-west1-b
   GKE_CLUSTER: smartcity
-  IMAGE_frontend: ms-supermark-frontend
+  IMAGE_frontend: ms-supermarkt-frontend
   IMAGE_backend: ms-supermarkt-backend
-  IMAGE_database: ms-supermarkt-database
   REGISTRY_HOSTNAME: gcr.io
   DEPLOYMENT_NAME: ms-supermarkt
   POSTGRES_USER: ${{secrets.POSTGRES_USER}}
   POSTGRES_PASSWORD: ${{secrets.POSTGRES_PASSWORD}}
   POSTGRES_DB: ${{secrets.POSTGRES_DB}}
-
+  
 jobs:
   setup-build-publish-deploy:
     name: Setup, Build, Publish, and Deploy
@@ -63,16 +62,12 @@ jobs:
         docker build -t "$REGISTRY_HOSTNAME"/"$GKE_PROJECT"/"$IMAGE_backend":"$GITHUB_SHA" \
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
           --build-arg GITHUB_REF="$GITHUB_REF" ./backend
-        docker build -t "$REGISTRY_HOSTNAME"/"$GKE_PROJECT"/"$IMAGE_database":"$GITHUB_SHA" \
-          --build-arg GITHUB_SHA="$GITHUB_SHA" \
-          --build-arg GITHUB_REF="$GITHUB_REF" ./database
 
     # Push the Docker image to Google Container Registry
     - name: Publish
       run: |
         docker push $REGISTRY_HOSTNAME/$GKE_PROJECT/$IMAGE_frontend:$GITHUB_SHA
         docker push $REGISTRY_HOSTNAME/$GKE_PROJECT/$IMAGE_backend:$GITHUB_SHA
-        docker push $REGISTRY_HOSTNAME/$GKE_PROJECT/$IMAGE_database:$GITHUB_SHA
         
     # Set up kustomize
     - name: Set up Kustomize
@@ -86,7 +81,6 @@ jobs:
         gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $GKE_PROJECT
         ./kustomize edit set image ms-supermarkt-backend=$REGISTRY_HOSTNAME/$GKE_PROJECT/$IMAGE_backend:${GITHUB_SHA}
         ./kustomize edit set image ms-supermarkt-frontend=$REGISTRY_HOSTNAME/$GKE_PROJECT/$IMAGE_frontend:${GITHUB_SHA}
-        ./kustomize edit set image ms-supermarkt-database=$REGISTRY_HOSTNAME/$GKE_PROJECT/$IMAGE_database:${GITHUB_SHA}
         ./kustomize edit add secret ms-supermarkt --from-literal POSTGRES_USER=$POSTGRES_USER
         ./kustomize edit add secret ms-supermarkt --from-literal POSTGRES_PASSWORD=$POSTGRES_PASSWORD
         ./kustomize edit add secret ms-supermarkt --from-literal POSTGRES_DB=$POSTGRES_DB
