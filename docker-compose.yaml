@@ -16,8 +16,8 @@ services:
       - POSTGRES_DB=smartmarkt
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_USER=postgres
-    volumes:
-     - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    #volumes:
+     #- ./init.sql:/docker-entrypoint-initdb.d/init.sql
      #- ./postgres-data:/var/lib/postgresql/data # persist data even if container shuts downvolumes:
   
   api:

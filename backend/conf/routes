@@ -6,24 +6,26 @@
 #GRPC
 ->     /   controllers.OrderServiceRouter
 
+#DEBUG
+GET     /db controllers.HomeController.createDB
+
 #LOGIN
-GET /login/:name/:pw controllers.HomeController.login(name:String, pw:String)
+GET /login/:token controllers.HomeController.login(token:String)
 
 GET /categorys controllers.HomeController.getAllCategorys
 
 #GET ARTICLE
 GET     /allArticle controllers.HomeController.getAllArticle
-GET     /articleByID/:id controllers.HomeController.getArticleByID(id: Int)
 GET     /article/:category/:name controllers.HomeController.getArticle(category: String, name: String)
 GET     /articleComments/:id    controllers.HomeController.getArticleComments(id: Int)
 
 #GET KUNDE
-GET     /customerByID/:id controllers.HomeController.getCustomerByID(id: Int)
+GET     /customerByID/:id controllers.HomeController.getCustomerByID(id: String)
 
 #GET ORDER
 GET     /allOrder controllers.HomeController.getAllOrder
 GET     /orderByID/:id controllers.HomeController.getOrderByID(id: Int)
-GET     /orderByCustomerID/:cid controllers.HomeController.getOrderByCustomerID(cid: Int)
+GET     /orderByCustomerID/:cid controllers.HomeController.getOrderByCustomerID(cid: String)
 
 # POST 
 POST /newOrder controllers.HomeController.newOrder
