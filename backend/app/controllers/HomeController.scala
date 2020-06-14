@@ -82,9 +82,9 @@ class HomeController @Inject() (
       sql =
         "CREATE TABLE rating(id SERIAL PRIMARY KEY NOT NULL,text TEXT NOT NULL,rating INTEGER NOT NULL,userID TEXT REFERENCES markt_user(id),articleID INTEGER REFERENCES article(id));"
       statement.execute(sql)
-     
-     sql="UBSERT INTO markt_user (id,points,isWorker) VALUES ('1',500,TRUE)"
-     
+
+      sql = "INSERT INTO markt_user (id,points,isWorker) VALUES ('1',500,TRUE);"
+      statement.execute(sql)
       sql =
         "INSERT INTO category(c_name)VALUES('Gemuese'),('Obst'),('Fleisch'),('Backwaren'),('Milchprodukte'),('Tiernahrung'),('Haushaltsmittel'),('Vegetarisch'),('Sonstiges');"
       statement.execute(sql)
@@ -262,7 +262,7 @@ class HomeController @Inject() (
   def getCustomerByID(id: String) = Action { _ =>
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
-    var uid=id.toString()
+    var uid = id.toString()
     var resultSet =
       statement.executeQuery(s"SELECT * FROM markt_user WHERE id = $uid")
     var user = Json.obj()
