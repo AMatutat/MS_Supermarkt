@@ -38,8 +38,8 @@ class HomeController @Inject() (
   val dbpw = configuration.underlying.getString("myPOSTGRES_PASSWORD")
   val url = configuration.underlying.getString("myPOSTGRES_DB")
 
-  val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
-  //val dbURL = f"jdbc:postgresql://localhost:5432/$url"
+  //val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
+  val dbURL = f"jdbc:postgresql://localhost:5432/$url"
   //createDB
 
   def createDB: Unit = {
