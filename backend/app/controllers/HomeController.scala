@@ -38,9 +38,9 @@ class HomeController @Inject() (
   val dbpw = configuration.underlying.getString("myPOSTGRES_PASSWORD")
   val url = configuration.underlying.getString("myPOSTGRES_DB")
 
-  //val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
-  val dbURL = f"jdbc:postgresql://localhost:5432/$url"
-  createDB
+  val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
+  //val dbURL = f"jdbc:postgresql://localhost:5432/$url"
+  //createDB
 
   def createDB: Unit = {
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
@@ -86,30 +86,33 @@ class HomeController @Inject() (
     }
   }
 
+
+
   import scala.concurrent.ExecutionContext.Implicits.global
-  def login(token: String) = Action { _ =>
-    var uid = "START_VALUE"
-    val f = Future {
+
+  def login(token: String) =Action.async { _ =>
+     // val uid = await(verifyUser(token))
+     // val user=await(getUser(uid))
+    //  Ok(user)
+    Ok ("Test")
+  }
+
+  /*def verifyUser(token: String):String = { 
       implicit val sys = ActorSystem("SmartMarkt")
       implicit val mat = ActorMaterializer()
       implicit val ec = sys.dispatcher
       val client =
         UserServiceClient(GrpcClientSettings.fromConfig("user.UserService"))
       val reply = client.verifyUser(UserToken(token))
+      reply.onComplete {
+        case Success(msg: UserId) => msg.uid.toString()
+        case Failure(exception) => "Error"
+        case _ => "Unknown ERROR on verifyUser"
+      }
+     
     }
 
-    /* val f2 = f andThen {
-        case Success(msg: UserId) => uid=msg.uid.toString()
-        case Failure(exception) => InternalServerError(exception.toString())
-        case _ => InternalServerError("Unknown ERROR on verifyUser")
-
-    }*/
-
-    Await.ready(f, Duration.Inf)
-    println(uid)
-
-    if (uid.equals("")) InternalServerError("Timeout")
-
+    def getUser(uid: String): JsArray = {
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
     var resultSet =
@@ -134,9 +137,12 @@ class HomeController @Inject() (
         "id" -> uid
       )
     }
-    Ok(new JsArray().append(user))
+    new JsArray().append(user)
+    }
 
-  }
+*/
+
+ 
 
   def getAllCategorys = Action { _ =>
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
@@ -230,7 +236,7 @@ class HomeController @Inject() (
     Ok(comments)
   }
 
-  def getCustomerByID(id: Int) = Action { _ =>
+  def getCustomerByID(id: String) = Action { _ =>
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
     var resultSet =
@@ -326,7 +332,7 @@ class HomeController @Inject() (
     Ok(orderList)
   }
 
-  def getOrderByCustomerID(cid: Int) = Action { _ =>
+  def getOrderByCustomerID(cid: String) = Action { _ =>
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     val statement = connection.createStatement()
     val getOrder =

@@ -17,12 +17,12 @@ GET     /article/:category/:name controllers.HomeController.getArticle(category:
 GET     /articleComments/:id    controllers.HomeController.getArticleComments(id: Int)
 
 #GET KUNDE
-GET     /customerByID/:id controllers.HomeController.getCustomerByID(id: Int)
+GET     /customerByID/:id controllers.HomeController.getCustomerByID(id: String)
 
 #GET ORDER
 GET     /allOrder controllers.HomeController.getAllOrder
 GET     /orderByID/:id controllers.HomeController.getOrderByID(id: Int)
-GET     /orderByCustomerID/:cid controllers.HomeController.getOrderByCustomerID(cid: Int)
+GET     /orderByCustomerID/:cid controllers.HomeController.getOrderByCustomerID(cid: String)
 
 # POST 
 POST /newOrder controllers.HomeController.newOrder

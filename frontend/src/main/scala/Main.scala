@@ -10,8 +10,8 @@ import play.api.libs.json._
 import scala.collection.mutable.ListBuffer
 
 object Main {
-  //val port = "8080"
-//  val backend = "http://localhost:" + port
+// val port = "8080"
+// val backend = "http://localhost:" + port
   val backend = "http://supermarkt.dvess.network/api"
 
   /**
@@ -209,7 +209,7 @@ object Main {
     }
 
   }
-
+  
   /**
     * Erstellt Kategorie Naviagor für die ArticleOverviewPage
     */
@@ -951,13 +951,9 @@ object Main {
       document.createTextNode("KundenNr: " + order.getUser().getID())
     )
     headerDiv.appendChild(document.createElement("BR"))
-    headerDiv.appendChild(
-      document.createTextNode("Kunde: " + order.getUser.getName)
-    )
+    headerDiv.appendChild(document.createTextNode("Kunde: "+order.getUser.getName))
     headerDiv.appendChild(document.createElement("BR"))
-    headerDiv.appendChild(
-      document.createTextNode("Adresse: " ++ order.getUser.getAdress)
-    )
+    headerDiv.appendChild(document.createTextNode("Adresse: "++order.getUser.getAdress))
     headerDiv.appendChild(document.createElement("BR"))
     content.appendChild(headerDiv)
 
