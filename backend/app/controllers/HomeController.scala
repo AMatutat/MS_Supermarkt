@@ -84,7 +84,7 @@ class HomeController @Inject() (
 
 import scala.concurrent.ExecutionContext.Implicits.global
   def login(token: String) = Action { _ =>   
-    var uid="STARTVALUE"
+    var uid="START_VALUE"
     val f = Future {
       implicit val sys = ActorSystem("SmartMarkt")
       implicit val mat = ActorMaterializer()
@@ -97,10 +97,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
         case Failure(exception) => InternalServerError(exception.toString())
         case _ => InternalServerError("Unknown ERROR on verifyUser") 
       }
+      Await.ready(reply, Duration.Inf)
     }   
     Await.ready(f, Duration.Inf)
-    Ok(uid.toString())
-    if (uid.equals("")) InternalServerError("Timeout")
+     if (uid.equals("")) InternalServerError("Timeout")
 
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
