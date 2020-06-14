@@ -86,7 +86,7 @@ class HomeController @Inject() (
         "INSERT INTO category(c_name)VALUES('Gemuese'),('Obst'),('Fleisch'),('Backwaren'),('Milchprodukte'),('Tiernahrung'),('Haushaltsmittel'),('Vegetarisch'),('Sonstiges');"
       statement.execute(sql)
       sql =
-        "INSERT INTO article(manufacture,name,description,price,stock)VALUES('Schrott&Teuer', 'Ziegenkaese 200g', 'Lecker schmecker Ziegenkaese', 1.5, 5),('Schrott&Teuer', 'Fertig Pizza Salami', 'Lecker schmecker Pizza', 2.5, 5),('Schrott&Teuer', 'Erdbeer Marmelade 100g', 'Lecker schmecker Marmelade', 0.5, 5),('Schrott&Teuer', 'Cola 2L', 'Lecker schmecker Cola', 1.0, 5);"
+        "INSERT INTO article(manufacture,name,description,price,stock)VALUES ('Schrott&Teuer', 'Ziegenkaese 500g', 'Lecker schmecker Ziegenkaese', 3, 5), ('Schrott&Teuer', 'Ziegenkaese 200g', 'Lecker schmecker Ziegenkaese', 1.5, 5),('Schrott&Teuer', 'Fertig Pizza Salami', 'Lecker schmecker Pizza', 2.5, 5),('Schrott&Teuer', 'Erdbeer Marmelade 100g', 'Lecker schmecker Marmelade', 0.5, 5),('Schrott&Teuer', 'Cola 2L', 'Lecker schmecker Cola', 1.0, 5);"
       statement.execute(sql)
       sql =
         "INSERT INTO article_category(articleID,categoryID)VALUES(1, 5),(2, 3),(2, 9),(2, 4),(3, 2),(3, 8),(3, 9),(4, 8),(4, 9);"
@@ -104,7 +104,7 @@ class HomeController @Inject() (
       Ok("DB CREATED")
 
     } catch {
-      case e: Exception => Ok("DB ALREADY EXIST")
+      case e: Exception => Ok(e.toString())
     }
   }
 
@@ -259,8 +259,9 @@ class HomeController @Inject() (
   def getCustomerByID(id: String) = Action { _ =>
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
+    var uid=id.toString()
     var resultSet =
-      statement.executeQuery(s"SELECT * FROM markt_user WHERE id = $id")
+      statement.executeQuery(s"SELECT * FROM markt_user WHERE id = $uid")
     var user = Json.obj()
     if (resultSet.next()) {
       user = Json.obj(
