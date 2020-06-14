@@ -11,15 +11,14 @@ import scala.collection.mutable.ListBuffer
 
 object Main {
   //val port = "8080"
-  //val backend = "http://localhost:" + port
+//  val backend = "http://localhost:" + port
   val backend = "http://supermarkt.dvess.network/api"
-
-
 
   /**
     * Aktueller User
     */
   var user = new User("1", true, 220)
+
   /**
     * Einkaufswagen vom aktuellen User
     */
@@ -210,8 +209,6 @@ object Main {
     }
 
   }
-
-  
 
   /**
     * Erstellt Kategorie Naviagor für die ArticleOverviewPage
@@ -468,22 +465,44 @@ object Main {
               review.articleID.toString.toInt
             )
           }
+
       }
 
       val reviews = reviewList.toList
 
       for (rev <- reviews) {
-        val reviewDiv = document.createElement("div")
-        val text = document.createTextNode(rev.getText)
-        val author = document.createTextNode("" + rev.getUser.getID)
-        val rating = document.createTextNode("" + rev.getRating)
-       // val date = document.createTextNode(rev.getDate)
-       // reviewDiv.appendChild(date)
-        reviewDiv.appendChild(author)
-        reviewDiv.appendChild(text)
-        reviewDiv.appendChild(rating)
-        allReviewDiv.appendChild(reviewDiv)
-        allReviewDiv.appendChild(document.createElement("BR"))
+
+        val xhrUserRequest = new dom.XMLHttpRequest()
+        xhrUserRequest.open(
+          "GET",
+          backend + "/customerByID/" + rev.getUser.getID
+        )
+        xhrUserRequest.onload = { (e: dom.Event) =>
+          val userRespons = js.JSON.parse(xhrUserRequest.responseText)
+          userRespons match {
+            case json: js.Array[js.Dynamic] =>
+              for (user <- json) {
+                rev.getUser.setName(user.name.toString)
+                val reviewDiv = document.createElement("div")
+                val text = document.createTextNode(rev.getText)
+                val author =
+                  document.createTextNode(
+                    "  " + rev.getUser.getName() + ":     "
+                  )
+                val rating =
+                  document.createTextNode("     " + rev.getRating + "/5")
+                //val date = document.createTextNode(rev.getDate)
+                // reviewDiv.appendChild(date)
+                reviewDiv.appendChild(author)
+                reviewDiv.appendChild(text)
+                reviewDiv.appendChild(rating)
+                allReviewDiv.appendChild(reviewDiv)
+                allReviewDiv.appendChild(document.createElement("BR"))
+              }
+          }
+
+        }
+        xhrUserRequest.send()
       }
       content.appendChild(allReviewDiv)
     }
@@ -503,14 +522,14 @@ object Main {
     xhr.onload = { (e: dom.Event) =>
       var orderList = new ListBuffer[Order]()
       val respons = js.JSON.parse(xhr.responseText)
-     
+
       respons match {
         case jsonlist: js.Array[js.Dynamic] =>
-          for (order <- jsonlist) {          
+          for (order <- jsonlist) {
             val articleListe = new ListBuffer[Article]
             order.article match {
               case jsonlist2: js.Array[js.Dynamic] =>
-                for (article <- jsonlist2) {                 
+                for (article <- jsonlist2) {
                   articleListe += new Article(
                     article.id.toString.toInt,
                     article.manufacture.toString,
@@ -518,7 +537,7 @@ object Main {
                     article.name.toString,
                     article.price.toString.toFloat,
                     article.number.toString.toInt //stock als bestellanzahl verwenden
-                  )         
+                  )
                 }
             }
             orderList +=
@@ -530,7 +549,7 @@ object Main {
                 articleListe.toList
               )
           }
-        
+
       }
 
       val orders = orderList.toList
@@ -813,14 +832,14 @@ object Main {
     xhr.onload = { (e: dom.Event) =>
       var orderList = new ListBuffer[Order]()
       val respons = js.JSON.parse(xhr.responseText)
-     
+
       respons match {
         case jsonlist: js.Array[js.Dynamic] =>
-          for (order <- jsonlist) {          
+          for (order <- jsonlist) {
             val articleListe = new ListBuffer[Article]
             order.article match {
               case jsonlist2: js.Array[js.Dynamic] =>
-                for (article <- jsonlist2) {                 
+                for (article <- jsonlist2) {
                   articleListe += new Article(
                     article.id.toString.toInt,
                     article.manufacture.toString,
@@ -828,51 +847,72 @@ object Main {
                     article.name.toString,
                     article.price.toString.toFloat,
                     article.number.toString.toInt //stock als bestellanzahl verwenden
-                  )         
+                  )
                 }
             }
             orderList +=
               new Order(
                 order.id.toString.toInt,
-                new User(order.userID.toString,false,0),
+                new User(order.userID.toString, false, 0),
                 order.state.toString,
                 order.date.toString,
                 articleListe.toList
               )
           }
-        
+
       }
 
       val orders = orderList.toList
 
       for (order <- orders) {
-        val orderDiv = document.createElement("div")
-        val moreButton = createButton("Details", "more-button-" + order.getID())
-        orderDiv.appendChild(
-          document.createTextNode("BestellNr: " + order.getID())
+        val xhrUserRequest = new dom.XMLHttpRequest()
+        xhrUserRequest.open(
+          "GET",
+          backend + "/customerByID/" + order.getUser.getID
         )
-        orderDiv.appendChild(document.createElement("BR"))
-        orderDiv.appendChild(
-          document.createTextNode("KundenNr: " + order.getCustomer.getID())
-        )
-        orderDiv.appendChild(document.createElement("BR"))
-        orderDiv.appendChild(
-          document.createTextNode("Kunde: " + "INSERT NAMEE")
-        )
-        orderDiv.appendChild(document.createElement("BR"))
-        orderDiv.appendChild(
-          document.createTextNode("Adresse: " + "INSERT ADRESSE")
-        )
-        orderDiv.appendChild(document.createElement("BR"))
-        orderDiv.appendChild(document.createTextNode("Status: " + order.getState))
-        orderDiv.appendChild(moreButton)
-        content.appendChild(orderDiv)
+        xhrUserRequest.onload = { (e: dom.Event) =>
+          val userRespons = js.JSON.parse(xhrUserRequest.responseText)
+          userRespons match {
+            case json: js.Array[js.Dynamic] =>
+              for (user <- json) {
+                order.getUser.setName(user.name.toString)
+                order.getUser.setAdress(user.adresse.toString)
 
-        $("#more-button-" + order.getID()).click { () =>
-          createOrderDetailsPage(order)
+                val orderDiv = document.createElement("div")
+                val moreButton =
+                  createButton("Details", "more-button-" + order.getID())
+                orderDiv.appendChild(
+                  document.createTextNode("BestellNr: " + order.getID())
+                )
+                orderDiv.appendChild(document.createElement("BR"))
+                orderDiv.appendChild(
+                  document.createTextNode("KundenNr: " + order.getUser.getID())
+                )
+                orderDiv.appendChild(document.createElement("BR"))
+                orderDiv.appendChild(
+                  document.createTextNode("Kunde: " + order.getUser.getName)
+                )
+                orderDiv.appendChild(document.createElement("BR"))
+                orderDiv.appendChild(
+                  document.createTextNode("Adresse: " + order.getUser.getAdress)
+                )
+                orderDiv.appendChild(document.createElement("BR"))
+                orderDiv.appendChild(
+                  document.createTextNode("Status: " + order.getState)
+                )
+                orderDiv.appendChild(moreButton)
+                content.appendChild(orderDiv)
+
+                $("#more-button-" + order.getID()).click { () =>
+                  createOrderDetailsPage(order)
+                }
+              }
+          }
+
         }
+        xhrUserRequest.send()
       }
-    
+
     }
     xhr.send()
   }
@@ -885,60 +925,61 @@ object Main {
   def createOrderDetailsPage(order: Order): Unit = {
     clearContent()
 
-   
-      val content = document.getElementById("content")
-      val headerDiv = document.createElement("Div")
-      val comboBox = document.createElement("SELECT")
-      val option1 = document.createElement("option")
-      val option2 = document.createElement("option")
-      val option3 = document.createElement("option")
-      val option4 = document.createElement("option")
+    val content = document.getElementById("content")
+    val headerDiv = document.createElement("Div")
+    val comboBox = document.createElement("SELECT")
+    val option1 = document.createElement("option")
+    val option2 = document.createElement("option")
+    val option3 = document.createElement("option")
+    val option4 = document.createElement("option")
 
-      comboBox.id = "select-box"
-      option1.textContent = "Unbearbeitet"
-      option2.textContent = "In Bearbeitung"
-      option3.textContent = "Unterwegs"
-      option4.textContent = "Ausgestellt"
-      comboBox.appendChild(option1)
-      comboBox.appendChild(option2)
-      comboBox.appendChild(option3)
-      comboBox.appendChild(option4)
+    comboBox.id = "select-box"
+    option1.textContent = "Unbearbeitet"
+    option2.textContent = "In Bearbeitung"
+    option3.textContent = "Unterwegs"
+    option4.textContent = "Ausgestellt"
+    comboBox.appendChild(option1)
+    comboBox.appendChild(option2)
+    comboBox.appendChild(option3)
+    comboBox.appendChild(option4)
 
-      headerDiv.appendChild(
-        document.createTextNode("BestellNr: " + order.getID())
-      )
-      headerDiv.appendChild(document.createElement("BR"))
-      headerDiv.appendChild(
-        document.createTextNode("KundenNr: " + order.getCustomer().getID())
-      )
-      headerDiv.appendChild(document.createElement("BR"))
-      headerDiv.appendChild(document.createTextNode("Kunde: INSERT NAME"))
-      headerDiv.appendChild(document.createElement("BR"))
-      headerDiv.appendChild(document.createTextNode("Adresse: INSERT ADRESSE"))
-      headerDiv.appendChild(document.createElement("BR"))
-      content.appendChild(headerDiv)
+    headerDiv.appendChild(
+      document.createTextNode("BestellNr: " + order.getID())
+    )
+    headerDiv.appendChild(document.createElement("BR"))
+    headerDiv.appendChild(
+      document.createTextNode("KundenNr: " + order.getUser().getID())
+    )
+    headerDiv.appendChild(document.createElement("BR"))
+    headerDiv.appendChild(
+      document.createTextNode("Kunde: " + order.getUser.getName)
+    )
+    headerDiv.appendChild(document.createElement("BR"))
+    headerDiv.appendChild(
+      document.createTextNode("Adresse: " ++ order.getUser.getAdress)
+    )
+    headerDiv.appendChild(document.createElement("BR"))
+    content.appendChild(headerDiv)
 
-      
-      var articles = order.getArticle
+    var articles = order.getArticle
 
-      for (article <- articles) {
-        val articleBox = document.createElement("INPUT")
-        articleBox.setAttribute("type", "checkbox")
-        content.appendChild(
-          document.createTextNode(
-            "Artikel: " + article.getName + "   ID: " + article
-              .getID + "   Anzahl:    "+article.getStock
-          )
+    for (article <- articles) {
+      val articleBox = document.createElement("INPUT")
+      articleBox.setAttribute("type", "checkbox")
+      content.appendChild(
+        document.createTextNode(
+          "Artikel: " + article.getName + "   ID: " + article.getID + "   Anzahl:    " + article.getStock
         )
-        content.appendChild(articleBox)
-        content.appendChild(document.createElement("BR"))
-      }
+      )
+      content.appendChild(articleBox)
+      content.appendChild(document.createElement("BR"))
+    }
 
-      headerDiv.appendChild(comboBox)
+    headerDiv.appendChild(comboBox)
 
-      $("#select-box").change(() => {
-        order.setStatus($("#select-box").value().toString())
-      })
+    $("#select-box").change(() => {
+      order.setStatus($("#select-box").value().toString())
+    })
 
   }
 

@@ -13,7 +13,6 @@ GET /categorys controllers.HomeController.getAllCategorys
 
 #GET ARTICLE
 GET     /allArticle controllers.HomeController.getAllArticle
-GET     /articleByID/:id controllers.HomeController.getArticleByID(id: Int)
 GET     /article/:category/:name controllers.HomeController.getArticle(category: String, name: String)
 GET     /articleComments/:id    controllers.HomeController.getArticleComments(id: Int)
 

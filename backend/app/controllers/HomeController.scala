@@ -37,14 +37,15 @@ class HomeController @Inject() (
   val dbuser = configuration.underlying.getString("myPOSTGRES_USER")
   val dbpw = configuration.underlying.getString("myPOSTGRES_PASSWORD")
   val url = configuration.underlying.getString("myPOSTGRES_DB")
+
   //val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
   val dbURL = f"jdbc:postgresql://localhost:5432/$url"
   createDB
 
-
   def createDB: Unit = {
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
+    println("Try to create database")
     try {
       var sql =
         "CREATE TABLE category(id SERIAL PRIMARY KEY NOT NULL,c_name TEXT NOT NULL);"
@@ -76,31 +77,38 @@ class HomeController @Inject() (
       sql =
         "INSERT INTO article_category(articleID,categoryID)VALUES(1, 5),(2, 3),(2, 9),(2, 4),(3, 2),(3, 8),(3, 9),(4, 8),(4, 9);"
       statement.execute(sql)
+      sql =
+        "INSERT INTO rating (text,rating,userID,articleID) VALUES ('Tolles Produkt!',4,1,1);"
+      statement.execute(sql)
 
     } catch {
       case e: Exception => println("DB ALREADY EXIST")
     }
   }
 
-import scala.concurrent.ExecutionContext.Implicits.global
-  def login(token: String) = Action { _ =>   
-    var uid="START_VALUE"
+  import scala.concurrent.ExecutionContext.Implicits.global
+  def login(token: String) = Action { _ =>
+    var uid = "START_VALUE"
     val f = Future {
       implicit val sys = ActorSystem("SmartMarkt")
       implicit val mat = ActorMaterializer()
       implicit val ec = sys.dispatcher
-     
-      val client = UserServiceClient(GrpcClientSettings.fromConfig("user.UserService"))
+      val client =
+        UserServiceClient(GrpcClientSettings.fromConfig("user.UserService"))
       val reply = client.verifyUser(UserToken(token))
-      reply.onComplete {
+    }
+
+    /* val f2 = f andThen {
         case Success(msg: UserId) => uid=msg.uid.toString()
         case Failure(exception) => InternalServerError(exception.toString())
-        case _ => InternalServerError("Unknown ERROR on verifyUser") 
-      }
-      Await.ready(reply, Duration.Inf)
-    }   
+        case _ => InternalServerError("Unknown ERROR on verifyUser")
+
+    }*/
+
     Await.ready(f, Duration.Inf)
-     if (uid.equals("")) InternalServerError("Timeout")
+    println(uid)
+
+    if (uid.equals("")) InternalServerError("Timeout")
 
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
@@ -110,8 +118,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
     if (resultSet.next()) {
       user = Json.obj(
-        "name" -> "Beispiel Nutzer",
-        "adresse" -> "Beispielweg 22",
         "points" -> resultSet.getInt("points"),
         "isWorker" -> resultSet.getString("isWorker"),
         "id" -> resultSet.getInt("id")
@@ -123,16 +129,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
       )
       statement2.executeUpdate()
       user = Json.obj(
-        "name" -> "Beispiel Nutzer",
-        "adresse" -> "Beispielweg 22",
         "points" -> 500,
         "isWorker" -> false,
         "id" -> uid
       )
     }
-    Ok(user)
+    Ok(new JsArray().append(user))
 
- 
   }
 
   def getAllCategorys = Action { _ =>
@@ -163,28 +166,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
       )
       articleList = articleList.append(article)
     }
-    Ok(Json.toJson(articleList))
-  }
-
-  //Maybe delete
-  def getArticleByID(id: Int) = Action { _ =>
-    val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-    var statement = connection.createStatement()
-    var resultSet =
-      statement.executeQuery(s"SELECT * FROM Article WHERE id = $id")
-    var article = Json.obj()
-    if (resultSet.next()) {
-      article = Json.obj(
-        "id" -> resultSet.getInt("id"),
-        "manufacture" -> resultSet.getString("manufacture"),
-        "name" -> resultSet.getString("name"),
-        "description" -> resultSet.getString("description"),
-        "price" -> resultSet.getFloat("price"),
-        "stock" -> resultSet.getInt("stock")
-      )
-
-    }
-    Ok(article)
+    Ok(articleList)
   }
 
   def getArticle(category: String, name: String) = Action { _ =>
@@ -226,7 +208,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
       )
       articleList = articleList.append(article)
     }
-    Ok(Json.toJson(articleList))
+    Ok(articleList)
   }
 
   def getArticleComments(id: Int) = Action { _ =>
@@ -245,7 +227,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
       )
       comments = comments.append(comment)
     }
-    Ok(Json.toJson(comments))
+    Ok(comments)
   }
 
   def getCustomerByID(id: Int) = Action { _ =>
@@ -264,7 +246,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
       )
 
     }
-    Ok(user)
+    Ok(new JsArray().append(user))
   }
 
   def getAllOrder = Action { _ =>
@@ -303,7 +285,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
       )
       orderList = orderList.append(order)
     }
-    Ok(Json.toJson(orderList))
+    Ok(orderList)
 
   }
   //Maybe delete
@@ -341,7 +323,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
       )
       orderList = orderList.append(order)
     }
-    Ok(Json.toJson(orderList))
+    Ok(orderList)
   }
 
   def getOrderByCustomerID(cid: Int) = Action { _ =>
@@ -379,7 +361,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
       )
       orderList = orderList.append(order)
     }
-    Ok(Json.toJson(orderList))
+    Ok(orderList)
   }
 
   def newOrder = Action(parse.json) { implicit request =>

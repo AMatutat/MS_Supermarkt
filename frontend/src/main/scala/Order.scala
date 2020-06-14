@@ -6,7 +6,7 @@ class Order(
     val date: String,
     val article: List[Article]
 ) {
-  def getCustomer(): User = this.customer
+  def getUser(): User = this.customer
   def getState(): String = this.state
   def getID(): Int = this.id
   def getDate():String = this.date
