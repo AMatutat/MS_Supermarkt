@@ -42,11 +42,28 @@ class HomeController @Inject() (
   val dbURL = s"jdbc:postgresql://localhost:5432/$url"
 
   def createDB = Action { _ =>
+ 
+    var sql=""
+
+    try {
+    val rootConnection = DriverManager.getConnection("jdbc:postgresql://localhost:5432", dbuser, dbpw)
+    var rootStatement = rootConnection.createStatement()
+      sql=s"SELECT 'CREATE DATABASE $url' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$url');"
+    val affectedRows=rootStatement.executeUpdate(sql)
+    // 0 affected Rows -> DB already exists
+    if (affectedRows!=0){
+      sql="CREATE DATABASE smartmarkt;"
+      rootStatement.executeUpdate(sql)
+    }
+
+    } catch {
+      case e: Exception => Ok("Create Database failed: " + e.toString())
+    }
+    try {
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
-    println("Try to create database")
-    try {
-      var sql = "DROP TABLE IF EXISTS category;"
+
+      sql = "DROP TABLE IF EXISTS category;"
       statement.execute(sql)
       sql = "DROP TABLE IF EXISTS article;"
       statement.execute(sql)
@@ -262,7 +279,7 @@ class HomeController @Inject() (
   def getCustomerByID(id: String) = Action { _ =>
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
-  
+
     var resultSet =
       statement.executeQuery(s"SELECT * FROM markt_user WHERE id = '$id'")
     var user = Json.obj()
