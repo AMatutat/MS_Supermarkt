@@ -262,9 +262,9 @@ class HomeController @Inject() (
   def getCustomerByID(id: String) = Action { _ =>
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
-    var uid = id.toString()
+  
     var resultSet =
-      statement.executeQuery(s"SELECT * FROM markt_user WHERE id = $uid")
+      statement.executeQuery(s"SELECT * FROM markt_user WHERE id = '$id'")
     var user = Json.obj()
     if (resultSet.next()) {
       user = Json.obj(
