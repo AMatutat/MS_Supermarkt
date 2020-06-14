@@ -40,6 +40,7 @@ class HomeController @Inject() (
   //val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
   val dbURL = s"jdbc:postgresql://localhost:5432/$url"
 
+
   def createDB = Action { _ =>
  
     var sql=""
@@ -588,5 +589,7 @@ class HomeController @Inject() (
       case e: Exception => Ok("ERROR")
     }
   }
+
+
 
 }

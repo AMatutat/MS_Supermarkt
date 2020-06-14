@@ -10,9 +10,9 @@ import play.api.libs.json._
 import scala.collection.mutable.ListBuffer
 
 object Main {
- //val port = "8080"
- //val backend = "http://localhost:" + port
-  val backend = "http://supermarkt.dvess.network/api"
+  val port = "8080"
+  val backend = "http://localhost:" + port
+  //val backend = "http://supermarkt.dvess.network/api"
 
   /**
     * Aktueller User
@@ -209,7 +209,7 @@ object Main {
     }
 
   }
-  
+
   /**
     * Erstellt Kategorie Naviagor für die ArticleOverviewPage
     */
@@ -669,7 +669,7 @@ object Main {
     val nameField = document.createElement("INPUT")
     val passwordField = document.createElement("INPUT")
     val nameLabel = document.createElement("label")
-    val nameT = document.createTextNode("Name:")
+    val nameT = document.createTextNode("E-Mail:")
     val pwLabel = document.createElement("label")
     val pwT = document.createTextNode("Passwort:")
 
@@ -682,14 +682,38 @@ object Main {
     pwLabel.appendChild(pwT)
     content.appendChild(nameLabel)
     content.appendChild(nameField)
+    content.appendChild(document.createElement("BR"))
     content.appendChild(pwLabel)
     content.appendChild(passwordField)
+    content.appendChild(document.createElement("BR"))
     content.appendChild(button)
 
-    $("#login-button").click { () =>
+    $("#log-in-button").click { () =>
+
+      var userToken=""
       val email = $("#name-field").value.toString
       val pw = $("#password-field").value.toString
-      println(email + "  " + pw)
+      val jsonRequest = f""" {  "email": "$email", "password": "$pw" } """
+      val xhr = new dom.XMLHttpRequest()
+      xhr.open("POST", " http://buergerbuero.dvess.network/api/user/login",false)
+      xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.onreadystatechange = { (e: dom.Event) =>
+        val respons = js.JSON.parse(xhr.responseText)
+        respons match {
+          case json: js.Dynamic =>
+            if (json.status.equals("success")) {
+             userToken=json.param.token.toString
+            } else {
+              println(
+                "Fehler beim Anmelden: " + json.code + "   " + json.message
+              )
+            }
+        }
+      }
+      xhr.send(jsonRequest)
+
+     println(userToken)
+     //AN BACKEND SCHICKEN
     }
 
   }
@@ -951,9 +975,13 @@ object Main {
       document.createTextNode("KundenNr: " + order.getUser().getID())
     )
     headerDiv.appendChild(document.createElement("BR"))
-    headerDiv.appendChild(document.createTextNode("Kunde: "+order.getUser.getName))
+    headerDiv.appendChild(
+      document.createTextNode("Kunde: " + order.getUser.getName)
+    )
     headerDiv.appendChild(document.createElement("BR"))
-    headerDiv.appendChild(document.createTextNode("Adresse: "++order.getUser.getAdress))
+    headerDiv.appendChild(
+      document.createTextNode("Adresse: " ++ order.getUser.getAdress)
+    )
     headerDiv.appendChild(document.createElement("BR"))
     content.appendChild(headerDiv)
 
