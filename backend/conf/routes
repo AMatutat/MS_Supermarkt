@@ -6,6 +6,9 @@
 #GRPC
 ->     /   controllers.OrderServiceRouter
 
+#DEBUG
+GET     /db controllers.HomeController.createDB
+
 #LOGIN
 GET /login/:token controllers.HomeController.login(token:String)
 

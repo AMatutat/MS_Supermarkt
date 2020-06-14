@@ -23,7 +23,7 @@ CREATE TABLE article_category
 
 CREATE TABLE markt_user
 (
-    id INTEGER PRIMARY KEY NOT NULL,
+    id TEXT PRIMARY KEY NOT NULL,
     points INTEGER,
     isWorker BOOLEAN NOT NULL
 );
@@ -31,7 +31,7 @@ CREATE TABLE markt_user
 CREATE TABLE markt_order
 (
     id SERIAL PRIMARY KEY NOT NULL,
-    userID INTEGER REFERENCES markt_user(id),
+    userID TEXT REFERENCES markt_user(id),
     state TEXT NOT NULL DEFAULT 'Unbearbeitet',
     date DATE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -48,7 +48,7 @@ CREATE TABLE rating
     id SERIAL PRIMARY KEY NOT NULL,
     text TEXT NOT NULL,
     rating INTEGER NOT NULL,
-    userID INTEGER REFERENCES markt_user(id),
+    userID TEXT REFERENCES markt_user(id),
     articleID INTEGER REFERENCES article(id)
 );
 
@@ -79,13 +79,13 @@ VALUES
 INSERT INTO markt_user
     (id,points,isWorker)
 VALUES
-    (1, 500, TRUE),
-    (2, 1000, FALSE);
+    ('1', 500, TRUE),
+    ('2', 1000, FALSE);
 
 INSERT INTO markt_order
     (userID,state)
 VALUES
-    (1, 'Auf den Weg');
+    ('1', 'Auf den Weg');
 
 INSERT INTO order_article
     (articleID,orderID,number)
@@ -106,4 +106,4 @@ VALUES
     (4, 8),
     (4, 9);
 
-INSERT INTO rating (text,rating,userID,articleID) VALUES('Toll',5,1,1);
+INSERT INTO rating (text,rating,userID,articleID) VALUES('Toll',5,'1',1);

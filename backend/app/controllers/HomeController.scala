@@ -39,10 +39,10 @@ class HomeController @Inject() (
   val url = configuration.underlying.getString("myPOSTGRES_DB")
 
   //val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
-  val dbURL = f"jdbc:postgresql://localhost:5432/$url"
-  createDB
+  val dbURL = s"jdbc:postgresql://localhost:5432/$url"
+ 
 
-  def createDB: Unit = {
+  def createDB = Action { _ =>
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
     println("Try to create database")
@@ -78,27 +78,34 @@ class HomeController @Inject() (
         "INSERT INTO article_category(articleID,categoryID)VALUES(1, 5),(2, 3),(2, 9),(2, 4),(3, 2),(3, 8),(3, 9),(4, 8),(4, 9);"
       statement.execute(sql)
       sql =
-        "INSERT INTO rating (text,rating,userID,articleID) VALUES ('Tolles Produkt!',4,1,1);"
+        "INSERT INTO rating (text,rating,userID,articleID) VALUES ('Tolles Produkt!',4,'1',1);"
       statement.execute(sql)
 
+      sql =
+        "INSERT INTO markt_order (userID,state) VALUES ('1', 'Auf den Weg');"
+      statement.execute(sql)
+      sql =
+        "INSERT INTO order_article(articleID,orderID,number)VALUES(1, 1, 5),(2, 1, 5);"
+      statement.execute(sql)
+      Ok("DB CREATED")
+
     } catch {
-      case e: Exception => println("DB ALREADY EXIST")
+      case e: Exception =>Ok("DB ALREADY EXIST")
     }
   }
 
-
-
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  def login(token: String) =Action //.async
-   { _ =>
-     // val uid = await(verifyUser(token))
-     // val user=await(getUser(uid))
-    //  Ok(user)
-    Ok("Test")
-  }
+  def login(token: String) =
+    Action //.async
+    { _ =>
+      // val uid = await(verifyUser(token))
+      // val user=await(getUser(uid))
+      //  Ok(user)
+      Ok("Test")
+    }
 
-  /*def verifyUser(token: String):String = { 
+  /*def verifyUser(token: String):String = {
       implicit val sys = ActorSystem("SmartMarkt")
       implicit val mat = ActorMaterializer()
       implicit val ec = sys.dispatcher
@@ -110,14 +117,14 @@ class HomeController @Inject() (
         case Failure(exception) => "Error"
         case _ => "Unknown ERROR on verifyUser"
       }
-     
+
     }
 
     def getUser(uid: String): JsArray = {
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
     var resultSet =
-      statement.executeQuery(f"SELECT * FROM markt_user WHERE id= $uid")
+      statement.executeQuery(s"SELECT * FROM markt_user WHERE id= $uid")
     var user = Json.obj()
 
     if (resultSet.next()) {
@@ -129,7 +136,7 @@ class HomeController @Inject() (
     } else {
       //neue User kriegen 500 Startpunkte
       var statement2 = connection.prepareStatement(
-        f"INSERT INTO markt_user (id,points,isWorker) VALUES ($uid,500,false)"
+        s"INSERT INTO markt_user (id,points,isWorker) VALUES ($uid,500,false)"
       )
       statement2.executeUpdate()
       user = Json.obj(
@@ -141,9 +148,7 @@ class HomeController @Inject() (
     new JsArray().append(user)
     }
 
-*/
-
- 
+   */
 
   def getAllCategorys = Action { _ =>
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
@@ -189,7 +194,7 @@ class HomeController @Inject() (
     // Nur Name angegeben
     else if (category.equals("_") && !name.equals("_")) {
       resultSet = statement.executeQuery(
-        f"SELECT * FROM article WHERE name LIKE'$name%%'"
+        s"SELECT * FROM article WHERE name LIKE'$name%%'"
       )
     }
     //Beides angegeben
@@ -300,12 +305,12 @@ class HomeController @Inject() (
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     val statement = connection.createStatement()
     val getOrder =
-      statement.executeQuery(f"SELECT * FROM markt_order WHERE id=$id")
+      statement.executeQuery(s"SELECT * FROM markt_order WHERE id=$id")
     var orderList = new JsArray()
     if (getOrder.next()) {
       val statement2 = connection.createStatement()
       val getArticle = statement2.executeQuery(
-        f"SELECT * FROM  article INNER JOIN order_article ON article.id = order_article.articleID WHERE order_article.orderID=$id"
+        s"SELECT * FROM  article INNER JOIN order_article ON article.id = order_article.articleID WHERE order_article.orderID=$id"
       )
       var articleInOrder = new JsArray()
       while (getArticle.next()) {
