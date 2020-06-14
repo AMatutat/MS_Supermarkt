@@ -82,6 +82,9 @@ class HomeController @Inject() (
       sql =
         "CREATE TABLE rating(id SERIAL PRIMARY KEY NOT NULL,text TEXT NOT NULL,rating INTEGER NOT NULL,userID TEXT REFERENCES markt_user(id),articleID INTEGER REFERENCES article(id));"
       statement.execute(sql)
+     
+     sql="UBSERT INTO markt_user (id,points,isWorker) VALUES ('1',500,TRUE)"
+     
       sql =
         "INSERT INTO category(c_name)VALUES('Gemuese'),('Obst'),('Fleisch'),('Backwaren'),('Milchprodukte'),('Tiernahrung'),('Haushaltsmittel'),('Vegetarisch'),('Sonstiges');"
       statement.execute(sql)
