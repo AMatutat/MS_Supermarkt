@@ -635,8 +635,9 @@ object Main {
       content.appendChild(buyButton)
 
       var usedPoints = 0
+      var rabatt = 0.0
       $("#use-points-box").change(() => {
-        var rabatt = 0.0
+
         //jeder punkt ist 1Cent wert
         if (!usePointsChecked) {
           rabatt = user.getTreuepunkte() / 100
@@ -662,48 +663,31 @@ object Main {
           //Für jeden Euro gibt es einen Punkt
           user.setPoints(user.getTreuepunkte() + summe.toInt)
 
-        var uid= this.user.getID()
-        var articleList=""
-          for ((k,v) <- this.shoppingcar){           
-            var aid= k.getID();
-            var number =v 
-            var articleJS= s"""{ "id": $aid, "number": $number }""" 
-            if (articleList.equals(""))
-              articleList=articleJS
-            else 
-            articleList+=","+articleJS
-          }
-
-        var order = s""" { "userID": "$uid"
-                            "article":[ $articleList ]}"""
+        var uid = this.user.getID()
+        var articleList = ""
+        for ((k, v) <- this.shoppingcar) {
+          var aid = k.getID();
+          var number = v
+          var articleJS = s"""{"id": $aid, "number": $number }"""
+          if (articleList.equals(""))
+            articleList = articleJS
+          else
+            articleList += "," + articleJS
+        }
+        var ordersumme = summe - rabatt
+        var order = s""" { "userID": $uid,
+                            "summe": $ordersumme,
+                            "article":[$articleList]}"""
 
         println(order)
 
-          //create Order
-        /*
-         
-                {
-"userID": 1,
-"article":[
-    {
-        "id": 1,
-        "number": 3
-    },
-
-      {
-        "id": 3,
-        "number": 1
-    },
-      {
-        "id": 2,
-        "number": 4
-    }
-]
-}
-         */
-
-        //order.makeBuy
-
+        val xhr = new dom.XMLHttpRequest()
+        xhr.open("POST", s"$backend/newOrder", false)
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = { (e: dom.Event) => println(xhr.responseText) }
+        println(order)
+        xhr.send(order)
+        this.shoppingcar = HashMap[Article, Int]()
         createArticleOverview()
 
       })

@@ -389,7 +389,7 @@ class HomeController @Inject() (
     val getOrder =
       statement.executeQuery(s"SELECT * FROM markt_order WHERE userID='$cid'")
     var orderList = new JsArray()
-    if (getOrder.next()) {
+    while (getOrder.next()) {
       val statement2 = connection.createStatement()
       val getArticle = statement2.executeQuery(
         "SELECT * FROM  article INNER JOIN order_article ON article.id = order_article.articleID WHERE order_article.orderID=" + getOrder
@@ -423,7 +423,7 @@ class HomeController @Inject() (
   }
 
   def newOrder = Action(parse.json) { implicit request =>
-    var connection:Connection = null
+    var connection: Connection = null
     try {
       val order = Json.toJson(request.body)
       val userID = order("userID")
@@ -465,7 +465,7 @@ class HomeController @Inject() (
   }
 
   def newComment = Action(parse.json) { implicit request =>
-    var connection:Connection = null
+    var connection: Connection = null
     try {
       val comment = Json.toJson(request.body)
       val text = comment("text").toString().replace('\"', '\'')
@@ -498,7 +498,7 @@ class HomeController @Inject() (
   }
 
   def newArticle = Action(parse.json) { implicit request =>
-    var connection:Connection = null
+    var connection: Connection = null
     try {
       val article = Json.toJson(request.body)
       val manufacture = article("manufacture").toString().replace('\"', '\'')
@@ -530,7 +530,7 @@ class HomeController @Inject() (
   }
 
   def updateOrder = Action(parse.json) { implicit request =>
-    var connection:Connection = null
+    var connection: Connection = null
     try {
       val order = Json.toJson(request.body)
       val state = order("state").toString().replace('\"', '\'')
@@ -560,7 +560,7 @@ class HomeController @Inject() (
   }
 
   def alterArticle = Action(parse.json) { implicit request =>
-    var connection:Connection = null
+    var connection: Connection = null
     try {
       val article = Json.toJson(request.body)
       val id = article("id")
@@ -591,7 +591,7 @@ class HomeController @Inject() (
   }
 
   def alterUser = Action(parse.json) { implicit request =>
-    var connection:Connection = null
+    var connection: Connection = null
     try {
       val user = Json.toJson(request.body)
       val id = user("id")
