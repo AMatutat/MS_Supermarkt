@@ -18,6 +18,7 @@ case class Article(
   def getPrice(): Float = this.price
   def getStock(): Int = this.stock
 
+  
   def setManufacture(man: String): Unit = this.manufacture = man
   def setPrice(newPrice: Float): Unit = this.price = newPrice
   def setName(name: String): Unit = this.name = name
@@ -28,11 +29,11 @@ case class Article(
     var xhr = new dom.XMLHttpRequest()
     if (this.id > (-1)) {
       jsonRequest =
-        s""" {  "id": $id, "price": $price,"manufacture":"$manufacture","name":"$name","description":"$description","stock": $stock } """
+        s""" {  "id": $id, "price": $price,"manufacture":"$manufacture","name":"$name","description":"$description","stock": $stock} """
       xhr.open("POST", s"$url/alterArticle", false)
     } else {
       jsonRequest =
-        s"""{"price": $price,"manufacture":"$manufacture","name":"$name","description":"$description","stock": $stock }"""
+        s"""{"price": $price,"manufacture":"$manufacture","name":"$name","description":"$description","stock": $stock}"""
       xhr.open("POST", s"$url/newArticle", false)
     }
 

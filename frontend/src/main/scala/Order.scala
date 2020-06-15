@@ -8,7 +8,6 @@ class Order(
     var state: String,
     val date: String,
     val article: List[Article],
-    val price: Float = 0 //default 0 da die Summe nur beim Kaufen wichtig ist
 ) {
   def getUser(): User = this.customer
   def getState(): String = this.state
@@ -31,11 +30,6 @@ class Order(
       }
     }
     xhr.send(jsonRequest)
-
-  }
-
-  def makeBuy(url:String){
-
 
   }
 

@@ -527,6 +527,7 @@ object Main {
       respons match {
         case jsonlist: js.Array[js.Dynamic] =>
           for (order <- jsonlist) {
+            println("order")
             val articleListe = new ListBuffer[Article]
             order.article match {
               case jsonlist2: js.Array[js.Dynamic] =>
@@ -633,12 +634,19 @@ object Main {
       content.appendChild(usePoints)
       content.appendChild(buyButton)
 
+      var usedPoints = 0
       $("#use-points-box").change(() => {
-        var rabatt = 0
+        var rabatt = 0.0
         //jeder punkt ist 1Cent wert
-        if (!usePointsChecked)
+        if (!usePointsChecked) {
           rabatt = user.getTreuepunkte() / 100
+          usedPoints = user.getTreuepunkte()
 
+          if (rabatt > summe) {
+            usedPoints = (summe / 100).toInt
+            rabatt = summe
+          }
+        }
         summeDiv.removeChild(summeDiv.firstChild)
         summeDiv.appendChild(
           document.createTextNode("Gesamtpreis: " + (summe - rabatt) + "€")
@@ -649,22 +657,54 @@ object Main {
 
       $("#buy-button").click(() => {
         if (usePointsChecked)
-          user.setPoints(-user.getTreuepunkte())
+          user.setPoints(-usedPoints)
         else
           //Für jeden Euro gibt es einen Punkt
           user.setPoints(user.getTreuepunkte() + summe.toInt)
 
-        //create Order
+        var uid= this.user.getID()
+        var articleList=""
+          for ((k,v) <- this.shoppingcar){           
+            var aid= k.getID();
+            var number =v 
+            var articleJS= s"""{ "id": $aid, "number": $number }""" 
+            if (articleList.equals(""))
+              articleList=articleJS
+            else 
+            articleList+=","+articleJS
+          }
 
+        var order = s""" { "userID": "$uid"
+                            "article":[ $articleList ]}"""
 
+        println(order)
+
+          //create Order
+        /*
+         
+                {
+"userID": 1,
+"article":[
+    {
+        "id": 1,
+        "number": 3
+    },
+
+      {
+        "id": 3,
+        "number": 1
+    },
+      {
+        "id": 2,
+        "number": 4
+    }
+]
+}
+         */
 
         //order.makeBuy
 
         createArticleOverview()
-
-
-
-
 
       })
     }
@@ -1016,7 +1056,7 @@ object Main {
     headerDiv.appendChild(comboBox)
 
     $("#select-box").change(() => {
-      order.setStatus($("#select-box").value().toString(),backend)
+      order.setStatus($("#select-box").value().toString(), backend)
     })
 
   }
@@ -1041,6 +1081,29 @@ object Main {
     val exitButton = createButton("Abbrechen", "exit-alter-button")
     val catSelection = document.createElement("SELECT")
 
+    val xhr = new dom.XMLHttpRequest()
+    xhr.open("GET", backend + "/categorys", false)
+    var catList = new ListBuffer[String]()
+    xhr.onload = { (e: dom.Event) =>
+      if (xhr.status == 200) {
+
+        val respons = js.JSON.parse(xhr.responseText)
+        respons match {
+          case jsonlist: js.Array[js.Dynamic] =>
+            for (cat <- jsonlist) {
+              catList += cat.name.toString
+            }
+        }
+      }
+    }
+    xhr.send()
+    val categorys = catList.toList
+    for (cat <- catList) {
+      val option = document.createElement("option")
+      option.textContent = cat
+      catSelection.appendChild(option)
+    }
+
     nameField.id = "name-field"
     nameField.setAttribute("type", "text")
     nameField.setAttribute("value", article.getName())
@@ -1053,6 +1116,7 @@ object Main {
     priceField.id = "price-field"
     priceField.setAttribute("type", "number")
     priceField.setAttribute("value", "" + article.getPrice())
+    catSelection.id = "cat-selection"
 
     content.appendChild(nameField)
     content.appendChild(desField)
