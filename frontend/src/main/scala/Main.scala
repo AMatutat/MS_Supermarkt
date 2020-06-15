@@ -658,11 +658,12 @@ object Main {
 
       $("#buy-button").click(() => {
         if (usePointsChecked)
-          user.setPoints(-usedPoints)
+          user.setPoints(user.getTreuepunkte-usedPoints)
         else
           //Für jeden Euro gibt es einen Punkt
           user.setPoints(user.getTreuepunkte() + summe.toInt)
 
+        user.pushChanges(backend)
         var uid = this.user.getID()
         var articleList = ""
         for ((k, v) <- this.shoppingcar) {
