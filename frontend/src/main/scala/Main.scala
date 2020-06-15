@@ -904,7 +904,7 @@ object Main {
             case json: js.Array[js.Dynamic] =>
               for (user <- json) {
                 order.getUser.setName(user.name.toString)
-                order.getUser.setAdress(user.adresse.toString)
+                order.getUser.setAdress(user.adress.toString)
 
                 val orderDiv = document.createElement("div")
                 val moreButton =
@@ -1093,6 +1093,7 @@ object Main {
 
     $("#restock-button").click { () =>
       article.restock($("#restock-input").value().toString().toInt)
+      article.pushChanges(backend)
       createWarehousePage()
     }
   }

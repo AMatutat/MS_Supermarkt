@@ -289,9 +289,7 @@ class HomeController @Inject() (
         "points" -> resultSet.getInt("points"),
         "isWorker" -> resultSet.getString("isWorker"),
         "name" -> "Beispiel Nutzer",
-        "adresse" -> "Beispielweg 22"
-      )
-
+        "adress" -> "PLZ123 Beispielweg 22")
     }
     Ok(new JsArray().append(user))
   }
