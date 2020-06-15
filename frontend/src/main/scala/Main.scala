@@ -439,7 +439,7 @@ object Main {
           user,
           article.getID()
         )
-        r.push
+        r.pushReview(backend)
         createArticlePage(article)
       }
     } //Show Reviews
@@ -654,7 +654,17 @@ object Main {
           //Für jeden Euro gibt es einen Punkt
           user.setPoints(user.getTreuepunkte() + summe.toInt)
 
-        //API CALL
+        //create Order
+
+
+
+        //order.makeBuy
+
+        createArticleOverview()
+
+
+
+
 
       })
     }
@@ -1058,6 +1068,7 @@ object Main {
       article.setName($("#name-field").value().toString())
       article.setPrice($("#price-field").value().toString().toFloat)
       article.pushChanges(backend)
+      createWarehousePage()
     }
     $("#exit-alter-button").click { () => createWarehousePage() }
 

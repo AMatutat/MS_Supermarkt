@@ -3,7 +3,7 @@ import scala.scalajs.js
 import scala.scalajs.js.JSON
 
 class Order(
-    val id: Int,
+    val id: Int= -1,
     val customer: User,
     var state: String,
     val date: String,
@@ -31,6 +31,11 @@ class Order(
       }
     }
     xhr.send(jsonRequest)
+
+  }
+
+  def makeBuy(url:String){
+
 
   }
 
