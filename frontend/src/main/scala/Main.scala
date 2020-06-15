@@ -1006,7 +1006,7 @@ object Main {
     headerDiv.appendChild(comboBox)
 
     $("#select-box").change(() => {
-      order.setStatus($("#select-box").value().toString())
+      order.setStatus($("#select-box").value().toString(),backend)
     })
 
   }
