@@ -6,7 +6,7 @@ scalaVersion := "2.12.8"
 scalaJSUseMainModuleInitializer := true   
 libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.9.7"
 libraryDependencies += "org.querki" %%% "jquery-facade" % "1.2"
-libraryDependencies += "org.scalaj" % "scalaj-http_2.11" % "2.3.0"
+libraryDependencies +=  "org.scalaj" %% "scalaj-http" % "2.4.2"
 //libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.9.5"
 
 resolvers += "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/"
