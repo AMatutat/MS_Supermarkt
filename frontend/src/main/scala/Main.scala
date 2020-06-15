@@ -351,9 +351,10 @@ object Main {
 
                 for (article <- articlesFilter) {
                   allArticles.appendChild(
-                    createArticleDiv(article, article.getName())
+                    createArticleDiv(article, article.getID().toString)
                   )
-                  $("#" + article.getName()).click { () =>
+                  $("#" + article.getID().toString).click { () =>
+                    println("click")
                     createArticlePage(article)
                   }
                 }
@@ -689,20 +690,23 @@ object Main {
     content.appendChild(button)
 
     $("#log-in-button").click { () =>
-
-      var userToken=""
+      var userToken = ""
       val email = $("#name-field").value.toString
       val pw = $("#password-field").value.toString
       val jsonRequest = f""" {  "email": "$email", "password": "$pw" } """
       val xhr = new dom.XMLHttpRequest()
-      xhr.open("POST", " http://buergerbuero.dvess.network/api/user/login",false)
+      xhr.open(
+        "POST",
+        " http://buergerbuero.dvess.network/api/user/login",
+        false
+      )
       xhr.setRequestHeader("Content-Type", "application/json");
       xhr.onreadystatechange = { (e: dom.Event) =>
         val respons = js.JSON.parse(xhr.responseText)
         respons match {
           case json: js.Dynamic =>
             if (json.status.equals("success")) {
-             userToken=json.param.token.toString
+              userToken = json.param.token.toString
             } else {
               println(
                 "Fehler beim Anmelden: " + json.code + "   " + json.message
@@ -712,8 +716,8 @@ object Main {
       }
       xhr.send(jsonRequest)
 
-     println(userToken)
-     //AN BACKEND SCHICKEN
+      println(userToken)
+    //AN BACKEND SCHICKEN
     }
 
   }
