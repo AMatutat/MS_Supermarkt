@@ -12,7 +12,7 @@ import scala.collection.mutable.ListBuffer
 object Main {
   //val port = "8080"
   //val backend = "http://localhost:" + port
-  val backend = "http://supermarkt.dvess.network/api"
+  val backend = "/api"
 
   /**
     * Aktueller User
@@ -137,7 +137,7 @@ object Main {
     val portal = createHREF(
       "Portal",
       "nav-link",
-      "http://portal.dvess.network/",
+      "https://portal.dvess.network/",
       "portal-button"
     )
     val li0 = document.createElement("li")
@@ -205,7 +205,7 @@ object Main {
     $("#warehouse-button").click { () => createWarehousePage() }
     $("#orders-button").click { () => createOrdersPage }
     $("#portal-button").click { () =>
-      window.open("http://portal.dvess.network/", "_self")
+      window.open("https://portal.dvess.network/", "_self")
     }
 
   }
@@ -439,7 +439,7 @@ object Main {
           user,
           article.getID()
         )
-        r.push
+        r.pushReview(backend)
         createArticlePage(article)
       }
     } //Show Reviews
@@ -527,6 +527,7 @@ object Main {
       respons match {
         case jsonlist: js.Array[js.Dynamic] =>
           for (order <- jsonlist) {
+            println("order")
             val articleListe = new ListBuffer[Article]
             order.article match {
               case jsonlist2: js.Array[js.Dynamic] =>
@@ -633,12 +634,20 @@ object Main {
       content.appendChild(usePoints)
       content.appendChild(buyButton)
 
+      var usedPoints = 0
+      var rabatt = 0.0
       $("#use-points-box").change(() => {
-        var rabatt = 0
-        //jeder punkt ist 1Cent wert
-        if (!usePointsChecked)
-          rabatt = user.getTreuepunkte() / 100
 
+        //jeder punkt ist 1Cent wert
+        if (!usePointsChecked) {
+          rabatt = user.getTreuepunkte() / 100
+          usedPoints = user.getTreuepunkte()
+
+          if (rabatt > summe) {
+            usedPoints = (summe / 100).toInt
+            rabatt = summe
+          }
+        }
         summeDiv.removeChild(summeDiv.firstChild)
         summeDiv.appendChild(
           document.createTextNode("Gesamtpreis: " + (summe - rabatt) + "€")
@@ -649,12 +658,38 @@ object Main {
 
       $("#buy-button").click(() => {
         if (usePointsChecked)
-          user.setPoints(-user.getTreuepunkte())
+          user.setPoints(user.getTreuepunkte-usedPoints)
         else
           //Für jeden Euro gibt es einen Punkt
           user.setPoints(user.getTreuepunkte() + summe.toInt)
 
-        //API CALL
+        user.pushChanges(backend)
+        var uid = this.user.getID()
+        var articleList = ""
+        for ((k, v) <- this.shoppingcar) {
+          var aid = k.getID();
+          var number = v
+          var articleJS = s"""{"id": $aid, "number": $number }"""
+          if (articleList.equals(""))
+            articleList = articleJS
+          else
+            articleList += "," + articleJS
+        }
+        var ordersumme = summe - rabatt
+        var order = s""" { "userID": $uid,
+                            "summe": $ordersumme,
+                            "article":[$articleList]}"""
+
+        println(order)
+
+        val xhr = new dom.XMLHttpRequest()
+        xhr.open("POST", s"$backend/newOrder", false)
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = { (e: dom.Event) => println(xhr.responseText) }
+        println(order)
+        xhr.send(order)
+        this.shoppingcar = HashMap[Article, Int]()
+        createArticleOverview()
 
       })
     }
@@ -697,7 +732,7 @@ object Main {
       val xhr = new dom.XMLHttpRequest()
       xhr.open(
         "POST",
-        " http://buergerbuero.dvess.network/api/user/login",
+        " https://buergerbuero.dvess.network/api/user/login",
         false
       )
       xhr.setRequestHeader("Content-Type", "application/json");
@@ -904,7 +939,7 @@ object Main {
             case json: js.Array[js.Dynamic] =>
               for (user <- json) {
                 order.getUser.setName(user.name.toString)
-                order.getUser.setAdress(user.adresse.toString)
+                order.getUser.setAdress(user.adress.toString)
 
                 val orderDiv = document.createElement("div")
                 val moreButton =
@@ -1006,7 +1041,7 @@ object Main {
     headerDiv.appendChild(comboBox)
 
     $("#select-box").change(() => {
-      order.setStatus($("#select-box").value().toString())
+      order.setStatus($("#select-box").value().toString(), backend)
     })
 
   }
@@ -1031,6 +1066,29 @@ object Main {
     val exitButton = createButton("Abbrechen", "exit-alter-button")
     val catSelection = document.createElement("SELECT")
 
+    val xhr = new dom.XMLHttpRequest()
+    xhr.open("GET", backend + "/categorys", false)
+    var catList = new ListBuffer[String]()
+    xhr.onload = { (e: dom.Event) =>
+      if (xhr.status == 200) {
+
+        val respons = js.JSON.parse(xhr.responseText)
+        respons match {
+          case jsonlist: js.Array[js.Dynamic] =>
+            for (cat <- jsonlist) {
+              catList += cat.name.toString
+            }
+        }
+      }
+    }
+    xhr.send()
+    val categorys = catList.toList
+    for (cat <- catList) {
+      val option = document.createElement("option")
+      option.textContent = cat
+      catSelection.appendChild(option)
+    }
+
     nameField.id = "name-field"
     nameField.setAttribute("type", "text")
     nameField.setAttribute("value", article.getName())
@@ -1043,6 +1101,7 @@ object Main {
     priceField.id = "price-field"
     priceField.setAttribute("type", "number")
     priceField.setAttribute("value", "" + article.getPrice())
+    catSelection.id = "cat-selection"
 
     content.appendChild(nameField)
     content.appendChild(desField)
@@ -1058,6 +1117,7 @@ object Main {
       article.setName($("#name-field").value().toString())
       article.setPrice($("#price-field").value().toString().toFloat)
       article.pushChanges(backend)
+      createWarehousePage()
     }
     $("#exit-alter-button").click { () => createWarehousePage() }
 
@@ -1093,6 +1153,7 @@ object Main {
 
     $("#restock-button").click { () =>
       article.restock($("#restock-input").value().toString().toInt)
+      article.pushChanges(backend)
       createWarehousePage()
     }
   }

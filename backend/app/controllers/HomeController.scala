@@ -36,32 +36,33 @@ class HomeController @Inject() (
 
   val dbuser = configuration.underlying.getString("myPOSTGRES_USER")
   val dbpw = configuration.underlying.getString("myPOSTGRES_PASSWORD")
-  val url = configuration.underlying.getString("myPOSTGRES_DB")  
+  val url = configuration.underlying.getString("myPOSTGRES_DB")
   //val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
   val dbURL = s"jdbc:postgresql://localhost:5432/$url"
 
-
   def createDB = Action { _ =>
- 
-    var sql=""
+    var sql = ""
 
     try {
-    val rootConnection = DriverManager.getConnection("jdbc:postgresql://database:5432", dbuser, dbpw)
-    var rootStatement = rootConnection.createStatement()
-      sql=s"SELECT 'CREATE DATABASE $url' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$url');"
-    val affectedRows=rootStatement.executeUpdate(sql)
-    // 0 affected Rows -> DB already exists
-    if (affectedRows!=0){
-      sql="CREATE DATABASE smartmarkt;"
-      rootStatement.executeUpdate(sql)
-    }
+      val rootConnection = DriverManager
+        .getConnection("jdbc:postgresql://database:5432", dbuser, dbpw)
+      var rootStatement = rootConnection.createStatement()
+      sql =
+        s"SELECT 'CREATE DATABASE $url' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$url');"
+      val affectedRows = rootStatement.executeUpdate(sql)
+      // 0 affected Rows -> DB already exists
+      if (affectedRows != 0) {
+        sql = "CREATE DATABASE smartmarkt;"
+        rootStatement.executeUpdate(sql)
+      }
+      rootConnection.close()
 
     } catch {
       case e: Exception => Ok("Create Database failed: " + e.toString())
     }
     try {
-    val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-    var statement = connection.createStatement()
+      val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
+      var statement = connection.createStatement()
 
       sql = "DROP TABLE IF EXISTS category;"
       statement.execute(sql)
@@ -121,11 +122,14 @@ class HomeController @Inject() (
       sql =
         "INSERT INTO order_article(articleID,orderID,number)VALUES(1, 1, 5),(2, 1, 5);"
       statement.execute(sql)
+
+      connection.close()
       Ok("DB CREATED")
 
     } catch {
       case e: Exception => Ok(e.toString())
     }
+
   }
 
   import scala.concurrent.ExecutionContext.Implicits.global
@@ -193,6 +197,7 @@ class HomeController @Inject() (
       var category = Json.obj("name" -> resultSet.getString("c_name"))
       categorys = categorys.append(category)
     }
+    connection.close()
     Ok(Json.toJson(categorys))
   }
 
@@ -212,6 +217,7 @@ class HomeController @Inject() (
       )
       articleList = articleList.append(article)
     }
+    connection.close()
     Ok(articleList)
   }
 
@@ -254,6 +260,7 @@ class HomeController @Inject() (
       )
       articleList = articleList.append(article)
     }
+    connection.close()
     Ok(articleList)
   }
 
@@ -273,6 +280,7 @@ class HomeController @Inject() (
       )
       comments = comments.append(comment)
     }
+    connection.close()
     Ok(comments)
   }
 
@@ -289,10 +297,10 @@ class HomeController @Inject() (
         "points" -> resultSet.getInt("points"),
         "isWorker" -> resultSet.getString("isWorker"),
         "name" -> "Beispiel Nutzer",
-        "adresse" -> "Beispielweg 22"
+        "adress" -> "PLZ123 Beispielweg 22"
       )
-
     }
+    connection.close()
     Ok(new JsArray().append(user))
   }
 
@@ -332,6 +340,7 @@ class HomeController @Inject() (
       )
       orderList = orderList.append(order)
     }
+    connection.close()
     Ok(orderList)
 
   }
@@ -370,6 +379,7 @@ class HomeController @Inject() (
       )
       orderList = orderList.append(order)
     }
+    connection.close()
     Ok(orderList)
   }
 
@@ -379,7 +389,7 @@ class HomeController @Inject() (
     val getOrder =
       statement.executeQuery(s"SELECT * FROM markt_order WHERE userID='$cid'")
     var orderList = new JsArray()
-    if (getOrder.next()) {
+    while (getOrder.next()) {
       val statement2 = connection.createStatement()
       val getArticle = statement2.executeQuery(
         "SELECT * FROM  article INNER JOIN order_article ON article.id = order_article.articleID WHERE order_article.orderID=" + getOrder
@@ -408,15 +418,18 @@ class HomeController @Inject() (
       )
       orderList = orderList.append(order)
     }
+    connection.close()
     Ok(orderList)
   }
 
   def newOrder = Action(parse.json) { implicit request =>
+    var connection: Connection = null
     try {
       val order = Json.toJson(request.body)
       val userID = order("userID")
+      val summe = order("summe") //später für bank
       val article = order("article").as[JsArray]
-      val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
+      connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
       var sql = s"INSERT INTO markt_order (userID)  VALUES ($userID)"
       var statement =
         connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
@@ -442,15 +455,17 @@ class HomeController @Inject() (
         sql = s"UPDATE article SET stock=$stock WHERE id=$articleID"
 
       }
-
       Ok(Json.toJson(orderID))
     } catch {
       case e: Exception => Ok("ERROR")
+    } finally {
+      connection.close()
     }
 
   }
 
   def newComment = Action(parse.json) { implicit request =>
+    var connection: Connection = null
     try {
       val comment = Json.toJson(request.body)
       val text = comment("text").toString().replace('\"', '\'')
@@ -458,7 +473,7 @@ class HomeController @Inject() (
       val userID = comment("userID")
       val articleID = comment("articleID")
 
-      val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
+      connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
 
       val sql =
         s"INSERT INTO rating (text,rating,userID,articleID) VALUES ($text,$rating,$userID,$articleID)"
@@ -476,19 +491,22 @@ class HomeController @Inject() (
 
     } catch {
       case e: Exception => Ok("ERROR")
+    } finally {
+      connection.close()
     }
 
   }
 
   def newArticle = Action(parse.json) { implicit request =>
+    var connection: Connection = null
     try {
       val article = Json.toJson(request.body)
       val manufacture = article("manufacture").toString().replace('\"', '\'')
       val name = article("name").toString().replace('\"', '\'')
       val description = article("description").toString().replace('\"', '\'')
       val price = article("price")
-
-      val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
+      val cat = article("cat")
+      connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
       val sql =
         s"INSERT INTO article (manufacture,name,description,price,stock) VALUES ($manufacture,$name,$description,$price,0)"
       val statement =
@@ -505,17 +523,20 @@ class HomeController @Inject() (
 
     } catch {
       case e: Exception => Ok("ERROR")
+    } finally {
+      connection.close()
     }
 
   }
 
   def updateOrder = Action(parse.json) { implicit request =>
+    var connection: Connection = null
     try {
       val order = Json.toJson(request.body)
       val state = order("state").toString().replace('\"', '\'')
       val id = order("id")
 
-      val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
+      connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
       val sql = s"UPDATE markt_order SET state=$state WHERE id=$id"
       val statement =
         connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
@@ -533,11 +554,13 @@ class HomeController @Inject() (
 
     } catch {
       case e: Exception => Ok("ERROR")
+    } finally {
+      connection.close()
     }
-
   }
 
   def alterArticle = Action(parse.json) { implicit request =>
+    var connection: Connection = null
     try {
       val article = Json.toJson(request.body)
       val id = article("id")
@@ -547,7 +570,7 @@ class HomeController @Inject() (
       val description = article("description").toString().replace('\"', '\'')
       val stock = article("stock")
 
-      val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
+      connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
       val sql =
         s"UPDATE article SET price=$price, name=$name, manufacture=$manufacture, description=$description, stock=$stock  WHERE id=$id"
       val statement =
@@ -562,17 +585,20 @@ class HomeController @Inject() (
       }
     } catch {
       case e: Exception => Ok("ERROR")
+    } finally {
+      connection.close()
     }
   }
 
   def alterUser = Action(parse.json) { implicit request =>
+    var connection: Connection = null
     try {
       val user = Json.toJson(request.body)
       val id = user("id")
       val isWorker = user("isWorker")
       val points = user("points")
 
-      val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
+      connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
       val sql =
         s"UPDATE markt_user SET points=$points, isWorker=$isWorker  WHERE id=$id"
       val statement =
@@ -587,9 +613,9 @@ class HomeController @Inject() (
       }
     } catch {
       case e: Exception => Ok("ERROR")
+    } finally {
+      connection.close()
     }
   }
-
-
 
 }
