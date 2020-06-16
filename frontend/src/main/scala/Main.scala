@@ -137,7 +137,7 @@ object Main {
     val portal = createHREF(
       "Portal",
       "nav-link",
-      "http://portal.dvess.network/",
+      "https://portal.dvess.network/",
       "portal-button"
     )
     val li0 = document.createElement("li")
@@ -205,7 +205,7 @@ object Main {
     $("#warehouse-button").click { () => createWarehousePage() }
     $("#orders-button").click { () => createOrdersPage }
     $("#portal-button").click { () =>
-      window.open("http://portal.dvess.network/", "_self")
+      window.open("https://portal.dvess.network/", "_self")
     }
 
   }
@@ -732,7 +732,7 @@ object Main {
       val xhr = new dom.XMLHttpRequest()
       xhr.open(
         "POST",
-        " http://buergerbuero.dvess.network/api/user/login",
+        " https://buergerbuero.dvess.network/api/user/login",
         false
       )
       xhr.setRequestHeader("Content-Type", "application/json");
