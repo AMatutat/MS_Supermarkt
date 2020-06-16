@@ -34,11 +34,15 @@ class HomeController @Inject() (
     val controllerComponents: ControllerComponents
 ) extends BaseController {
 
+
   val dbuser = configuration.underlying.getString("myPOSTGRES_USER")
   val dbpw = configuration.underlying.getString("myPOSTGRES_PASSWORD")
   val url = configuration.underlying.getString("myPOSTGRES_DB")
   //val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
   val dbURL = s"jdbc:postgresql://localhost:5432/$url"
+  
+  val token= "eyJhbGciOiJSUzI1NiIsImtpZCI6IjRlMjdmNWIwNjllYWQ4ZjliZWYxZDE0Y2M2Mjc5YmRmYWYzNGM1MWIiLCJ0eXAiOiJKV1QifQ.eyJuYW1lIjoibW11c3RlciIsImlzcyI6Imh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlLmNvbS9zbWFydC1jaXR5LXNzMjAyMCIsImF1ZCI6InNtYXJ0LWNpdHktc3MyMDIwIiwiYXV0aF90aW1lIjoxNTkyMzMzNzMwLCJ1c2VyX2lkIjoiNlRiemNQYXZyU05kcTFXMXFBS3F5ZmhodnhCMiIsInN1YiI6IjZUYnpjUGF2clNOZHExVzFxQUtxeWZoaHZ4QjIiLCJpYXQiOjE1OTIzMzM3MzEsImV4cCI6MTU5MjMzNzMzMSwiZW1haWwiOiJleGFtcGxldXNlckB0ZXN0LmRlIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImZpcmViYXNlIjp7ImlkZW50aXRpZXMiOnsiZW1haWwiOlsiZXhhbXBsZXVzZXJAdGVzdC5kZSJdfSwic2lnbl9pbl9wcm92aWRlciI6InBhc3N3b3JkIn19.GhbYnIhnuRR9mB_5leNRjSZElxHV0gGRrybc-CuTS3XV7UcFj4On2L9jTTY9X376kw32MKq11dvYl34e_vhKk-Syb2V0R9k_KeC6dsu7EWKnxSyR5X0HDkRGImHFgEcoBzyrT_FeokaHRnzuo9JOgQlVkvYhC8I0LYawYiSxI8sU4IAdSqkN4YpdaRGYtp7Cf35o5jwOWOdq3F3aYP1_MCBP3AZk9YlL12_J8T54qCD86phVfhsTaoOulQ6Itu9D5tjgiPwMPocV3L9Ia977aaUbBJiTPahM_YHcmaJ4pF1nlG1hQFDSj5sWb2cIHFLoFIboqJAJns-9VzlU_2bGtg"
+  var res="START"
 
   def createDB = Action { _ =>
     var sql = ""
@@ -137,13 +141,14 @@ class HomeController @Inject() (
   def login(token: String) =
     Action //.async
     { _ =>
+      verifyUser(token)
       // val uid = await(verifyUser(token))
       // val user=await(getUser(uid))
       //  Ok(user)
-      Ok("Test")
+      Ok(res)
     }
 
-  /*def verifyUser(token: String):String = {
+  def verifyUser(token: String):String = {
       implicit val sys = ActorSystem("SmartMarkt")
       implicit val mat = ActorMaterializer()
       implicit val ec = sys.dispatcher
@@ -151,13 +156,15 @@ class HomeController @Inject() (
         UserServiceClient(GrpcClientSettings.fromConfig("user.UserService"))
       val reply = client.verifyUser(UserToken(token))
       reply.onComplete {
-        case Success(msg: UserId) => msg.uid.toString()
-        case Failure(exception) => "Error"
-        case _ => "Unknown ERROR on verifyUser"
+        case Success(msg: UserId) =>res=msg.uid.toString()
+        case Failure(exception) => res=exception.toString()
+        case _ => "res=Unknown ERROR on verifyUser"
       }
 
+      return "test"
     }
 
+    /*
     def getUser(uid: String): JsArray = {
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
