@@ -156,7 +156,7 @@ class HomeController @Inject() (
         UserServiceClient(GrpcClientSettings.fromConfig("user.UserService"))
       val reply = client.verifyUser(UserToken(token))
       reply.onComplete {
-        case Success(msg: UserId) =>res="MSG: "+msg + "Result: "+msg.getFieldByNumber(1)
+        case Success(msg) =>res="MSG: "+msg + "Result: "+msg.getFieldByNumber(1)
         case Failure(exception) => res=exception.toString()
         case _ => res="Unknown ERROR on verifyUser"
       }
