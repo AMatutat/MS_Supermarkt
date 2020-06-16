@@ -12,7 +12,7 @@ import scala.collection.mutable.ListBuffer
 object Main {
   //val port = "8080"
   //val backend = "http://localhost:" + port
-  val backend = "https://supermarkt.dvess.network/api"
+  val backend = "/api"
 
   /**
     * Aktueller User
