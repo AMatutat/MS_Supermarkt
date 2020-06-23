@@ -47,8 +47,8 @@ class HomeController @Inject() (
     * Löscht bestehende Datenbank und initialisiert eine neue DB.
     */
   def createDB = Action { _ =>
-    //Ok(dbc.createDB("jdbc:postgresql://localhost:5432/", url))
-    Ok(dbc.createDB("jdbc:postgresql://database:5432/", url))
+    Ok(dbc.createDB("jdbc:postgresql://localhost:5432/", url))
+    //Ok(dbc.createDB("jdbc:postgresql://database:5432/", url))
 
   }
 
