@@ -101,22 +101,17 @@ class HomeController @Inject() (
   }
 
   def getAllCategorys = Action { _ =>
-    val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-    var statement = connection.createStatement()
-    var resultSet = statement.executeQuery("SELECT c_name FROM category")
+    var resultSet = dbc.executeSQL("SELECT c_name FROM category")
     var categorys = new JsArray()
     while (resultSet.next()) {
       var category = Json.obj("name" -> resultSet.getString("c_name"))
       categorys = categorys.append(category)
     }
-    connection.close()
     Ok(Json.toJson(categorys))
   }
 
   def getAllArticle = Action { _ =>
-    val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-    var statement = connection.createStatement()
-    var resultSet = statement.executeQuery("SELECT * FROM Article")
+    var resultSet = dbc.executeSQL("SELECT * FROM Article")
     var articleList = new JsArray()
     while (resultSet.next()) {
       var article = Json.obj(
@@ -129,35 +124,32 @@ class HomeController @Inject() (
       )
       articleList = articleList.append(article)
     }
-    connection.close()
     Ok(articleList)
   }
 
   def getArticle(category: String, name: String) = Action { _ =>
-    val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-    var statement = connection.createStatement()
     var resultSet: ResultSet = null
     //Nur Kategorie angegeben
     if (!category.equals("_") && name.equals("_")) {
-      resultSet = statement.executeQuery(
+      resultSet = dbc.executeSQL(
         s"SELECT * FROM article INNER JOIN (category INNER JOIN article_category ON article_category.categoryID = category.id) ON article.id=article_category.articleID WHERE c_name='$category'"
       )
     }
     // Nur Name angegeben
     else if (category.equals("_") && !name.equals("_")) {
-      resultSet = statement.executeQuery(
+      resultSet = dbc.executeSQL(
         s"SELECT * FROM article WHERE name LIKE'$name%%'"
       )
     }
     //Beides angegeben
     else if (!category.equals("_") && !name.equals("_")) {
-      resultSet = statement.executeQuery(
+      resultSet = dbc.executeSQL(
         s"SELECT * FROM article INNER JOIN (category INNER JOIN article_category ON article_category.categoryID = category.id) ON article.id=article_category.articleID WHERE c_name='$category' AND name LIKE '$name%%'"
       )
     }
     //Nichts angegeben -> All Article
     else {
-      resultSet = statement.executeQuery("SELECT * FROM article")
+      resultSet = dbc.executeSQL("SELECT * FROM article")
     }
 
     var articleList = new JsArray()
@@ -172,15 +164,12 @@ class HomeController @Inject() (
       )
       articleList = articleList.append(article)
     }
-    connection.close()
     Ok(articleList)
   }
 
   def getArticleComments(id: Int) = Action { _ =>
-    val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-    var statement = connection.createStatement()
     var resultSet =
-      statement.executeQuery(s"SELECT * FROM rating WHERE articleID = $id")
+      dbc.executeSQL(s"SELECT * FROM rating WHERE articleID = $id")
     var comments = new JsArray()
     while (resultSet.next()) {
       var comment = Json.obj(
@@ -192,16 +181,12 @@ class HomeController @Inject() (
       )
       comments = comments.append(comment)
     }
-    connection.close()
     Ok(comments)
   }
 
   def getCustomerByID(id: String) = Action { _ =>
-    val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-    var statement = connection.createStatement()
-
     var resultSet =
-      statement.executeQuery(s"SELECT * FROM markt_user WHERE id = '$id'")
+      dbc.executeSQL(s"SELECT * FROM markt_user WHERE id = '$id'")
     var user = Json.obj()
     if (resultSet.next()) {
       user = Json.obj(
@@ -214,28 +199,23 @@ class HomeController @Inject() (
     }
     //neue User kriegen 500 Startpunkte
     else {
-      var statement2 = connection.prepareStatement(
-        s"INSERT INTO markt_user (id,points,isWorker) VALUES ($id,500,false)"
+      dbc.executeUpdate(
+        "INSERT INTO markt_user (id,points,isWorker) VALUES ($id,500,false)"
       )
-      statement2.executeUpdate()
       user = Json.obj(
         "points" -> 500,
         "isWorker" -> false,
         "id" -> id
       )
     }
-    connection.close()
     Ok(new JsArray().append(user))
   }
 
   def getAllOrder = Action { _ =>
-    val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-    var statement = connection.createStatement()
-    var getOrder = statement.executeQuery("SELECT * FROM markt_order")
+    var getOrder = dbc.executeSQL("SELECT * FROM markt_order")
     var orderList = new JsArray()
     while (getOrder.next()) {
-      var statement2 = connection.createStatement()
-      var getArticle = statement2.executeQuery(
+      var getArticle = dbc.executeSQL(
         "SELECT * FROM  article INNER JOIN order_article ON article.id = order_article.articleID WHERE order_article.orderID=" + getOrder
           .getInt(
             "id"
@@ -264,20 +244,16 @@ class HomeController @Inject() (
       )
       orderList = orderList.append(order)
     }
-    connection.close()
     Ok(orderList)
 
   }
 
   def getOrderByCustomerID(cid: String) = Action { _ =>
-    val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-    val statement = connection.createStatement()
     val getOrder =
-      statement.executeQuery(s"SELECT * FROM markt_order WHERE userID='$cid'")
+      dbc.executeSQL(s"SELECT * FROM markt_order WHERE userID='$cid'")
     var orderList = new JsArray()
     while (getOrder.next()) {
-      val statement2 = connection.createStatement()
-      val getArticle = statement2.executeQuery(
+      val getArticle = dbc.executeSQL(
         "SELECT * FROM  article INNER JOIN order_article ON article.id = order_article.articleID WHERE order_article.orderID=" + getOrder
           .getInt("id")
       )
@@ -304,204 +280,90 @@ class HomeController @Inject() (
       )
       orderList = orderList.append(order)
     }
-    connection.close()
     Ok(orderList)
   }
 
   def newOrder = Action(parse.json) { implicit request =>
-    var connection: Connection = null
-    try {
-      val order = Json.toJson(request.body)
-      val userID = order("userID")
-      val summe = order("summe") //später für bank
-      val article = order("article").as[JsArray]
-      connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-      var sql = s"INSERT INTO markt_order (userID)  VALUES ($userID)"
-      var statement =
-        connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
-      statement.executeUpdate()
-      val generatedKey = statement.getGeneratedKeys()
-      generatedKey.next()
-      val orderID = generatedKey.getLong(1)
+    val order = Json.toJson(request.body)
+    val userID = order("userID")
+    val summe = order("summe") //später für bank
+    val article = order("article").as[JsArray]
 
-      for (i <- 0 to article.value.size - 1) {
-        val articleID = article.apply(i)("id")
-        val number = article.apply(i)("number")
-        sql =
-          s"INSERT INTO order_article (articleID,orderID,number) VALUES($articleID,$orderID,$number)"
-        statement = connection.prepareStatement(sql)
-        statement.executeUpdate()
+    val orderID =
+      dbc.executeUpdate(s"INSERT INTO markt_order (userID)  VALUES ($userID)")
 
-        sql = s"SELECT stock FROM article WHERE id=$articleID"
-        val statement2 = connection.createStatement()
-        val currentStock = statement2.executeQuery(sql)
-        currentStock.next()
-        var stock = currentStock.getInt("stock")
-        stock = stock - number.toString.toInt
-        sql = s"UPDATE article SET stock=$stock WHERE id=$articleID"
-
-      }
-      Ok(Json.toJson(orderID))
-    } catch {
-      case e: Exception => Ok("ERROR")
-    } finally {
-      connection.close()
+    for (i <- 0 to article.value.size - 1) {
+      val articleID = article.apply(i)("id")
+      val number = article.apply(i)("number")
+      dbc.executeUpdate(
+        "INSERT INTO order_article (articleID,orderID,number) VALUES($articleID,$orderID,$number)"
+      )
+      val currentStock =
+        dbc.executeSQL("SELECT stock FROM article WHERE id=$articleID")
+      currentStock.next()
+      var stock = currentStock.getInt("stock")
+      stock = stock - number.toString.toInt
+      dbc.executeUpdate(s"UPDATE article SET stock=$stock WHERE id=$articleID")
     }
-
+    Ok("OK")
   }
 
   def newComment = Action(parse.json) { implicit request =>
-    var connection: Connection = null
-    try {
-      val comment = Json.toJson(request.body)
-      val text = comment("text").toString().replace('\"', '\'')
-      val rating = comment("rating")
-      val userID = comment("userID")
-      val articleID = comment("articleID")
-
-      connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-
-      val sql =
-        s"INSERT INTO rating (text,rating,userID,articleID) VALUES ($text,$rating,$userID,$articleID)"
-      val statement =
-        connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
-
-      val affectedRows = statement.executeUpdate()
-      if (affectedRows == 0)
-        Ok("ERROR")
-      else {
-        val generatedKey = statement.getGeneratedKeys()
-        generatedKey.next()
-        Ok(Json.toJson(generatedKey.getLong(1)))
-      }
-
-    } catch {
-      case e: Exception => Ok("ERROR")
-    } finally {
-      connection.close()
-    }
-
+    val comment = Json.toJson(request.body)
+    val text = comment("text").toString().replace('\"', '\'')
+    val rating = comment("rating")
+    val userID = comment("userID")
+    val articleID = comment("articleID")
+    dbc.executeSQL(
+      s"INSERT INTO rating (text,rating,userID,articleID) VALUES ($text,$rating,$userID,$articleID)"
+    )
+    Ok("Ok")
   }
 
   def newArticle = Action(parse.json) { implicit request =>
-    var connection: Connection = null
-    try {
-      val article = Json.toJson(request.body)
-      val manufacture = article("manufacture").toString().replace('\"', '\'')
-      val name = article("name").toString().replace('\"', '\'')
-      val description = article("description").toString().replace('\"', '\'')
-      val price = article("price")
-      val cat = article("cat")
-      connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-      val sql =
-        s"INSERT INTO article (manufacture,name,description,price,stock) VALUES ($manufacture,$name,$description,$price,0)"
-      val statement =
-        connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
-      val affectedRows = statement.executeUpdate()
-
-      if (affectedRows == 0)
-        Ok("ERROR")
-      else {
-        val generatedKey = statement.getGeneratedKeys()
-        generatedKey.next()
-        Ok(Json.toJson(generatedKey.getLong(1)))
-      }
-
-    } catch {
-      case e: Exception => Ok("ERROR")
-    } finally {
-      connection.close()
-    }
-
+    val article = Json.toJson(request.body)
+    val manufacture = article("manufacture").toString().replace('\"', '\'')
+    val name = article("name").toString().replace('\"', '\'')
+    val description = article("description").toString().replace('\"', '\'')
+    val price = article("price")
+    val cat = article("cat")
+    dbc.executeSQL(
+      s"INSERT INTO article (manufacture,name,description,price,stock) VALUES ($manufacture,$name,$description,$price,0)"
+    )
+    Ok("Ok")
   }
 
   def updateOrder = Action(parse.json) { implicit request =>
-    var connection: Connection = null
-    try {
-      val order = Json.toJson(request.body)
-      val state = order("state").toString().replace('\"', '\'')
-      val id = order("id")
+    val order = Json.toJson(request.body)
+    val state = order("state").toString().replace('\"', '\'')
+    val id = order("id")
+    dbc.executeUpdate(s"UPDATE markt_order SET state=$state WHERE id=$id")
+    Ok("Ok")
 
-      connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-      val sql = s"UPDATE markt_order SET state=$state WHERE id=$id"
-      val statement =
-        connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
-      val affectedRows =
-        statement.executeUpdate(
-          )
-
-      if (affectedRows == 0)
-        Ok("ERROR")
-      else {
-        val generatedKey = statement.getGeneratedKeys()
-        generatedKey.next()
-        Ok(Json.toJson(generatedKey.getLong(1)))
-      }
-
-    } catch {
-      case e: Exception => Ok("ERROR")
-    } finally {
-      connection.close()
-    }
   }
 
   def alterArticle = Action(parse.json) { implicit request =>
-    var connection: Connection = null
-    try {
-      val article = Json.toJson(request.body)
-      val id = article("id")
-      val price = article("price")
-      val manufacture = article("manufacture").toString().replace('\"', '\'')
-      val name = article("name").toString().replace('\"', '\'')
-      val description = article("description").toString().replace('\"', '\'')
-      val stock = article("stock")
-
-      connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-      val sql =
-        s"UPDATE article SET price=$price, name=$name, manufacture=$manufacture, description=$description, stock=$stock  WHERE id=$id"
-      val statement =
-        connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
-      val affectedRows = statement.executeUpdate()
-      if (affectedRows == 0)
-        Ok("ERROR")
-      else {
-        val generatedKey = statement.getGeneratedKeys()
-        generatedKey.next()
-        Ok(Json.toJson(generatedKey.getLong(1)))
-      }
-    } catch {
-      case e: Exception => Ok("ERROR")
-    } finally {
-      connection.close()
-    }
+    val article = Json.toJson(request.body)
+    val id = article("id")
+    val price = article("price")
+    val manufacture = article("manufacture").toString().replace('\"', '\'')
+    val name = article("name").toString().replace('\"', '\'')
+    val description = article("description").toString().replace('\"', '\'')
+    val stock = article("stock")
+    dbc.executeUpdate(
+      s"UPDATE article SET price=$price, name=$name, manufacture=$manufacture, description=$description, stock=$stock  WHERE id=$id"
+    )
+    Ok("Ok")
   }
 
   def alterUser = Action(parse.json) { implicit request =>
-    var connection: Connection = null
-    try {
-      val user = Json.toJson(request.body)
-      val id = user("id")
-      val isWorker = user("isWorker")
-      val points = user("points")
-
-      connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-      val sql =
-        s"UPDATE markt_user SET points=$points, isWorker=$isWorker  WHERE id=$id"
-      val statement =
-        connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
-      val affectedRows = statement.executeUpdate()
-      if (affectedRows == 0)
-        Ok("ERROR")
-      else {
-        val generatedKey = statement.getGeneratedKeys()
-        generatedKey.next()
-        Ok(Json.toJson(generatedKey.getLong(1)))
-      }
-    } catch {
-      case e: Exception => Ok("ERROR")
-    } finally {
-      connection.close()
-    }
+    val user = Json.toJson(request.body)
+    val id = user("id")
+    val isWorker = user("isWorker")
+    val points = user("points")
+    dbc.executeUpdate(
+      s"UPDATE markt_user SET points=$points, isWorker=$isWorker  WHERE id=$id"
+    )
+    Ok("Ok")
   }
-
 }

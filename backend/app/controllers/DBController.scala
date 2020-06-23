@@ -9,7 +9,6 @@ import java.sql.Statement
 class  DBController(val dbuser:String, val dbpw: String, val dbURL:String) {
 
   def dropDB(): Unit = {
-
     var connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
     try {
@@ -95,6 +94,25 @@ class  DBController(val dbuser:String, val dbpw: String, val dbURL:String) {
       case e: Exception => println(e)
     }
     connection.close()
+  }
+
+
+  def executeSQL(sql: String): ResultSet = {
+    val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
+    var statement = connection.createStatement()
+    var resultSet = statement.executeQuery(sql)
+    connection.close()
+    resultSet
+  }
+
+  def executeUpdate(sql:String): Long = {
+    val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
+    var statement = connection.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS)
+    statement.execute()
+    connection.close()
+    val generatedKey = statement.getGeneratedKeys()
+    generatedKey.next()
+    generatedKey.getLong(1)
   }
 
 }
