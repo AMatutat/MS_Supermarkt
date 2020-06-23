@@ -31,11 +31,15 @@ class HomeController @Inject() (
     val controllerComponents: ControllerComponents
 ) extends BaseController {
 
-  val dbuser = configuration.underlying.getString("myPOSTGRES_USER")
-  val dbpw = configuration.underlying.getString("myPOSTGRES_PASSWORD")
-  val url = configuration.underlying.getString("myPOSTGRES_DB")
-  val dbURL = s"jdbc:postgresql://localhost:5432/$url"
-  //val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
+  //val dbuser = configuration.underlying.getString("myPOSTGRES_USER")
+  //val dbpw = configuration.underlying.getString("myPOSTGRES_PASSWORD")
+  //val url = configuration.underlying.getString("myPOSTGRES_DB")
+  //val dbURL = s"jdbc:postgresql://localhost:5432/$url"
+
+  val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
+  val dbuser = "postgres"
+  val dbpw = "postgres"
+  val url = "smartmarkt"
 
   //Database Controller
   val dbc = new DBController(dbuser, dbpw, dbURL)
@@ -46,7 +50,13 @@ class HomeController @Inject() (
     * Löscht bestehende Datenbank und initialisiert eine neue DB.
     */
   def createDB = Action { _ =>
-    Ok(dbc.createDB("jdbc:postgresql://localhost:5432/", url))
+    //Ok(dbc.createDB("jdbc:postgresql://localhost:5432/", url))
+    println("------------------")
+    println("createDB")
+    var r = dbc.createDB("jdbc:postgresql://database:5432/", url)
+    println(r)
+    Ok(r)
+
   }
 
   def login(token: String) =
@@ -198,7 +208,7 @@ class HomeController @Inject() (
     //neue User kriegen 500 Startpunkte
     else {
       dbc.executeUpdate(
-        "INSERT INTO markt_user (id,points,isWorker) VALUES ($id,500,false)"
+        s"INSERT INTO markt_user (id,points,isWorker) VALUES ($id,500,false)"
       )
       user = Json.obj(
         "points" -> 500,
@@ -295,20 +305,19 @@ class HomeController @Inject() (
   def newOrder = Action(parse.json) { implicit request =>
     val order = Json.toJson(request.body)
     val userID = order("userID")
-    val summe = order("summe") //später für bank
     val article = order("article").as[JsArray]
 
     val orderID =
-      dbc.executeUpdate(s"INSERT INTO markt_order (userID)  VALUES ($userID)")
+      dbc.executeUpdate(s"INSERT INTO markt_order (userID)  VALUES ('$userID')")
 
     for (i <- 0 to article.value.size - 1) {
       val articleID = article.apply(i)("id")
       val number = article.apply(i)("number")
       dbc.executeUpdate(
-        "INSERT INTO order_article (articleID,orderID,number) VALUES($articleID,$orderID,$number)"
+        s"INSERT INTO order_article (articleID,orderID,number) VALUES($articleID,$orderID,$number)"
       )
       val currentStock =
-        dbc.executeSQL("SELECT stock FROM article WHERE id=$articleID")
+        dbc.executeSQL(s"SELECT stock FROM article WHERE id=$articleID")
       currentStock.next()
       var stock = currentStock.getInt("stock")
       stock = stock - number.toString.toInt
@@ -338,7 +347,6 @@ class HomeController @Inject() (
     val name = article("name").toString().replace('\"', '\'')
     val description = article("description").toString().replace('\"', '\'')
     val price = article("price")
-    val cat = article("cat")
     dbc.executeSQL(
       s"INSERT INTO article (manufacture,name,description,price,stock) VALUES ($manufacture,$name,$description,$price,0)"
     )
@@ -383,7 +391,7 @@ class HomeController @Inject() (
     val isWorker = user("isWorker")
     val points = user("points")
     dbc.executeUpdate(
-      s"UPDATE markt_user SET points=$points, isWorker=$isWorker  WHERE id=$id"
+      s"UPDATE markt_user SET points=$points, isWorker=$isWorker  WHERE id='$id'"
     )
     Ok("Ok")
   }
