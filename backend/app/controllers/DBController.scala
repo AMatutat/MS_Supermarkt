@@ -5,6 +5,7 @@ import java.sql.DriverManager
 import java.sql.ResultSet
 import java.sql.SQLException
 import java.sql.Statement
+import java.sql.SQLTimeoutException
 
 /**
   * Handelt Verbindung zur Datenbank
@@ -22,12 +23,14 @@ class DBController(val dbuser: String, val dbpw: String, val dbURL: String) {
     * @param url name der Datenbank
     * @return erfolg bzw error msg
     */
+  @throws(classOf[SQLException])
+  @throws(classOf[SQLTimeoutException])
+  @throws(classOf[Exception])
   def createDB(rootUrl: String, url: String): String = {
+    var rootConnection: Connection = null
     try {
-      val rootConnection = DriverManager.getConnection(rootUrl, dbuser, dbpw)
+      rootConnection = DriverManager.getConnection(rootUrl, dbuser, dbpw)
       var rootStatement = rootConnection.createStatement()
-      println("connection" + rootConnection)
-
       var sql =
         s"SELECT 'CREATE DATABASE $url' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$url');"
       val affectedRows = rootStatement.executeUpdate(sql)
@@ -36,29 +39,38 @@ class DBController(val dbuser: String, val dbpw: String, val dbURL: String) {
         sql = s"CREATE DATABASE $url;"
         rootStatement.executeUpdate(sql)
       } else
-        rootConnection.close()
-      this.dropDB();
+        this.dropDB();
 
     } catch {
-      case e: Exception => return e.toString()
+      case e: SQLException        => throw e
+      case e: SQLTimeoutException => throw e
+      case e: Exception           => throw e
+    } finally {
+      rootConnection.close()
     }
     try {
       this.setupDB();
       this.fillDB()
       return "DB CREATED"
     } catch {
-      case e: Exception => return e.toString()
+      case e: SQLException        => throw e
+      case e: SQLTimeoutException => throw e
+      case e: Exception           => throw e
     }
   }
 
   /**
     * Löscht alle Tabellen aus der DB
     */
+  @throws(classOf[SQLException])
+  @throws(classOf[SQLTimeoutException])
+  @throws(classOf[Exception])
   def dropDB(): Unit = {
-    var connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-    var statement = connection.createStatement()
 
+    var connection: Connection = null
     try {
+      connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
+      val statement = connection.createStatement()
       var sql = "DROP TABLE IF EXISTS article_category;"
       statement.execute(sql)
       sql = "DROP TABLE IF EXISTS order_article;"
@@ -73,18 +85,25 @@ class DBController(val dbuser: String, val dbpw: String, val dbURL: String) {
       sql = "DROP TABLE IF EXISTS markt_user;"
       statement.execute(sql)
     } catch {
-      case e: Exception => println(e)
+      case e: SQLException        => throw e
+      case e: SQLTimeoutException => throw e
+      case e: Exception           => throw e
+    } finally {
+      connection.close()
     }
-    connection.close()
   }
 
   /**
     * Erstellt alle Tabellen der DB
     */
+  @throws(classOf[SQLException])
+  @throws(classOf[SQLTimeoutException])
+  @throws(classOf[Exception])
   def setupDB(): Unit = {
-    var connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-    var statement = connection.createStatement()
+    var connection: Connection = null
     try {
+      connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
+      val statement = connection.createStatement()
       var sql =
         "CREATE TABLE category(id SERIAL PRIMARY KEY NOT NULL,c_name TEXT NOT NULL);"
       statement.execute(sql)
@@ -107,19 +126,25 @@ class DBController(val dbuser: String, val dbpw: String, val dbURL: String) {
         "CREATE TABLE rating(id SERIAL PRIMARY KEY NOT NULL,text TEXT NOT NULL,rating INTEGER NOT NULL,userID TEXT REFERENCES markt_user(id),articleID INTEGER REFERENCES article(id));"
       statement.execute(sql)
     } catch {
-      case e: Exception => println(e)
+      case e: SQLException        => throw e
+      case e: SQLTimeoutException => throw e
+      case e: Exception           => throw e
+    } finally {
+      connection.close()
     }
-    connection.close()
   }
 
   /**
     * Einfügen von Beispieldaten
     */
+  @throws(classOf[SQLException])
+  @throws(classOf[SQLTimeoutException])
+  @throws(classOf[Exception])
   def fillDB(): Unit = {
-    var connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-    var statement = connection.createStatement()
+    var connection: Connection = null
     try {
-
+      connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
+      val statement = connection.createStatement()
       var sql =
         "INSERT INTO markt_user (id,points,isWorker) VALUES ('1',500,TRUE);"
       statement.execute(sql)
@@ -144,9 +169,12 @@ class DBController(val dbuser: String, val dbpw: String, val dbURL: String) {
       statement.execute(sql)
 
     } catch {
-      case e: Exception => println(e)
+      case e: SQLException        => throw e
+      case e: SQLTimeoutException => throw e
+      case e: Exception           => throw e
+    } finally {
+      connection.close()
     }
-    connection.close()
   }
 
   /**
@@ -155,12 +183,24 @@ class DBController(val dbuser: String, val dbpw: String, val dbURL: String) {
     * @param sql SELECT Statement
     * @return Ergebniss
     */
+  @throws(classOf[SQLException])
+  @throws(classOf[SQLTimeoutException])
+  @throws(classOf[Exception])
   def executeSQL(sql: String): ResultSet = {
-    val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-    var statement = connection.createStatement()
-    var resultSet = statement.executeQuery(sql)
-    connection.close()
-    resultSet
+    var connection: Connection = null
+    try {
+      connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
+      var statement = connection.createStatement()
+      var resultSet = statement.executeQuery(sql)
+      connection.close()
+      resultSet
+    } catch {
+      case e: SQLException        => throw e
+      case e: SQLTimeoutException => throw e
+      case e: Exception           => throw e
+    } finally {
+      connection.close()
+    }
   }
 
   /**
@@ -169,15 +209,26 @@ class DBController(val dbuser: String, val dbpw: String, val dbURL: String) {
     * @param sql SQL Statement
     * @return Key
     */
+  @throws(classOf[SQLException])
+  @throws(classOf[SQLTimeoutException])
+  @throws(classOf[Exception])
   def executeUpdate(sql: String): Long = {
-    val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-    var statement =
-      connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
-    statement.execute()
-    connection.close()
-    val generatedKey = statement.getGeneratedKeys()
-    generatedKey.next()
-    generatedKey.getLong(1)
+    var connection: Connection = null
+    try {
+      connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
+      val statement =
+        connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
+      statement.execute()
+      val generatedKey = statement.getGeneratedKeys()
+      generatedKey.next()
+      generatedKey.getLong(1)
+    } catch {
+      case e: SQLException        => throw e
+      case e: SQLTimeoutException => throw e
+      case e: Exception           => throw e
+    } finally {
+      connection.close()
+    }
   }
 
 }

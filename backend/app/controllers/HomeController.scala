@@ -51,11 +51,7 @@ class HomeController @Inject() (
     */
   def createDB = Action { _ =>
     //Ok(dbc.createDB("jdbc:postgresql://localhost:5432/", url))
-    println("------------------")
-    println("createDB")
-    var r = dbc.createDB("jdbc:postgresql://database:5432/", url)
-    println(r)
-    Ok(r)
+    Ok(dbc.createDB("jdbc:postgresql://database:5432/", url))
 
   }
 
