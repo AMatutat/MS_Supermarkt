@@ -33,15 +33,11 @@ class HomeController @Inject() (
     val controllerComponents: ControllerComponents
 ) extends BaseController {
 
-  //val dbuser = configuration.underlying.getString("myPOSTGRES_USER")
-  //val dbpw = configuration.underlying.getString("myPOSTGRES_PASSWORD")
-  //val url = configuration.underlying.getString("myPOSTGRES_DB")
-  //val dbURL = s"jdbc:postgresql://localhost:5432/$url"
+  val dbuser = configuration.underlying.getString("myPOSTGRES_USER")
+  val dbpw = configuration.underlying.getString("myPOSTGRES_PASSWORD")
+  val url = configuration.underlying.getString("myPOSTGRES_DB")
+  val dbURL = s"jdbc:postgresql://localhost:5432/$url"
 
-  val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
-  val dbuser = "postgres"
-  val dbpw = "postgres"
-  val url = "smartmarkt"
 
   //Database Controller
   val dbc = new DBController(dbuser, dbpw, dbURL)
