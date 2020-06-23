@@ -6,8 +6,52 @@ import java.sql.ResultSet
 import java.sql.SQLException
 import java.sql.Statement
 
-class  DBController(val dbuser:String, val dbpw: String, val dbURL:String) {
+/**
+  * Handelt Verbindung zur Datenbank
+  *
+  * @param dbuser 
+  * @param dbpw
+  * @param dbURL
+  */
+class DBController(val dbuser: String, val dbpw: String, val dbURL: String) {
 
+/**
+    * Initialisiert eine neue Datenbank
+    *
+    * @param rootUrl übergeordnete URL der Datenbank
+    * @param url name der Datenbank
+    * @return erfolg bzw error msg
+    */
+  def createDB(rootUrl: String, url: String): String = {
+    try {
+      val rootConnection = DriverManager.getConnection(rootUrl, dbuser, dbpw)
+      var rootStatement = rootConnection.createStatement()
+      var sql =s"SELECT 'CREATE DATABASE $url' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$url');"
+      val affectedRows = rootStatement.executeUpdate(sql)
+      // 0 affected Rows -> DB already exists
+      if (affectedRows != 0) {
+        sql = s"CREATE DATABASE $url;"
+        rootStatement.executeUpdate(sql)
+      }
+      else
+       this.dropDB();
+
+      rootConnection.close()
+
+    } catch {
+      case e: Exception => return e.toString()
+    }
+    try {     
+      this.setupDB();
+      this.fillDB()
+      return "DB CREATED"
+    } catch {
+      case e: Exception => return e.toString()
+    }
+  }
+/**
+  * Löscht alle Tabellen aus der DB
+  */
   def dropDB(): Unit = {
     var connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
@@ -30,7 +74,9 @@ class  DBController(val dbuser:String, val dbpw: String, val dbURL:String) {
     }
     connection.close()
   }
-
+/**
+  * Erstellt alle Tabellen der DB
+  */
   def setupDB(): Unit = {
     var connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
@@ -61,7 +107,9 @@ class  DBController(val dbuser:String, val dbpw: String, val dbURL:String) {
     }
     connection.close()
   }
-
+/**
+  * Einfügen von Beispieldaten
+  */
   def fillDB(): Unit = {
     var connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
@@ -95,8 +143,12 @@ class  DBController(val dbuser:String, val dbpw: String, val dbURL:String) {
     }
     connection.close()
   }
-
-
+/**
+  * Ausführen eines SQL SELECT Befehls
+  *
+  * @param sql SELECT Statement
+  * @return Ergebniss
+  */
   def executeSQL(sql: String): ResultSet = {
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
     var statement = connection.createStatement()
@@ -104,10 +156,16 @@ class  DBController(val dbuser:String, val dbpw: String, val dbURL:String) {
     connection.close()
     resultSet
   }
-
-  def executeUpdate(sql:String): Long = {
+/**
+  * Ausführen eines SQL Update/Insert Befehls
+  *
+  * @param sql SQL Statement
+  * @return Key
+  */
+  def executeUpdate(sql: String): Long = {
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-    var statement = connection.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS)
+    var statement =
+      connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
     statement.execute()
     connection.close()
     val generatedKey = statement.getGeneratedKeys()

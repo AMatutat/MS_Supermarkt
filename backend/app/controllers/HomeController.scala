@@ -4,26 +4,22 @@ import javax.inject._
 import play.api._
 import play.api.mvc._
 import play.api.libs.json._
-
-import java.sql.Connection
-import java.sql.DriverManager
 import java.sql.ResultSet
-import java.sql.SQLException
-import java.sql.Statement
+import user._
 
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Await, Future}
 import scala.util.Failure
 import scala.util.Success
+
 import akka.Done
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
-import user._
 import akka.dispatch.Futures
-import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * This controller creates an `Action` to handle HTTP requests to the
@@ -38,39 +34,19 @@ class HomeController @Inject() (
   val dbuser = configuration.underlying.getString("myPOSTGRES_USER")
   val dbpw = configuration.underlying.getString("myPOSTGRES_PASSWORD")
   val url = configuration.underlying.getString("myPOSTGRES_DB")
-  //val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
   val dbURL = s"jdbc:postgresql://localhost:5432/$url"
-  var res = "START"
+  //val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
 
+  //Database Controller
   val dbc = new DBController(dbuser, dbpw, dbURL)
 
-  //nicht ausgelager, da 1. route 2. auf admin ebene
-  def createDB = Action { _ =>
-    try {
-      val rootConnection = DriverManager
-        .getConnection("jdbc:postgresql://database:5432", dbuser, dbpw)
-      var rootStatement = rootConnection.createStatement()
-      var sql =
-        s"SELECT 'CREATE DATABASE $url' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$url');"
-      val affectedRows = rootStatement.executeUpdate(sql)
-      // 0 affected Rows -> DB already exists
-      if (affectedRows != 0) {
-        sql = "CREATE DATABASE smartmarkt;"
-        rootStatement.executeUpdate(sql)
-      }
-      rootConnection.close()
+  var res = "START"
 
-    } catch {
-      case e: Exception => Ok("Create Database failed: " + e.toString())
-    }
-    try {
-      dbc.dropDB();
-      dbc.setupDB();
-      dbc.fillDB()
-      Ok("DB CREATED")
-    } catch {
-      case e: Exception => Ok(e.toString())
-    }
+  /**
+    * Löscht bestehende Datenbank und initialisiert eine neue DB.
+    */
+  def createDB = Action { _ =>
+    Ok(dbc.createDB("jdbc:postgresql://localhost:5432/", url))
   }
 
   def login(token: String) =
@@ -100,6 +76,9 @@ class HomeController @Inject() (
     return "test"
   }
 
+  /**
+    * Gibt den Inhalt der Tabelle Category zurück
+    */
   def getAllCategorys = Action { _ =>
     var resultSet = dbc.executeSQL("SELECT c_name FROM category")
     var categorys = new JsArray()
@@ -110,6 +89,9 @@ class HomeController @Inject() (
     Ok(Json.toJson(categorys))
   }
 
+  /**
+    * Gibt den Inhalt der Tablle Article zurück
+    */
   def getAllArticle = Action { _ =>
     var resultSet = dbc.executeSQL("SELECT * FROM Article")
     var articleList = new JsArray()
@@ -127,6 +109,12 @@ class HomeController @Inject() (
     Ok(articleList)
   }
 
+  /**
+    * Gibt alle Artikle zurück, die den Filteroptionen entsprechen
+    *
+    * @param category Filter Kategorie (_ -> null)
+    * @param name Filter Zeichenkette (_ -> null)
+    */
   def getArticle(category: String, name: String) = Action { _ =>
     var resultSet: ResultSet = null
     //Nur Kategorie angegeben
@@ -167,6 +155,11 @@ class HomeController @Inject() (
     Ok(articleList)
   }
 
+  /**
+    * Gibt alle Ratings zu einen Artikel zurück
+    *
+    * @param id Artikel ID
+    */
   def getArticleComments(id: Int) = Action { _ =>
     var resultSet =
       dbc.executeSQL(s"SELECT * FROM rating WHERE articleID = $id")
@@ -184,6 +177,11 @@ class HomeController @Inject() (
     Ok(comments)
   }
 
+  /**
+    * Gibt einen User per ID zurück
+    * Wenn es keinen User mit der übergebenen ID gibt, wird ein neuer User angelegt
+    * @param id UserID
+    */
   def getCustomerByID(id: String) = Action { _ =>
     var resultSet =
       dbc.executeSQL(s"SELECT * FROM markt_user WHERE id = '$id'")
@@ -211,6 +209,9 @@ class HomeController @Inject() (
     Ok(new JsArray().append(user))
   }
 
+  /**
+    * Gibt alle Bestellungen zurück
+    */
   def getAllOrder = Action { _ =>
     var getOrder = dbc.executeSQL("SELECT * FROM markt_order")
     var orderList = new JsArray()
@@ -248,6 +249,11 @@ class HomeController @Inject() (
 
   }
 
+  /**
+    * Gibt alle BEstellungen eines bestimmten Users zurück
+    *
+    * @param cid UserID
+    */
   def getOrderByCustomerID(cid: String) = Action { _ =>
     val getOrder =
       dbc.executeSQL(s"SELECT * FROM markt_order WHERE userID='$cid'")
@@ -283,6 +289,9 @@ class HomeController @Inject() (
     Ok(orderList)
   }
 
+  /**
+    * Erstellt eine neue Bestellung
+    */
   def newOrder = Action(parse.json) { implicit request =>
     val order = Json.toJson(request.body)
     val userID = order("userID")
@@ -320,6 +329,9 @@ class HomeController @Inject() (
     Ok("Ok")
   }
 
+  /**
+    * Erstellt einen neune Artikel
+    */
   def newArticle = Action(parse.json) { implicit request =>
     val article = Json.toJson(request.body)
     val manufacture = article("manufacture").toString().replace('\"', '\'')
@@ -333,6 +345,9 @@ class HomeController @Inject() (
     Ok("Ok")
   }
 
+  /**
+    * Bearbeitet den Bestellstatus
+    */
   def updateOrder = Action(parse.json) { implicit request =>
     val order = Json.toJson(request.body)
     val state = order("state").toString().replace('\"', '\'')
@@ -342,6 +357,9 @@ class HomeController @Inject() (
 
   }
 
+  /**
+    * Berarbeitet einen Artikel
+    */
   def alterArticle = Action(parse.json) { implicit request =>
     val article = Json.toJson(request.body)
     val id = article("id")
@@ -356,6 +374,9 @@ class HomeController @Inject() (
     Ok("Ok")
   }
 
+  /**
+    * Bearbeitete einen User
+    */
   def alterUser = Action(parse.json) { implicit request =>
     val user = Json.toJson(request.body)
     val id = user("id")
