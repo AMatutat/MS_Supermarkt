@@ -92,14 +92,15 @@ class HomeController @Inject() (
       var categorys = new JsArray()
       while (resultSet.next()) {
         var category = Json.obj("name" -> resultSet.getString("c_name"))
-        categorys = categorys.append(category)        
+        categorys = categorys.append(category)
       }
       Ok(Json.toJson(categorys))
     } catch {
-      case e: SQLException =>
-        InternalServerError("SQL Exception: " + e.toString())
       case e: SQLTimeoutException =>
         InternalServerError("SQL-Timeout Exception: " + e.toString())
+      case e: SQLException =>
+        InternalServerError("SQL Exception: " + e.toString())
+
       case e: Exception => InternalServerError("Exception: " + e.toString())
     }
 
@@ -121,14 +122,15 @@ class HomeController @Inject() (
           "price" -> resultSet.getFloat("price"),
           "stock" -> resultSet.getInt("stock")
         )
-        articleList = articleList.append(article)       
+        articleList = articleList.append(article)
       }
-       Ok(articleList)
+      Ok(articleList)
     } catch {
-      case e: SQLException =>
-        InternalServerError("SQL Exception: " + e.toString())
       case e: SQLTimeoutException =>
         InternalServerError("SQL-Timeout Exception: " + e.toString())
+      case e: SQLException =>
+        InternalServerError("SQL Exception: " + e.toString())
+
       case e: Exception => InternalServerError("Exception: " + e.toString())
     }
   }
@@ -179,10 +181,11 @@ class HomeController @Inject() (
       }
       Ok(articleList)
     } catch {
-      case e: SQLException =>
-        InternalServerError("SQL Exception: " + e.toString())
       case e: SQLTimeoutException =>
         InternalServerError("SQL-Timeout Exception: " + e.toString())
+      case e: SQLException =>
+        InternalServerError("SQL Exception: " + e.toString())
+
       case e: Exception => InternalServerError("Exception: " + e.toString())
     }
   }
@@ -209,10 +212,11 @@ class HomeController @Inject() (
       }
       Ok(comments)
     } catch {
-      case e: SQLException =>
-        InternalServerError("SQL Exception: " + e.toString())
       case e: SQLTimeoutException =>
         InternalServerError("SQL-Timeout Exception: " + e.toString())
+      case e: SQLException =>
+        InternalServerError("SQL Exception: " + e.toString())
+
       case e: Exception => InternalServerError("Exception: " + e.toString())
     }
   }
@@ -249,10 +253,11 @@ class HomeController @Inject() (
       }
       Ok(new JsArray().append(user))
     } catch {
-      case e: SQLException =>
-        InternalServerError("SQL Exception: " + e.toString())
       case e: SQLTimeoutException =>
         InternalServerError("SQL-Timeout Exception: " + e.toString())
+      case e: SQLException =>
+        InternalServerError("SQL Exception: " + e.toString())
+
       case e: Exception => InternalServerError("Exception: " + e.toString())
     }
   }
@@ -296,10 +301,11 @@ class HomeController @Inject() (
       }
       Ok(orderList)
     } catch {
-      case e: SQLException =>
-        InternalServerError("SQL Exception: " + e.toString())
       case e: SQLTimeoutException =>
         InternalServerError("SQL-Timeout Exception: " + e.toString())
+      case e: SQLException =>
+        InternalServerError("SQL Exception: " + e.toString())
+
       case e: Exception => InternalServerError("Exception: " + e.toString())
     }
 
@@ -345,10 +351,11 @@ class HomeController @Inject() (
       }
       Ok(orderList)
     } catch {
-      case e: SQLException =>
-        InternalServerError("SQL Exception: " + e.toString())
       case e: SQLTimeoutException =>
         InternalServerError("SQL-Timeout Exception: " + e.toString())
+      case e: SQLException =>
+        InternalServerError("SQL Exception: " + e.toString())
+
       case e: Exception => InternalServerError("Exception: " + e.toString())
     }
   }
@@ -384,10 +391,11 @@ class HomeController @Inject() (
       }
       Ok("OK")
     } catch {
-      case e: SQLException =>
-        InternalServerError("SQL Exception: " + e.toString())
       case e: SQLTimeoutException =>
         InternalServerError("SQL-Timeout Exception: " + e.toString())
+      case e: SQLException =>
+        InternalServerError("SQL Exception: " + e.toString())
+
       case e: Exception => InternalServerError("Exception: " + e.toString())
     }
   }
@@ -404,10 +412,11 @@ class HomeController @Inject() (
       )
       Ok("Ok")
     } catch {
-      case e: SQLException =>
-        InternalServerError("SQL Exception: " + e.toString())
       case e: SQLTimeoutException =>
         InternalServerError("SQL-Timeout Exception: " + e.toString())
+      case e: SQLException =>
+        InternalServerError("SQL Exception: " + e.toString())
+
       case e: Exception => InternalServerError("Exception: " + e.toString())
     }
   }
@@ -427,10 +436,11 @@ class HomeController @Inject() (
       )
       Ok("Ok")
     } catch {
-      case e: SQLException =>
-        InternalServerError("SQL Exception: " + e.toString())
       case e: SQLTimeoutException =>
         InternalServerError("SQL-Timeout Exception: " + e.toString())
+      case e: SQLException =>
+        InternalServerError("SQL Exception: " + e.toString())
+
       case e: Exception => InternalServerError("Exception: " + e.toString())
     }
   }
@@ -446,10 +456,11 @@ class HomeController @Inject() (
       dbc.executeUpdate(s"UPDATE markt_order SET state=$state WHERE id=$id")
       Ok("Ok")
     } catch {
-      case e: SQLException =>
-        InternalServerError("SQL Exception: " + e.toString())
       case e: SQLTimeoutException =>
         InternalServerError("SQL-Timeout Exception: " + e.toString())
+      case e: SQLException =>
+        InternalServerError("SQL Exception: " + e.toString())
+
       case e: Exception => InternalServerError("Exception: " + e.toString())
     }
 
@@ -472,10 +483,11 @@ class HomeController @Inject() (
       )
       Ok("Ok")
     } catch {
-      case e: SQLException =>
-        InternalServerError("SQL Exception: " + e.toString())
       case e: SQLTimeoutException =>
         InternalServerError("SQL-Timeout Exception: " + e.toString())
+      case e: SQLException =>
+        InternalServerError("SQL Exception: " + e.toString())
+
       case e: Exception => InternalServerError("Exception: " + e.toString())
     }
   }
@@ -494,10 +506,11 @@ class HomeController @Inject() (
       )
       Ok("Ok")
     } catch {
-      case e: SQLException =>
-        InternalServerError("SQL Exception: " + e.toString())
       case e: SQLTimeoutException =>
         InternalServerError("SQL-Timeout Exception: " + e.toString())
+      case e: SQLException =>
+        InternalServerError("SQL Exception: " + e.toString())
+
       case e: Exception => InternalServerError("Exception: " + e.toString())
     }
   }
