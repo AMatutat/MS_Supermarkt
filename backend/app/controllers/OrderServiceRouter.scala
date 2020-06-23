@@ -6,7 +6,6 @@ import grpcOrder.AbstractOrderServiceRouter
 import javax.inject.Inject
 import javax.inject.Singleton
 import scala.concurrent.Future
-
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.ResultSet

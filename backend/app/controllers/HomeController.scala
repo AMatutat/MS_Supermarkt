@@ -23,6 +23,7 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import user._
 import akka.dispatch.Futures
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * This controller creates an `Action` to handle HTTP requests to the
@@ -34,24 +35,22 @@ class HomeController @Inject() (
     val controllerComponents: ControllerComponents
 ) extends BaseController {
 
-
   val dbuser = configuration.underlying.getString("myPOSTGRES_USER")
   val dbpw = configuration.underlying.getString("myPOSTGRES_PASSWORD")
   val url = configuration.underlying.getString("myPOSTGRES_DB")
   //val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
   val dbURL = s"jdbc:postgresql://localhost:5432/$url"
-  
-  val token= "eyJhbGciOiJSUzI1NiIsImtpZCI6IjRlMjdmNWIwNjllYWQ4ZjliZWYxZDE0Y2M2Mjc5YmRmYWYzNGM1MWIiLCJ0eXAiOiJKV1QifQ.eyJuYW1lIjoibW11c3RlciIsImlzcyI6Imh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlLmNvbS9zbWFydC1jaXR5LXNzMjAyMCIsImF1ZCI6InNtYXJ0LWNpdHktc3MyMDIwIiwiYXV0aF90aW1lIjoxNTkyMzMzNzMwLCJ1c2VyX2lkIjoiNlRiemNQYXZyU05kcTFXMXFBS3F5ZmhodnhCMiIsInN1YiI6IjZUYnpjUGF2clNOZHExVzFxQUtxeWZoaHZ4QjIiLCJpYXQiOjE1OTIzMzM3MzEsImV4cCI6MTU5MjMzNzMzMSwiZW1haWwiOiJleGFtcGxldXNlckB0ZXN0LmRlIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImZpcmViYXNlIjp7ImlkZW50aXRpZXMiOnsiZW1haWwiOlsiZXhhbXBsZXVzZXJAdGVzdC5kZSJdfSwic2lnbl9pbl9wcm92aWRlciI6InBhc3N3b3JkIn19.GhbYnIhnuRR9mB_5leNRjSZElxHV0gGRrybc-CuTS3XV7UcFj4On2L9jTTY9X376kw32MKq11dvYl34e_vhKk-Syb2V0R9k_KeC6dsu7EWKnxSyR5X0HDkRGImHFgEcoBzyrT_FeokaHRnzuo9JOgQlVkvYhC8I0LYawYiSxI8sU4IAdSqkN4YpdaRGYtp7Cf35o5jwOWOdq3F3aYP1_MCBP3AZk9YlL12_J8T54qCD86phVfhsTaoOulQ6Itu9D5tjgiPwMPocV3L9Ia977aaUbBJiTPahM_YHcmaJ4pF1nlG1hQFDSj5sWb2cIHFLoFIboqJAJns-9VzlU_2bGtg"
-  var res="START"
+  var res = "START"
 
+  val dbc = new DBController(dbuser, dbpw, dbURL)
+
+  //nicht ausgelager, da 1. route 2. auf admin ebene
   def createDB = Action { _ =>
-    var sql = ""
-
     try {
       val rootConnection = DriverManager
         .getConnection("jdbc:postgresql://database:5432", dbuser, dbpw)
       var rootStatement = rootConnection.createStatement()
-      sql =
+      var sql =
         s"SELECT 'CREATE DATABASE $url' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$url');"
       val affectedRows = rootStatement.executeUpdate(sql)
       // 0 affected Rows -> DB already exists
@@ -65,78 +64,14 @@ class HomeController @Inject() (
       case e: Exception => Ok("Create Database failed: " + e.toString())
     }
     try {
-      val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-      var statement = connection.createStatement()
-
-      sql = "DROP TABLE IF EXISTS category;"
-      statement.execute(sql)
-      sql = "DROP TABLE IF EXISTS article;"
-      statement.execute(sql)
-      sql = "DROP TABLE IF EXISTS article_category;"
-      statement.execute(sql)
-      sql = "DROP TABLE IF EXISTS markt_user;"
-      statement.execute(sql)
-      sql = "DROP TABLE IF EXISTS order_article;"
-      statement.execute(sql)
-      sql = "DROP TABLE IF EXISTS rating;"
-      statement.execute(sql)
-      sql = "DROP TABLE IF EXISTS markt_order;"
-      statement.execute(sql)
-
-      sql =
-        "CREATE TABLE category(id SERIAL PRIMARY KEY NOT NULL,c_name TEXT NOT NULL);"
-      statement.execute(sql)
-      sql =
-        "CREATE TABLE article(id SERIAL PRIMARY KEY NOT NULL,manufacture TEXT NOT NULL,name TEXT NOT NULL,description TEXT NOT NULL,price FLOAT NOT NULL,picture BYTEA,stock INTEGER NOT NULL);"
-      statement.execute(sql)
-      sql =
-        "CREATE TABLE article_category(articleID INTEGER REFERENCES article(id),categoryID INTEGER REFERENCES category(id));"
-      statement.execute(sql)
-      sql =
-        "CREATE TABLE markt_user(id TEXT PRIMARY KEY NOT NULL,points INTEGER,isWorker BOOLEAN NOT NULL);"
-      statement.execute(sql)
-      sql =
-        "CREATE TABLE markt_order(id SERIAL PRIMARY KEY NOT NULL,userID TEXT REFERENCES markt_user(id),state TEXT NOT NULL DEFAULT 'Unbearbeitet',date DATE NOT NULL DEFAULT CURRENT_TIMESTAMP);"
-      statement.execute(sql)
-      sql =
-        "CREATE TABLE order_article(articleID INTEGER REFERENCES article(id),orderID INTEGER REFERENCES markt_order(id),number INTEGER NOT NULL);"
-      statement.execute(sql)
-      sql =
-        "CREATE TABLE rating(id SERIAL PRIMARY KEY NOT NULL,text TEXT NOT NULL,rating INTEGER NOT NULL,userID TEXT REFERENCES markt_user(id),articleID INTEGER REFERENCES article(id));"
-      statement.execute(sql)
-
-      sql = "INSERT INTO markt_user (id,points,isWorker) VALUES ('1',500,TRUE);"
-      statement.execute(sql)
-      sql =
-        "INSERT INTO category(c_name)VALUES('Gemuese'),('Obst'),('Fleisch'),('Backwaren'),('Milchprodukte'),('Tiernahrung'),('Haushaltsmittel'),('Vegetarisch'),('Sonstiges');"
-      statement.execute(sql)
-      sql =
-        "INSERT INTO article(manufacture,name,description,price,stock)VALUES ('Schrott&Teuer', 'Ziegenkaese 500g', 'Lecker schmecker Ziegenkaese', 3, 5), ('Schrott&Teuer', 'Ziegenkaese 200g', 'Lecker schmecker Ziegenkaese', 1.5, 5),('Schrott&Teuer', 'Fertig Pizza Salami', 'Lecker schmecker Pizza', 2.5, 5),('Schrott&Teuer', 'Erdbeer Marmelade 100g', 'Lecker schmecker Marmelade', 0.5, 5),('Schrott&Teuer', 'Cola 2L', 'Lecker schmecker Cola', 1.0, 5);"
-      statement.execute(sql)
-      sql =
-        "INSERT INTO article_category(articleID,categoryID)VALUES(1, 5),(2, 3),(2, 9),(2, 4),(3, 2),(3, 8),(3, 9),(4, 8),(4, 9);"
-      statement.execute(sql)
-      sql =
-        "INSERT INTO rating (text,rating,userID,articleID) VALUES ('Tolles Produkt!',4,'1',1);"
-      statement.execute(sql)
-
-      sql =
-        "INSERT INTO markt_order (userID,state) VALUES ('1', 'Auf den Weg');"
-      statement.execute(sql)
-      sql =
-        "INSERT INTO order_article(articleID,orderID,number)VALUES(1, 1, 5),(2, 1, 5);"
-      statement.execute(sql)
-
-      connection.close()
+      dbc.dropDB();
+      dbc.setupDB();
+      dbc.fillDB()
       Ok("DB CREATED")
-
     } catch {
       case e: Exception => Ok(e.toString())
     }
-
   }
-
-  import scala.concurrent.ExecutionContext.Implicits.global
 
   def login(token: String) =
     Action //.async
@@ -148,52 +83,22 @@ class HomeController @Inject() (
       Ok(res)
     }
 
-  def verifyUser(token: String):String = {
-      implicit val sys = ActorSystem("SmartMarkt")
-      implicit val mat = ActorMaterializer()
-      implicit val ec = sys.dispatcher
-      val client =
-        UserServiceClient(GrpcClientSettings.fromConfig("user.UserService"))
-      val reply = client.verifyUser(UserToken(token))
-      reply.onComplete {
-        case Success(msg) =>res="MSG: "+msg + "Result: "+msg.getFieldByNumber(1)
-        case Failure(exception) => res=exception.toString()
-        case _ => res="Unknown ERROR on verifyUser"
-      }
-
-      return "test"
+  def verifyUser(token: String): String = {
+    implicit val sys = ActorSystem("SmartMarkt")
+    implicit val mat = ActorMaterializer()
+    implicit val ec = sys.dispatcher
+    val client =
+      UserServiceClient(GrpcClientSettings.fromConfig("user.UserService"))
+    val reply = client.verifyUser(UserToken(token))
+    reply.onComplete {
+      case Success(msg) =>
+        res = "MSG: " + msg + "Result: " + msg.getFieldByNumber(1)
+      case Failure(exception) => res = exception.toString()
+      case _                  => res = "Unknown ERROR on verifyUser"
     }
 
-    /*
-    def getUser(uid: String): JsArray = {
-    val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-    var statement = connection.createStatement()
-    var resultSet =
-      statement.executeQuery(s"SELECT * FROM markt_user WHERE id= $uid")
-    var user = Json.obj()
-
-    if (resultSet.next()) {
-      user = Json.obj(
-        "points" -> resultSet.getInt("points"),
-        "isWorker" -> resultSet.getString("isWorker"),
-        "id" -> resultSet.getInt("id")
-      )
-    } else {
-      //neue User kriegen 500 Startpunkte
-      var statement2 = connection.prepareStatement(
-        s"INSERT INTO markt_user (id,points,isWorker) VALUES ($uid,500,false)"
-      )
-      statement2.executeUpdate()
-      user = Json.obj(
-        "points" -> 500,
-        "isWorker" -> false,
-        "id" -> uid
-      )
-    }
-    new JsArray().append(user)
-    }
-
-   */
+    return "test"
+  }
 
   def getAllCategorys = Action { _ =>
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
@@ -307,6 +212,18 @@ class HomeController @Inject() (
         "adress" -> "PLZ123 Beispielweg 22"
       )
     }
+    //neue User kriegen 500 Startpunkte
+    else {
+      var statement2 = connection.prepareStatement(
+        s"INSERT INTO markt_user (id,points,isWorker) VALUES ($id,500,false)"
+      )
+      statement2.executeUpdate()
+      user = Json.obj(
+        "points" -> 500,
+        "isWorker" -> false,
+        "id" -> id
+      )
+    }
     connection.close()
     Ok(new JsArray().append(user))
   }
@@ -350,44 +267,6 @@ class HomeController @Inject() (
     connection.close()
     Ok(orderList)
 
-  }
-  //Maybe delete
-  def getOrderByID(id: Int) = Action { _ =>
-    val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
-    val statement = connection.createStatement()
-    val getOrder =
-      statement.executeQuery(s"SELECT * FROM markt_order WHERE id=$id")
-    var orderList = new JsArray()
-    if (getOrder.next()) {
-      val statement2 = connection.createStatement()
-      val getArticle = statement2.executeQuery(
-        s"SELECT * FROM  article INNER JOIN order_article ON article.id = order_article.articleID WHERE order_article.orderID=$id"
-      )
-      var articleInOrder = new JsArray()
-      while (getArticle.next()) {
-        val article = Json.obj(
-          "id" -> getArticle.getInt("id"),
-          "manufacture" -> getArticle.getString("manufacture"),
-          "name" -> getArticle.getString("name"),
-          "description" -> getArticle.getString("description"),
-          "price" -> getArticle.getFloat("price"),
-          "stock" -> getArticle.getInt("stock"),
-          "number" -> getArticle.getInt("number")
-        )
-        articleInOrder = articleInOrder.append(article)
-
-      }
-      var order = Json.obj(
-        "id" -> getOrder.getInt("id"),
-        "userID" -> getOrder.getString("userID"),
-        "state" -> getOrder.getString("state"),
-        "date" -> getOrder.getString("date"),
-        "article" -> articleInOrder
-      )
-      orderList = orderList.append(order)
-    }
-    connection.close()
-    Ok(orderList)
   }
 
   def getOrderByCustomerID(cid: String) = Action { _ =>
