@@ -42,8 +42,8 @@ class DBController(val dbuser: String, val dbpw: String, val dbURL: String) {
         this.dropDB();
 
     } catch {
-      case e: SQLException        => throw e
       case e: SQLTimeoutException => throw e
+      case e: SQLException        => throw e
       case e: Exception           => throw e
     } finally {
       rootConnection.close()
@@ -53,8 +53,8 @@ class DBController(val dbuser: String, val dbpw: String, val dbURL: String) {
       this.fillDB()
       return "DB CREATED"
     } catch {
-      case e: SQLException        => throw e
       case e: SQLTimeoutException => throw e
+      case e: SQLException        => throw e
       case e: Exception           => throw e
     }
   }
@@ -85,8 +85,8 @@ class DBController(val dbuser: String, val dbpw: String, val dbURL: String) {
       sql = "DROP TABLE IF EXISTS markt_user;"
       statement.execute(sql)
     } catch {
-      case e: SQLException        => throw e
       case e: SQLTimeoutException => throw e
+      case e: SQLException        => throw e
       case e: Exception           => throw e
     } finally {
       connection.close()
@@ -126,8 +126,8 @@ class DBController(val dbuser: String, val dbpw: String, val dbURL: String) {
         "CREATE TABLE rating(id SERIAL PRIMARY KEY NOT NULL,text TEXT NOT NULL,rating INTEGER NOT NULL,userID TEXT REFERENCES markt_user(id),articleID INTEGER REFERENCES article(id));"
       statement.execute(sql)
     } catch {
-      case e: SQLException        => throw e
       case e: SQLTimeoutException => throw e
+      case e: SQLException        => throw e
       case e: Exception           => throw e
     } finally {
       connection.close()
@@ -169,8 +169,8 @@ class DBController(val dbuser: String, val dbpw: String, val dbURL: String) {
       statement.execute(sql)
 
     } catch {
-      case e: SQLException        => throw e
       case e: SQLTimeoutException => throw e
+      case e: SQLException        => throw e
       case e: Exception           => throw e
     } finally {
       connection.close()
@@ -195,8 +195,8 @@ class DBController(val dbuser: String, val dbpw: String, val dbURL: String) {
       connection.close()
       resultSet
     } catch {
-      case e: SQLException        => throw e
       case e: SQLTimeoutException => throw e
+      case e: SQLException        => throw e
       case e: Exception           => throw e
     } finally {
       connection.close()
@@ -223,8 +223,8 @@ class DBController(val dbuser: String, val dbpw: String, val dbURL: String) {
       generatedKey.next()
       generatedKey.getLong(1)
     } catch {
-      case e: SQLException        => throw e
       case e: SQLTimeoutException => throw e
+      case e: SQLException        => throw e
       case e: Exception           => throw e
     } finally {
       connection.close()
