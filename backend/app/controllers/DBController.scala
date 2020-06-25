@@ -30,16 +30,17 @@ class DBController(val dbuser: String, val dbpw: String, val dbURL: String) {
     var rootConnection: Connection = null
     try {
       rootConnection = DriverManager.getConnection(rootUrl, dbuser, dbpw)
-      var rootStatement = rootConnection.createStatement()
-      var sql =
-        s"SELECT 'CREATE DATABASE $url' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$url');"
-      val affectedRows = rootStatement.executeUpdate(sql)
+      val rootStatement = rootConnection.createStatement()
+      //var sql = s"SELECT 'CREATE DATABASE $url' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$url');"
+      //val affectedRows = rootStatement.executeUpdate(sql)
       // 0 affected Rows -> DB already exists
-      if (affectedRows != 0) {
+      var sql= s"DROP DATABASE IF EXISTS $url"
+      rootStatement.executeUpdate(sql)
+      //if (affectedRows != 0) {
         sql = s"CREATE DATABASE $url;"
         rootStatement.executeUpdate(sql)
-      } else
-        this.dropDB();
+     // } else
+       // this.dropDB();
 
     } catch {
       case e: SQLTimeoutException => throw e
