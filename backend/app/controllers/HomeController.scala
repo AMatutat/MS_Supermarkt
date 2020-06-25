@@ -223,6 +223,9 @@ class HomeController @Inject() (
     * @param id UserID
     */
   def getCustomerByID(id: String) = Action { _ =>
+    //grpc get User für adresse und name 
+    
+    
     try {
       var resultSet =
         dbc.executeSQL(s"SELECT * FROM markt_user WHERE id = '$id'")
