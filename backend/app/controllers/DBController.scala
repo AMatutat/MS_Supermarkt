@@ -155,7 +155,7 @@ class DBController(val dbuser: String, val dbpw: String, val dbURL: String) {
         "INSERT INTO article(manufacture,name,description,price,stock)VALUES ('Schrott&Teuer', 'Ziegenkaese 500g', 'Lecker schmecker Ziegenkaese', 3, 5), ('Schrott&Teuer', 'Ziegenkaese 200g', 'Lecker schmecker Ziegenkaese', 1.5, 5),('Schrott&Teuer', 'Fertig Pizza Salami', 'Lecker schmecker Pizza', 2.5, 5),('Schrott&Teuer', 'Erdbeer Marmelade 100g', 'Lecker schmecker Marmelade', 0.5, 5),('Schrott&Teuer', 'Cola 2L', 'Lecker schmecker Cola', 1.0, 5);"
       statement.execute(sql)
       sql =
-        "INSERT INTO article_category(articleID,categoryID)VALUES(1, 5),(2, 3),(2, 9),(2, 4),(3, 2),(3, 8),(3, 9),(4, 8),(4, 9);"
+        "INSERT INTO article_category(articleID,categoryID)VALUES(1, 5),(2, 5),(3,3),(3,4),(3, 9),(4, 1),(4, 8),(4,9)(5,8),(5,9);"
       statement.execute(sql)
       sql =
         "INSERT INTO rating (text,rating,userID,articleID) VALUES ('Tolles Produkt!',4,'1',1);"
