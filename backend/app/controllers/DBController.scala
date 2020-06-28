@@ -152,16 +152,6 @@ class DBController(val dbuser: String, val dbpw: String, val dbURL: String) {
       sql =
         "INSERT INTO article_category(articleID,categoryID) VALUES (1, 5),(2, 5),(3,3),(3,4),(3, 9),(4, 1),(4, 8),(4,9),(5,8),(5,9);"
       statement.execute(sql)
-      sql =
-        "INSERT INTO rating (text,rating,userID,articleID) VALUES ('Tolles Produkt!',4,'1',1);"
-      statement.execute(sql)
-
-      sql =
-        "INSERT INTO markt_order (userID,state) VALUES ('1', 'Auf den Weg');"
-      statement.execute(sql)
-      sql =
-        "INSERT INTO order_article(articleID,orderID,number)VALUES(1, 1, 5),(2, 1, 5);"
-      statement.execute(sql)
 
     } catch {
       case e: SQLTimeoutException => throw e

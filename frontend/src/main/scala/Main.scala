@@ -18,7 +18,7 @@ object Main {
   /**
     * Aktueller User
     */
-  var user = new User("1", true, 220)
+  var user = new User("yxUspgyuJXhSaa7BZPTZt5lEpct1", true, 500)
 
   /**
     * Einkaufswagen vom aktuellen User
@@ -461,7 +461,7 @@ object Main {
               review.rating.toString.toInt,
               new User(
                 review.userID.toString,
-                false,
+                false,false,
                 0
               ), //isWoker und treuepunkte sind für Kommentar schreiber egal
               review.articleID.toString.toInt
@@ -738,28 +738,30 @@ object Main {
       )
       xhr.setRequestHeader("Content-Type", "application/json");
       xhr.onreadystatechange = { (e: dom.Event) =>
-        val respons = js.JSON.parse(xhr.responseText)
-        respons match {
-          case json2: js.Dynamic =>
-            if (json2.status.equals("success")) {
-              userToken = json2.param.token.toString
+        val verifyRespons = js.JSON.parse(xhr.responseText)
+        verifyRespons match {
+          case verify: js.Dynamic =>
+            if (verify.status.equals("success")) {
+              userToken = verify.param.token.toString
               val sxhr = new dom.XMLHttpRequest()
               sxhr.open("GET", s"$backend/login/$userToken", false)
               sxhr.onload = { (e: dom.Event) =>
-                val respons2 = js.JSON.parse(sxhr.responseText)
-                respons2 match {
-                  case json: js.Dynamic =>
-                    println(json)
-                    this.user= new User(json.id.toString, json.isWorker.toString.toBoolean,json.points.toString.toInt,json.name.toString,json.adress.toString )
-
+                val loginRespons = js.JSON.parse(sxhr.responseText)
+                loginRespons match {
+                  case user: js.Dynamic =>
+                    println("---------------")
+                    println("json respons:"+ user)
+                    this.user= new User(user.id.toString, user.isWorker.toString.toBoolean,user.points.toString.toInt,user.name.toString,user.adress.toString )
+                    println("created user:"+user)
+                  case user: Any =>
+                    println("Error beim login")  
                 }
-
               }
               sxhr.send()
 
             } else {
               println(
-                "Fehler beim Anmelden: " + json2.code + "   " + json2.message
+                "Fehler beim Anmelden: " + verify.code + "   " + verify.message
               )
             }
         }
