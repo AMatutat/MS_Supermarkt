@@ -207,7 +207,7 @@ class DBController(val dbuser: String, val dbpw: String, val dbURL: String) {
   @throws(classOf[SQLException])
   @throws(classOf[SQLTimeoutException])
   @throws(classOf[Exception])
-  def executeUpdate(sql: String): Long = {
+  def executeUpdate(sql: String): String = {
     var connection: Connection = null
     try {
       connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
@@ -216,7 +216,7 @@ class DBController(val dbuser: String, val dbpw: String, val dbURL: String) {
       statement.execute()
       val generatedKey = statement.getGeneratedKeys()
       generatedKey.next()
-      generatedKey.getLong(1)
+      generatedKey.getString(1)
     } catch {
       case e: SQLTimeoutException => throw e
       case e: SQLException        => throw e

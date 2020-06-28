@@ -373,7 +373,7 @@ class HomeController @Inject() (
       val orderID =
         dbc.executeUpdate(
           s"INSERT INTO markt_order (userID)  VALUES ('$userID')"
-        )
+        ).toLong
 
       for (i <- 0 to article.value.size - 1) {
         val articleID = article.apply(i)("id")
