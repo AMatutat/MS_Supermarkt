@@ -62,13 +62,11 @@ class HomeController @Inject() (
       val user: Future[UserId] = client.verifyUser(UserToken(token))
       user.map(msg =>
         if (msg.getFieldByNumber(1) == null) Ok("Error: " + msg.toString)
-        else //Ok(getUserByID(msg.getFieldByNumber(1).toString()))
-        Ok(msg.getFieldByNumber(1).toString())
+        else Ok(getUserByID(msg.getFieldByNumber(1).toString()))
       )
     }
 
-  def getUserByID(uid: String): JsObject = {
-    var id = uid
+  def getUserByID(id: String): JsObject = {
     var resultSet =  dbc.executeSQL(s"SELECT * FROM markt_user WHERE id = '$id'")
     var user = Json.obj()
     if (resultSet.next()) {
@@ -83,7 +81,7 @@ class HomeController @Inject() (
     //neue User kriegen 500 Startpunkte
     else {
       dbc.executeUpdate(
-        s"INSERT INTO markt_user (id,points,isWorker) VALUES ($id,500,false)"
+        s"INSERT INTO markt_user (id,points,isWorker) VALUES ('$id',500,false)"
       )
       user = Json.obj(
         "points" -> 500,
