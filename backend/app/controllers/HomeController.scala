@@ -43,7 +43,6 @@ class HomeController @Inject() (
   //val url="smartmarkt"
   //val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
 
-
   //Database Controller
   val dbc = new DBController(dbuser, dbpw, dbURL)
   var res = "START"
@@ -73,15 +72,29 @@ class HomeController @Inject() (
     }
 
   def getUserByID(id: String): JsObject = {
-    var resultSet =  dbc.executeSQL(s"SELECT * FROM markt_user WHERE id = '$id'")
+    implicit val sys = ActorSystem("SmartMarkt")
+    implicit val mat = ActorMaterializer()
+    implicit val ec = sys.dispatcher
+    val client = UserServiceClient(
+      GrpcClientSettings.fromConfig("user.UserService")
+    )
+    val grpcuser = client.getUser(UserId(id))
+    var adress = ""
+    var name = ""
+    grpcuser.map(res => {
+      adress = res.getFieldByNumber(9) + " " + res.getFieldByNumber(10) + " " + res.getFieldByNumber(8)
+      name   = res.getFieldByNumber(3) + " " + res.getFieldByNumber(4)
+   })
+
+    var resultSet = dbc.executeSQL(s"SELECT * FROM markt_user WHERE id = '$id'")
     var user = Json.obj()
     if (resultSet.next()) {
       user = Json.obj(
         "id" -> resultSet.getString("id"),
         "points" -> resultSet.getInt("points"),
         "isWorker" -> resultSet.getString("isWorker"),
-        "name" -> "Beispiel Nutzer",
-        "adress" -> "PLZ123 Beispielweg 22"
+        "name" -> name,
+        "adress" -> adress
       )
     }
     //neue User kriegen 500 Startpunkte
@@ -92,11 +105,13 @@ class HomeController @Inject() (
       user = Json.obj(
         "points" -> 500,
         "isWorker" -> false,
-        "id" -> id
+        "id" -> id,
+        "name" -> name,
+        "adress" -> adress
       )
     }
     return user
-
+ 
   }
 
   /**
@@ -257,7 +272,7 @@ class HomeController @Inject() (
           "name" -> "Beispiel Nutzer",
           "adress" -> "PLZ123 Beispielweg 22"
         )
-      }   
+      }
       Ok(new JsArray().append(user))
     } catch {
       case e: SQLTimeoutException =>
@@ -377,9 +392,11 @@ class HomeController @Inject() (
       val article = order("article").as[JsArray]
 
       val orderID =
-        dbc.executeUpdate(
-          s"INSERT INTO markt_order (userID)  VALUES ('$userID')"
-        ).toInt
+        dbc
+          .executeUpdate(
+            s"INSERT INTO markt_order (userID)  VALUES ('$userID')"
+          )
+          .toInt
 
       for (i <- 0 to article.value.size - 1) {
         val articleID = article.apply(i)("id")
