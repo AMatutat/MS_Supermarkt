@@ -410,7 +410,7 @@ class HomeController @Inject() (
       val rating = comment("rating")
       val userID = comment("userID").toString().replace('\"', '\'')
       val articleID = comment("articleID")
-      dbc.executeSQL(
+      dbc.executeUpdate(
         s"INSERT INTO rating (text,rating,userID,articleID) VALUES ($text,$rating,$userID,$articleID)"
       )
       Ok("Ok")
