@@ -38,6 +38,12 @@ class HomeController @Inject() (
   val url = configuration.underlying.getString("myPOSTGRES_DB")
   val dbURL = s"jdbc:postgresql://localhost:5432/$url"
 
+  //val dbuser="postgres"
+  //val dbpw ="postgres"
+  //val url="smartmarkt"
+  //val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
+
+
   //Database Controller
   val dbc = new DBController(dbuser, dbpw, dbURL)
   var res = "START"
@@ -61,7 +67,7 @@ class HomeController @Inject() (
         UserServiceClient(GrpcClientSettings.fromConfig("user.UserService"))
       val user: Future[UserId] = client.verifyUser(UserToken(token))
       user.map(msg =>
-        if (msg.getFieldByNumber(1) == null) Ok("Error: " + msg.toString)
+        if (msg.getFieldByNumber(1) == null) Ok("Login Failed")
         else Ok(getUserByID(msg.getFieldByNumber(1).toString()))
       )
     }
