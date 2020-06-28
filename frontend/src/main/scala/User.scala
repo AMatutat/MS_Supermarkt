@@ -21,7 +21,7 @@ class User(
   def pushChanges(url: String): Unit = {
     val xhr = new dom.XMLHttpRequest()
     val jsonRequest =
-      s""" {  "id": $id, "isWorker": $isWorker,"points": $treuepunkte } """
+      s""" {  "id": "$id", "isWorker": $isWorker,"points": $treuepunkte } """
     xhr.open("POST", s"$url/alterUser", false)
 
     xhr.setRequestHeader("Content-Type", "application/json");
