@@ -740,14 +740,14 @@ object Main {
       xhr.onreadystatechange = { (e: dom.Event) =>
         val respons = js.JSON.parse(xhr.responseText)
         respons match {
-          case json: js.Dynamic =>
-            if (json.status.equals("success")) {
-              userToken = json.param.token.toString
+          case json2: js.Dynamic =>
+            if (json2.status.equals("success")) {
+              userToken = json2.param.token.toString
               val sxhr = new dom.XMLHttpRequest()
               sxhr.open("GET", s"$backend/login/$userToken", false)
               sxhr.onload = { (e: dom.Event) =>
-                val respons = js.JSON.parse(xhr.responseText)
-                respons match {
+                val respons2 = js.JSON.parse(sxhr.responseText)
+                respons2 match {
                   case json: js.Dynamic =>
                     println(json)
                     this.user= new User(json.id.toString, json.isWorker.toString.toBoolean,json.points.toString.toInt,json.name.toString,json.adress.toString )
@@ -759,7 +759,7 @@ object Main {
 
             } else {
               println(
-                "Fehler beim Anmelden: " + json.code + "   " + json.message
+                "Fehler beim Anmelden: " + json2.code + "   " + json2.message
               )
             }
         }
