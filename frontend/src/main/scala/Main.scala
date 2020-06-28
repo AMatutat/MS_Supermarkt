@@ -677,7 +677,7 @@ object Main {
             articleList += "," + articleJS
         }
         var ordersumme = summe - rabatt
-        var order = s""" { "userID": $uid,
+        var order = s""" { "userID": "$uid",
                             "summe": $ordersumme,
                             "article":[$articleList]}"""
 
