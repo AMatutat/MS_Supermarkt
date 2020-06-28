@@ -13,7 +13,6 @@ object Main {
   //val port = "8080"
   //val backend = "http://localhost:" + port
 
-
   val backend = "/api"
 
   /**
@@ -660,7 +659,7 @@ object Main {
 
       $("#buy-button").click(() => {
         if (usePointsChecked)
-          user.setPoints(user.getTreuepunkte-usedPoints)
+          user.setPoints(user.getTreuepunkte - usedPoints)
         else
           //Für jeden Euro gibt es einen Punkt
           user.setPoints(user.getTreuepunkte() + summe.toInt)
@@ -744,6 +743,20 @@ object Main {
           case json: js.Dynamic =>
             if (json.status.equals("success")) {
               userToken = json.param.token.toString
+              val sxhr = new dom.XMLHttpRequest()
+              sxhr.open("GET", s"$backend/login/$userToken", false)
+              sxhr.onload = { (e: dom.Event) =>
+                val respons = js.JSON.parse(xhr.responseText)
+                respons match {
+                  case json: js.Dynamic =>
+                    println(json)
+                    this.user= new User(json.id.toString, json.isWorker.toString.toBoolean,json.points.toString.toInt,json.name.toString,json.adress.toString )
+
+                }
+
+              }
+              sxhr.send()
+
             } else {
               println(
                 "Fehler beim Anmelden: " + json.code + "   " + json.message
