@@ -62,14 +62,13 @@ class HomeController @Inject() (
       val user: Future[UserId] = client.verifyUser(UserToken(token))
       user.map(msg =>
         if (msg.getFieldByNumber(1) == null) Ok("Error: " + msg.toString)
-        else Ok(getUserByID(msg.getFieldByNumber(1).toString()))
+        else //Ok(getUserByID(msg.getFieldByNumber(1).toString()))
+        Ok(msg.getFieldByNumber(1).toString())
       )
     }
 
   def getUserByID(uid: String): JsObject = {
     var id = uid
-    id.dropRight(1)
-    id.dropRight(id.length())
     var resultSet =  dbc.executeSQL(s"SELECT * FROM markt_user WHERE id = '$id'")
     var user = Json.obj()
     if (resultSet.next()) {
