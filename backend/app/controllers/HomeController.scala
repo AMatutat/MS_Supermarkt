@@ -367,7 +367,7 @@ class HomeController @Inject() (
   def newOrder = Action(parse.json) { implicit request =>
     try {
       val order = Json.toJson(request.body)
-      val userID = order("userID")
+      val userID = order("userID").toString().replace('\"', '\'')
       val article = order("article").as[JsArray]
 
       val orderID =
@@ -408,7 +408,7 @@ class HomeController @Inject() (
       val comment = Json.toJson(request.body)
       val text = comment("text").toString().replace('\"', '\'')
       val rating = comment("rating")
-      val userID = comment("userID")
+      val userID = comment("userID").toString().replace('\"', '\'')
       val articleID = comment("articleID")
       dbc.executeSQL(
         s"INSERT INTO rating (text,rating,userID,articleID) VALUES ($text,$rating,'$userID',$articleID)"
