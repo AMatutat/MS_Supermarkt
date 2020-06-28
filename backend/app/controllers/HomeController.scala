@@ -53,13 +53,17 @@ class HomeController @Inject() (
   }
 
   def login(token: String) =
-    Action //.async
+    Action.async
     { _ =>
-      verifyUser(token)
-      // val uid = await(verifyUser(token))
-      // val user=await(getUser(uid))
-      //  Ok(user)
-      Ok(res)
+          
+    implicit val sys = ActorSystem("SmartMarkt")
+    implicit val mat = ActorMaterializer()
+    implicit val ec = sys.dispatcher
+
+    val client = UserServiceClient(GrpcClientSettings.fromConfig("user.UserService")) 
+    val user: Future[UserId]= client.verifyUser(UserToken(token))
+    user.map(msg => Ok(""+msg.getFieldByNumber(1)))
+
     }
 
   /**
