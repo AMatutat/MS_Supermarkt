@@ -91,6 +91,7 @@ class HomeController @Inject() (
     var resultSet = dbc.executeSQL(s"SELECT * FROM markt_user WHERE id = '$id'")
     var user = Json.obj()
     if (resultSet.next()) {
+      while (name.equals("")) {}
       user = Json.obj(
         "id" -> resultSet.getString("id"),
         "points" -> resultSet.getInt("points"),
@@ -250,13 +251,15 @@ class HomeController @Inject() (
         grpcuser.map(res => {
           name = res.getFieldByNumber(3) + " " + res.getFieldByNumber(4)
         })
+        while (name.equals("")) {}
+
         var comment = Json.obj(
           "id" -> resultSet.getInt("id"),
           "text" -> resultSet.getString("text"),
           "rating" -> resultSet.getString("rating"),
           "userID" -> resultSet.getString("userID"),
           "articleID" -> resultSet.getInt("articleID"),
-          "userName"->name
+          "userName" -> name
         )
         comments = comments.append(comment)
       }
