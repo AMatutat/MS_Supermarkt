@@ -82,9 +82,11 @@ class HomeController @Inject() (
     var adress = ""
     var name = ""
     grpcuser.map(res => {
-      adress = res.getFieldByNumber(9) + " " + res.getFieldByNumber(10) + " " + res.getFieldByNumber(8)
-      name   = res.getFieldByNumber(3) + " " + res.getFieldByNumber(4)
-   })
+      adress =
+        res.getFieldByNumber(9) + " " + res.getFieldByNumber(10) + " " + res
+          .getFieldByNumber(8)
+      name = res.getFieldByNumber(3) + " " + res.getFieldByNumber(4)
+    })
 
     var resultSet = dbc.executeSQL(s"SELECT * FROM markt_user WHERE id = '$id'")
     var user = Json.obj()
@@ -95,7 +97,7 @@ class HomeController @Inject() (
         "isWorker" -> resultSet.getString("isWorker"),
         "name" -> name,
         "adress" -> adress,
-        "note"-> "User already exist"
+        "note" -> "User already exist"
       )
     }
     //neue User kriegen 500 Startpunkte
@@ -109,11 +111,11 @@ class HomeController @Inject() (
         "id" -> id,
         "name" -> name,
         "adress" -> adress,
-        "note"-> "userCreated"
+        "note" -> "userCreated"
       )
     }
     return user
- 
+
   }
 
   /**
@@ -230,16 +232,31 @@ class HomeController @Inject() (
     */
   def getArticleComments(id: Int) = Action { _ =>
     try {
+
+      implicit val sys = ActorSystem("SmartMarkt")
+      implicit val mat = ActorMaterializer()
+      implicit val ec = sys.dispatcher
+      val client = UserServiceClient(
+        GrpcClientSettings.fromConfig("user.UserService")
+      )
       var resultSet =
         dbc.executeSQL(s"SELECT * FROM rating WHERE articleID = $id")
+
       var comments = new JsArray()
       while (resultSet.next()) {
+
+        val grpcuser = client.getUser(UserId(resultSet.getString("userID")))
+        var name = ""
+        grpcuser.map(res => {
+          name = res.getFieldByNumber(3) + " " + res.getFieldByNumber(4)
+        })
         var comment = Json.obj(
           "id" -> resultSet.getInt("id"),
           "text" -> resultSet.getString("text"),
           "rating" -> resultSet.getString("rating"),
           "userID" -> resultSet.getString("userID"),
-          "articleID" -> resultSet.getInt("articleID")
+          "articleID" -> resultSet.getInt("articleID"),
+          "userName"->name
         )
         comments = comments.append(comment)
       }
@@ -259,9 +276,7 @@ class HomeController @Inject() (
     * Wenn es keinen User mit der übergebenen ID gibt, wird ein neuer User angelegt
     * @param id UserID
     */
-  def getCustomerByID(id: String) = Action { _ =>
-    Ok(getUserByID(id))
-  }
+  def getCustomerByID(id: String) = Action { _ => Ok(getUserByID(id)) }
 
   /**
     * Gibt alle Bestellungen zurück
