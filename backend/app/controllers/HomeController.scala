@@ -258,30 +258,7 @@ class HomeController @Inject() (
     * @param id UserID
     */
   def getCustomerByID(id: String) = Action { _ =>
-    //grpc get User für adresse und name
-
-    try {
-      var resultSet =
-        dbc.executeSQL(s"SELECT * FROM markt_user WHERE id = '$id'")
-      var user = Json.obj()
-      if (resultSet.next()) {
-        user = Json.obj(
-          "id" -> resultSet.getString("id"),
-          "points" -> resultSet.getInt("points"),
-          "isWorker" -> resultSet.getString("isWorker"),
-          "name" -> "Beispiel Nutzer",
-          "adress" -> "PLZ123 Beispielweg 22"
-        )
-      }
-      Ok(new JsArray().append(user))
-    } catch {
-      case e: SQLTimeoutException =>
-        InternalServerError("SQL-Timeout Exception: " + e.toString())
-      case e: SQLException =>
-        InternalServerError("SQL Exception: " + e.toString())
-
-      case e: Exception => InternalServerError("Exception: " + e.toString())
-    }
+    Ok(getUserByID(id))
   }
 
   /**
