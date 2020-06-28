@@ -38,7 +38,6 @@ class HomeController @Inject() (
   val url = configuration.underlying.getString("myPOSTGRES_DB")
   val dbURL = s"jdbc:postgresql://localhost:5432/$url"
 
-
   //Database Controller
   val dbc = new DBController(dbuser, dbpw, dbURL)
   var res = "START"
@@ -48,40 +47,50 @@ class HomeController @Inject() (
     */
   def createDB = Action { _ =>
     Ok(dbc.createDB("jdbc:postgresql://localhost:5432/", url))
-    //Ok(dbc.createDB("jdbc:postgresql://database:5432/", url))
+  //Ok(dbc.createDB("jdbc:postgresql://database:5432/", url))
 
   }
 
   def login(token: String) =
-    Action.async
-    { _ =>
-          
-    implicit val sys = ActorSystem("SmartMarkt")
-    implicit val mat = ActorMaterializer()
-    implicit val ec = sys.dispatcher
+    Action.async { _ =>
+      implicit val sys = ActorSystem("SmartMarkt")
+      implicit val mat = ActorMaterializer()
+      implicit val ec = sys.dispatcher
 
-    val client = UserServiceClient(GrpcClientSettings.fromConfig("user.UserService")) 
-    val user: Future[UserId]= client.verifyUser(UserToken(token))
-    user.map(msg => Ok(""+msg.getFieldByNumber(1)))
-
+      val client =
+        UserServiceClient(GrpcClientSettings.fromConfig("user.UserService"))
+      val user: Future[UserId] = client.verifyUser(UserToken(token))
+      user.map(msg =>
+        if (msg.getFieldByNumber(1) == null) Ok("Error: " + msg.toString)
+        else Ok(getUserByID(msg.getFieldByNumber(1).toString()))
+      )
     }
 
-  /**
-   * grpc call an bürgerbüro
-   * */
-  def verifyUser(token: String): String = {
-    implicit val sys = ActorSystem("SmartMarkt")
-    implicit val mat = ActorMaterializer()
-    implicit val ec = sys.dispatcher
-    val client = UserServiceClient(GrpcClientSettings.fromConfig("user.UserService"))
-    val reply = client.verifyUser(UserToken(token))
-    reply.onComplete {
-      case Success(msg) =>
-        res = "MSG: " + msg + "Result: " + msg.getFieldByNumber(1)
-      case Failure(exception) => res = exception.toString()
-      case _                  => res = "Unknown ERROR on verifyUser"
+  def getUserByID(id: String): JsObject = {
+    var resultSet =  dbc.executeSQL(s"SELECT * FROM markt_user WHERE id = '$id'")
+    var user = Json.obj()
+    if (resultSet.next()) {
+      user = Json.obj(
+        "id" -> resultSet.getString("id"),
+        "points" -> resultSet.getInt("points"),
+        "isWorker" -> resultSet.getString("isWorker"),
+        "name" -> "Beispiel Nutzer",
+        "adress" -> "PLZ123 Beispielweg 22"
+      )
     }
-    return "test"
+    //neue User kriegen 500 Startpunkte
+    else {
+      dbc.executeUpdate(
+        s"INSERT INTO markt_user (id,points,isWorker) VALUES ($id,500,false)"
+      )
+      user = Json.obj(
+        "points" -> 500,
+        "isWorker" -> false,
+        "id" -> id
+      )
+    }
+    return user
+
   }
 
   /**
@@ -228,9 +237,8 @@ class HomeController @Inject() (
     * @param id UserID
     */
   def getCustomerByID(id: String) = Action { _ =>
-    //grpc get User für adresse und name 
-    
-    
+    //grpc get User für adresse und name
+
     try {
       var resultSet =
         dbc.executeSQL(s"SELECT * FROM markt_user WHERE id = '$id'")
@@ -243,18 +251,7 @@ class HomeController @Inject() (
           "name" -> "Beispiel Nutzer",
           "adress" -> "PLZ123 Beispielweg 22"
         )
-      }
-      //neue User kriegen 500 Startpunkte
-      else {
-        dbc.executeUpdate(
-          s"INSERT INTO markt_user (id,points,isWorker) VALUES ($id,500,false)"
-        )
-        user = Json.obj(
-          "points" -> 500,
-          "isWorker" -> false,
-          "id" -> id
-        )
-      }
+      }   
       Ok(new JsArray().append(user))
     } catch {
       case e: SQLTimeoutException =>
