@@ -461,7 +461,7 @@ object Main {
               review.rating.toString.toInt,
               new User(
                 review.userID.toString,
-                false,false,
+                false,
                 0
               ), //isWoker und treuepunkte sind für Kommentar schreiber egal
               review.articleID.toString.toInt
