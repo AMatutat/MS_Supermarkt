@@ -373,7 +373,7 @@ class HomeController @Inject() (
       val orderID =
         dbc
           .executeUpdate(
-            s"INSERT INTO markt_order (userID)  VALUES ('$userID')"
+            s"INSERT INTO markt_order (userID)  VALUES ($userID)"
           )
           .toInt
 
@@ -411,7 +411,7 @@ class HomeController @Inject() (
       val userID = comment("userID").toString().replace('\"', '\'')
       val articleID = comment("articleID")
       dbc.executeSQL(
-        s"INSERT INTO rating (text,rating,userID,articleID) VALUES ($text,$rating,'$userID',$articleID)"
+        s"INSERT INTO rating (text,rating,userID,articleID) VALUES ($text,$rating,$userID,$articleID)"
       )
       Ok("Ok")
     } catch {
