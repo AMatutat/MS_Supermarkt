@@ -16,8 +16,7 @@ class Review(
   def pushReview(url: String): Unit = {
     val xhr = new dom.XMLHttpRequest()
     val uid = author.getID()
-    val jsonRequest =
-      s""" {  "text": "$text", "rating": $rating, "userID": $uid ,"articleID": $toArticle } """
+    val jsonRequest =s"""{  "text": "$text", "rating": $rating, "userID": $uid ,"articleID": $toArticle }"""
     xhr.open("POST", s"$url/newComment", false)
 
     xhr.setRequestHeader("Content-Type", "application/json");

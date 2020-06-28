@@ -94,7 +94,8 @@ class HomeController @Inject() (
         "points" -> resultSet.getInt("points"),
         "isWorker" -> resultSet.getString("isWorker"),
         "name" -> name,
-        "adress" -> adress
+        "adress" -> adress,
+        "note"-> "User already exist"
       )
     }
     //neue User kriegen 500 Startpunkte
@@ -107,7 +108,8 @@ class HomeController @Inject() (
         "isWorker" -> false,
         "id" -> id,
         "name" -> name,
-        "adress" -> adress
+        "adress" -> adress,
+        "note"-> "userCreated"
       )
     }
     return user
@@ -409,7 +411,7 @@ class HomeController @Inject() (
       val userID = comment("userID")
       val articleID = comment("articleID")
       dbc.executeSQL(
-        s"INSERT INTO rating (text,rating,userID,articleID) VALUES ($text,$rating,$userID,$articleID)"
+        s"INSERT INTO rating (text,rating,userID,articleID) VALUES ($text,$rating,'$userID',$articleID)"
       )
       Ok("Ok")
     } catch {
