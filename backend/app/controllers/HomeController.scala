@@ -232,26 +232,15 @@ class HomeController @Inject() (
     * @param id Artikel ID
     */
   def getArticleComments(id: Int) = Action { _ =>
-    try {
-
-      implicit val sys = ActorSystem("SmartMarkt")
-      implicit val mat = ActorMaterializer()
-      implicit val ec = sys.dispatcher
-      val client = UserServiceClient(
-        GrpcClientSettings.fromConfig("user.UserService")
-      )
+    try {     
       var resultSet =
         dbc.executeSQL(s"SELECT * FROM rating WHERE articleID = $id")
 
       var comments = new JsArray()
       while (resultSet.next()) {
 
-        val grpcuser = client.getUser(UserId(resultSet.getString("userID")))
-        var name = ""
-        grpcuser.map(res => {
-          name = res.getFieldByNumber(3) + " " + res.getFieldByNumber(4)
-        })
-        while (name.equals("")) {}
+       
+       
 
         var comment = Json.obj(
           "id" -> resultSet.getInt("id"),
@@ -259,7 +248,7 @@ class HomeController @Inject() (
           "rating" -> resultSet.getString("rating"),
           "userID" -> resultSet.getString("userID"),
           "articleID" -> resultSet.getInt("articleID"),
-          "userName" -> name
+
         )
         comments = comments.append(comment)
       }
