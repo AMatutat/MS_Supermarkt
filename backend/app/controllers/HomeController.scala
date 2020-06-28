@@ -62,12 +62,14 @@ class HomeController @Inject() (
       Ok(res)
     }
 
+  /**
+   * grpc call an bürgerbüro
+   * */
   def verifyUser(token: String): String = {
     implicit val sys = ActorSystem("SmartMarkt")
     implicit val mat = ActorMaterializer()
     implicit val ec = sys.dispatcher
-    val client =
-      UserServiceClient(GrpcClientSettings.fromConfig("user.UserService"))
+    val client = UserServiceClient(GrpcClientSettings.fromConfig("user.UserService"))
     val reply = client.verifyUser(UserToken(token))
     reply.onComplete {
       case Success(msg) =>
@@ -75,7 +77,6 @@ class HomeController @Inject() (
       case Failure(exception) => res = exception.toString()
       case _                  => res = "Unknown ERROR on verifyUser"
     }
-
     return "test"
   }
 
