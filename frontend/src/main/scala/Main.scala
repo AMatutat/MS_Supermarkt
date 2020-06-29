@@ -790,7 +790,8 @@ object Main {
                       userjs.name.toString,
                       userjs.adress.toString
                     )
-                    println("login user:" + user)            
+                    createNavigator()
+                    createArticleOverview()    
                 }
               }
               sxhr.send()
