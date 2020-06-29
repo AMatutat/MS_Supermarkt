@@ -776,15 +776,19 @@ object Main {
               sxhr.onload = { (e: dom.Event) =>
                 val loginRespons = js.JSON.parse(sxhr.responseText)
                 loginRespons match {
-                  case user: js.Dynamic =>
+                  case userjs: js.Dynamic =>
                     println("---------------")
-                    println("json respons:" + user)
+                    println("json respons:" + userjs)
+                    var isw=false
+                    if (userjs.isWorker.toString.equals("t"))
+                      isw=true
+
                     this.user = new User(
-                      user.id.toString,
-                      user.isWorker.toString.toBoolean,
-                      user.points.toString.toInt,
-                      user.name.toString,
-                      user.adress.toString
+                      userjs.id.toString,
+                      isw,
+                      userjs.points.toString.toInt,
+                      userjs.name.toString,
+                      userjs.adress.toString
                     )
                     println("login user:" + user)            
                 }
