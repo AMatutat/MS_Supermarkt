@@ -38,14 +38,6 @@ case class Article(
     }
 
     xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.onreadystatechange = { (e: dom.Event) =>
-      val respons = js.JSON.parse(xhr.responseText)
-      respons match {
-        case json: js.Dynamic =>
-          println(json)
-          println(respons)
-      }
-    }
     xhr.send(jsonRequest)
 
   }

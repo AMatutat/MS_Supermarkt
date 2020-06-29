@@ -141,6 +141,8 @@ object Main {
       "https://portal.dvess.network/",
       "portal-button"
     )
+    val profile = createHREF("Profil", "nav-link", "#", "profile-button")
+
     val li0 = document.createElement("li")
     li0.setAttribute("class", "nav-item")
     val li1 = document.createElement("li")
@@ -155,6 +157,8 @@ object Main {
     li5.setAttribute("class", "nav-item")
     val li6 = document.createElement("li")
     li6.setAttribute("class", "nav-item")
+    val li7 = document.createElement("li")
+    li7.setAttribute("class", "nav-item")
 
     li0.appendChild(homeButton)
     userList.appendChild(li0)
@@ -178,6 +182,9 @@ object Main {
         userList.appendChild(li5)
       }
 
+      li7.appendChild(profile)
+      userList.appendChild(li7)
+
     } else
       logButton.textContent = ("LogIn")
     userList.appendChild(li1)
@@ -185,6 +192,7 @@ object Main {
     userList.appendChild(li6)
 
     //Navigator-Button listener
+    $("#profile-button").click { () => { createProfileView } }
     $("#home-button").click { () => { createArticleOverview() } }
     $("#log-button").click { () =>
       {
@@ -355,7 +363,6 @@ object Main {
                     createArticleDiv(article, article.getID().toString)
                   )
                   $("#" + article.getID().toString).click { () =>
-                    println("click")
                     createArticlePage(article)
                   }
                 }
@@ -421,13 +428,15 @@ object Main {
       val yourRating = document.createElement("INPUT")
       textField.setAttribute("type", "text")
       textField.id = "text-field"
+      textField.setAttribute("placeholder", "Ihre Meinung.")
       yourRating.setAttribute("type", "number")
       yourRating.setAttribute("min", "1")
       yourRating.setAttribute("max", "5")
-      yourRating.setAttribute("value", "3")
+      yourRating.setAttribute("placeholder", "3")
       yourRating.id = "your-rating"
       writeReviewDiv.appendChild(textField)
       writeReviewDiv.appendChild(yourRating)
+      writeReviewDiv.appendChild(document.createTextNode("/5"))
       writeReviewDiv.appendChild(sendButton)
       content.appendChild(writeReviewDiv)
 
@@ -496,7 +505,9 @@ object Main {
                 //val date = document.createTextNode(rev.getDate)
                 // reviewDiv.appendChild(date)
                 reviewDiv.appendChild(author)
+                reviewDiv.appendChild(document.createElement("BR"))
                 reviewDiv.appendChild(text)
+                reviewDiv.appendChild(document.createElement("BR"))
                 reviewDiv.appendChild(rating)
                 allReviewDiv.appendChild(reviewDiv)
                 allReviewDiv.appendChild(document.createElement("BR"))
@@ -528,7 +539,6 @@ object Main {
       respons match {
         case jsonlist: js.Array[js.Dynamic] =>
           for (order <- jsonlist) {
-            println("order")
             val articleListe = new ListBuffer[Article]
             order.article match {
               case jsonlist2: js.Array[js.Dynamic] =>
@@ -566,12 +576,14 @@ object Main {
           val articleName = document.createTextNode(article.getName)
           orderDiv.appendChild(articleName)
           orderDiv.appendChild(
-            document.createTextNode("Anzahl: " + article.getStock)
+            document.createTextNode("    x" + article.getStock)
           )
+          orderDiv.appendChild(document.createElement("BR"))
         }
         orderDiv.appendChild(
           document.createTextNode("Bestellt am: " + order.getDate())
         )
+        orderDiv.appendChild(document.createElement("BR"))
         orderDiv.appendChild(orderState)
         content.appendChild(orderDiv)
       }
@@ -584,7 +596,6 @@ object Main {
     */
   def createShoppingcarPage(): Unit = {
     clearContent()
-    println(shoppingcar)
     var content = document.getElementById("content")
 
     var summe = 0f;
@@ -610,6 +621,7 @@ object Main {
       summe += article.getPrice() * number
       val deleteButton =
         createButton("Löschen", "delete-button-" + article.getID())
+      articleDiv.appendChild(document.createElement("BR"))
       articleDiv.appendChild(deleteButton)
       content.appendChild(articleDiv)
 
@@ -641,13 +653,17 @@ object Main {
 
         //jeder punkt ist 1Cent wert
         if (!usePointsChecked) {
-          rabatt = user.getTreuepunkte() / 100
+          rabatt = user.getTreuepunkte() / 100.0
           usedPoints = user.getTreuepunkte()
 
           if (rabatt > summe) {
-            usedPoints = (summe / 100).toInt
+            usedPoints = (summe / 100.0).toInt
             rabatt = summe
           }
+        } else {
+          rabatt = 0.0
+          usedPoints = 0
+
         }
         summeDiv.removeChild(summeDiv.firstChild)
         summeDiv.appendChild(
@@ -678,22 +694,36 @@ object Main {
         }
         var ordersumme = summe - rabatt
         var order = s""" { "userID": "$uid",
-                            "summe": $ordersumme,
+                            "usedPoints": $usedPoints,
                             "article":[$articleList]}"""
-
-        println(order)
 
         val xhr = new dom.XMLHttpRequest()
         xhr.open("POST", s"$backend/newOrder", false)
         xhr.setRequestHeader("Content-Type", "application/json");
-        xhr.onreadystatechange = { (e: dom.Event) => println(xhr.responseText) }
-        println(order)
         xhr.send(order)
+
         this.shoppingcar = HashMap[Article, Int]()
         createArticleOverview()
 
       })
     }
+  }
+
+  def createProfileView: Unit = {
+    clearContent()
+    val content = document.getElementById("content")
+    content.appendChild(document.createTextNode("Name: " + user.getName))
+    content.appendChild(document.createElement("BR"))
+    content.appendChild(document.createTextNode("Adresse: " + user.getAdress))
+    content.appendChild(document.createElement("BR"))
+    content.appendChild(
+      document.createTextNode("Arbeiter: " + user.isWorker().toString)
+    )
+    content.appendChild(document.createElement("BR"))
+    content.appendChild(
+      document.createTextNode("Treuepunkte: " + user.getTreuepunkte)
+    )
+
   }
 
   /**
@@ -750,11 +780,17 @@ object Main {
                 loginRespons match {
                   case user: js.Dynamic =>
                     println("---------------")
-                    println("json respons:"+ user)
-                    this.user= new User(user.id.toString, user.isWorker.toString.toBoolean,user.points.toString.toInt,user.name.toString,user.adress.toString )
-                    println("created user:"+user)
+                    println("json respons:" + user)
+                    this.user = new User(
+                      user.id.toString,
+                      user.isWorker.toString.toBoolean,
+                      user.points.toString.toInt,
+                      user.name.toString,
+                      user.adress.toString
+                    )
+                    println("created user:" + user)
                   case user: Any =>
-                    println("Error beim login")  
+                    println("Error beim login")
                 }
               }
               sxhr.send()
@@ -768,7 +804,6 @@ object Main {
       }
       xhr.send(jsonRequest)
 
-      println(userToken)
     //AN BACKEND SCHICKEN
     }
 
@@ -786,6 +821,9 @@ object Main {
     val allArticles = document.createElement("div")
     val searchBar = document.createElement("INPUT")
     val newArticleButton = createButton("Neuer Artikel", "new-article-button")
+
+    content.appendChild(newArticleButton)
+    content.appendChild(document.createElement("BR"))
 
     searchBar.id = "stock-search"
     searchBar.setAttribute("type", "Text")
@@ -825,8 +863,6 @@ object Main {
           createRestockPage(article)
         }
       }
-
-      content.appendChild(newArticleButton)
 
       $("#new-article-button").click { () => createAlterArticlePage() }
       $("#stock-search").keyup { () =>
@@ -894,6 +930,7 @@ object Main {
     val restockButton =
       createButton("Auffüllen", "restock-button-" + article.getID())
     articleDiv.appendChild(articleStock)
+    articleDiv.appendChild(document.createElement("BR"))
     articleDiv.appendChild(alterButton)
     articleDiv.appendChild(restockButton)
     return articleDiv
@@ -980,7 +1017,9 @@ object Main {
                 orderDiv.appendChild(
                   document.createTextNode("Status: " + order.getState)
                 )
+                orderDiv.appendChild(document.createElement("BR"))
                 orderDiv.appendChild(moreButton)
+                println("YAY")
                 content.appendChild(orderDiv)
 
                 $("#more-button-" + order.getID()).click { () =>
@@ -1108,23 +1147,36 @@ object Main {
 
     nameField.id = "name-field"
     nameField.setAttribute("type", "text")
-    nameField.setAttribute("value", article.getName())
+    if (article.id > (-1))
+      nameField.setAttribute("value", article.getName())
+    else
+      nameField.setAttribute("placeholder", article.getName())
     desField.id = "des-field"
     desField.setAttribute("type", "text")
-    desField.setAttribute("value", article.getDescription())
+    if (article.id > (-1))
+      desField.setAttribute("value", article.getDescription())
+    else
+      desField.setAttribute("placeholder", article.getDescription())
     manField.id = "man-field"
     manField.setAttribute("type", "text")
-    manField.setAttribute("value", article.getManufacture())
+    if (article.id > (-1))
+      manField.setAttribute("value", article.getManufacture())
+    else
+      manField.setAttribute("placeholder", article.getManufacture())
     priceField.id = "price-field"
     priceField.setAttribute("type", "number")
-    priceField.setAttribute("value", "" + article.getPrice())
+    if (article.id > (-1))
+      priceField.setAttribute("value", "" + article.getPrice())
+    else
+      priceField.setAttribute("placeholder", "" + article.getPrice())
     catSelection.id = "cat-selection"
 
     content.appendChild(nameField)
     content.appendChild(desField)
     content.appendChild(manField)
     content.appendChild(priceField)
-    content.appendChild(catSelection)
+    //content.appendChild(catSelection)
+    content.appendChild(document.createElement("BR"))
     content.appendChild(okButton)
     content.appendChild(exitButton)
 
@@ -1176,5 +1228,3 @@ object Main {
   }
 
 }
-
-//Befehl zum compilen sbt ~fastOptJS oder sbt fullOptJS

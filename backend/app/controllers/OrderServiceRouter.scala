@@ -19,7 +19,6 @@ class OrderServiceRouter @Inject() (
     configuration: play.api.Configuration
 ) extends AbstractOrderServiceRouter(actorSystem) {
 
- 
   val dbuser = configuration.underlying.getString("myPOSTGRES_USER")
   val dbpw = configuration.underlying.getString("myPOSTGRES_PASSWORD")
   val url = configuration.underlying.getString("myPOSTGRES_DB")
@@ -29,7 +28,7 @@ class OrderServiceRouter @Inject() (
   //val dbpw ="postgres"
   //val url="smartmarkt"
   //val dbURL = "jdbc:postgresql://database:5432/smartmarkt"
-  
+
   val dbc = new DBController(dbuser, dbpw, dbURL)
 
   override def makeOrder(in: OrderInformation): Future[OrderID] = {

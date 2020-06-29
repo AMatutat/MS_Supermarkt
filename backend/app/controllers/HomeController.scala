@@ -232,23 +232,19 @@ class HomeController @Inject() (
     * @param id Artikel ID
     */
   def getArticleComments(id: Int) = Action { _ =>
-    try {     
+    try {
       var resultSet =
         dbc.executeSQL(s"SELECT * FROM rating WHERE articleID = $id")
 
       var comments = new JsArray()
       while (resultSet.next()) {
 
-       
-       
-
         var comment = Json.obj(
           "id" -> resultSet.getInt("id"),
           "text" -> resultSet.getString("text"),
           "rating" -> resultSet.getString("rating"),
           "userID" -> resultSet.getString("userID"),
-          "articleID" -> resultSet.getInt("articleID"),
-
+          "articleID" -> resultSet.getInt("articleID")
         )
         comments = comments.append(comment)
       }
@@ -508,11 +504,11 @@ class HomeController @Inject() (
   def alterUser = Action(parse.json) { implicit request =>
     try {
       val user = Json.toJson(request.body)
-      val id = user("id")
+      val id = user("id").toString().replace('\"', '\'')
       val isWorker = user("isWorker")
       val points = user("points")
       dbc.executeUpdate(
-        s"UPDATE markt_user SET points=$points, isWorker=$isWorker  WHERE id='$id'"
+        s"UPDATE markt_user SET points=$points, isWorker=$isWorker  WHERE id=$id"
       )
       Ok("Ok")
     } catch {
