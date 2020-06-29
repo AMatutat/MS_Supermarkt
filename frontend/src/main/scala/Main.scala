@@ -18,7 +18,7 @@ object Main {
   /**
     * Aktueller User
     */
-  var user = new User("yxUspgyuJXhSaa7BZPTZt5lEpct1", true, 500)
+  var user:User = null
 
   /**
     * Einkaufswagen vom aktuellen User
@@ -125,6 +125,11 @@ object Main {
     */
   def createNavigator(): Unit = {
     val userList = document.getElementById("navbar")
+    while (userList.firstChild != null) {
+      userList.removeChild(userList.firstChild)
+    }
+
+
     //val homeButton = createButton("Home", "home-button")
     val homeButton = createHREF("Home", "nav-link", "#", "home-button")
     val logButton = createHREF("Login", "nav-link", "#", "log-button")
@@ -790,8 +795,7 @@ object Main {
                       userjs.name.toString,
                       userjs.adress.toString
                     )
-                    createNavigator()
-                    createArticleOverview()    
+                    createHomePage()   
                 }
               }
               sxhr.send()

@@ -6,8 +6,8 @@ class User(
     val id: String,
     val worker: Boolean,
     var treuepunkte: Int,
-    var name: String = "USERNAME",
-    var adress: String = "USERADRESS"
+    var name: String="NAME",
+    var adress: String="ADRESS"
 ) {
   def getTreuepunkte(): Int = this.treuepunkte
   def isWorker(): Boolean = this.worker
