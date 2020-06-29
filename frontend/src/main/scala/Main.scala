@@ -14,7 +14,7 @@ object Main {
   //val backend = "http://localhost:" + port
 
   val backend = "/api"
-
+  //val backend ="https://supermarkt.dvess.network/api"
   /**
     * Aktueller User
     */
@@ -491,9 +491,8 @@ object Main {
         xhrUserRequest.onload = { (e: dom.Event) =>
           val userRespons = js.JSON.parse(xhrUserRequest.responseText)
           userRespons match {
-            case json: js.Array[js.Dynamic] =>
-              for (user <- json) {
-                rev.getUser.setName(user.name.toString)
+            case json: js.Dynamic =>
+                rev.getUser.setName(json.name.toString)
                 val reviewDiv = document.createElement("div")
                 val text = document.createTextNode(rev.getText)
                 val author =
@@ -511,7 +510,6 @@ object Main {
                 reviewDiv.appendChild(rating)
                 allReviewDiv.appendChild(reviewDiv)
                 allReviewDiv.appendChild(document.createElement("BR"))
-              }
           }
 
         }
@@ -681,9 +679,9 @@ object Main {
           user.setPoints(user.getTreuepunkte() + summe.toInt)
 
         user.pushChanges(backend)
-        var uid = this.user.getID()
+        var uid = user.getID()
         var articleList = ""
-        for ((k, v) <- this.shoppingcar) {
+        for ((k, v) <- shoppingcar) {
           var aid = k.getID();
           var number = v
           var articleJS = s"""{"id": $aid, "number": $number }"""
@@ -788,9 +786,7 @@ object Main {
                       user.name.toString,
                       user.adress.toString
                     )
-                    println("created user:" + user)
-                  case user: Any =>
-                    println("Error beim login")
+                    println("login user:" + user)            
                 }
               }
               sxhr.send()
@@ -978,9 +974,7 @@ object Main {
           }
 
       }
-
       val orders = orderList.toList
-
       for (order <- orders) {
         val xhrUserRequest = new dom.XMLHttpRequest()
         xhrUserRequest.open(
@@ -988,12 +982,12 @@ object Main {
           backend + "/customerByID/" + order.getUser.getID
         )
         xhrUserRequest.onload = { (e: dom.Event) =>
+          println(xhrUserRequest.responseText)
           val userRespons = js.JSON.parse(xhrUserRequest.responseText)
           userRespons match {
-            case json: js.Array[js.Dynamic] =>
-              for (user <- json) {
-                order.getUser.setName(user.name.toString)
-                order.getUser.setAdress(user.adress.toString)
+            case json: js.Dynamic =>
+                order.getUser.setName(json.name.toString)
+                order.getUser.setAdress(json.adress.toString)
 
                 val orderDiv = document.createElement("div")
                 val moreButton =
@@ -1025,7 +1019,6 @@ object Main {
                 $("#more-button-" + order.getID()).click { () =>
                   createOrderDetailsPage(order)
                 }
-              }
           }
 
         }
