@@ -91,7 +91,7 @@ class HomeController @Inject() (
     var resultSet = dbc.executeSQL(s"SELECT * FROM markt_user WHERE id = '$id'")
     var user = Json.obj()
     if (resultSet.next()) {
-      while (name.equals("")) {}
+      Thread.sleep(1000)
       user = Json.obj(
         "id" -> resultSet.getString("id"),
         "points" -> resultSet.getInt("points"),
