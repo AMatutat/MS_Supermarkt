@@ -7,7 +7,8 @@ import play.api.libs.json._
 import java.sql.ResultSet
 import java.sql.SQLTimeoutException
 import java.sql.SQLException
-import user._
+import buerger._
+import account._
 
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -38,6 +39,8 @@ class HomeController @Inject() (
   val url = configuration.underlying.getString("myPOSTGRES_DB")
   val dbURL = s"jdbc:postgresql://localhost:5432/$url"
 
+  val marktIBAN = configuration.underlying.getString("myIBAN")
+
   //val dbuser="postgres"
   //val dbpw ="postgres"
   //val url="smartmarkt"
@@ -64,8 +67,8 @@ class HomeController @Inject() (
 
       val client =
         UserServiceClient(GrpcClientSettings.fromConfig("user.UserService"))
-      val user: Future[UserId] = client.verifyUser(UserToken(token))
-      user.map(msg =>
+      val userrequest: Future[buerger.UserId] = client.verifyUser(UserToken(token))
+      userrequest.map(msg =>
         if (msg.getFieldByNumber(1) == null) Ok("Login Failed")
         else Ok(getUserByID(msg.getFieldByNumber(1).toString()))
       )
@@ -78,7 +81,8 @@ class HomeController @Inject() (
     val client = UserServiceClient(
       GrpcClientSettings.fromConfig("user.UserService")
     )
-    val grpcuser = client.getUser(UserId(id))
+  
+    val grpcuser = client.getUser(buerger.UserId(id))
     var adress = ""
     var name = ""
     grpcuser.map(res => {
@@ -372,30 +376,69 @@ class HomeController @Inject() (
       val order = Json.toJson(request.body)
       val userID = order("userID").toString().replace('\"', '\'')
       val article = order("article").as[JsArray]
+      val usedPoints = order("usedPoints").toString.toInt
 
-      val orderID =
-        dbc
-          .executeUpdate(
-            s"INSERT INTO markt_order (userID)  VALUES ($userID)"
-          )
-          .toInt
-
+      //summe berechnen
+      var summe = 0.0
       for (i <- 0 to article.value.size - 1) {
-        val articleID = article.apply(i)("id")
-        val number = article.apply(i)("number")
-        dbc.executeUpdate(
-          s"INSERT INTO order_article (articleID,orderID,number) VALUES($articleID,$orderID,$number)"
-        )
-        val currentStock =
-          dbc.executeSQL(s"SELECT stock FROM article WHERE id=$articleID")
-        currentStock.next()
-        var stock = currentStock.getInt("stock")
-        stock = stock - number.toString.toInt
-        dbc.executeUpdate(
-          s"UPDATE article SET stock=$stock WHERE id=$articleID"
-        )
+        var aid = article.apply(i)("id")
+        var priceRes =
+          dbc.executeSQL(s"SELECT price FROM article WHERE id=$aid")
+        priceRes.next()
+        var price =
+          priceRes.getFloat("price") * article.apply(i)("number").toString.toInt
+        summe += price
       }
-      Ok("OK")
+      summe = summe - (usedPoints / 100)
+
+      //Bank verbindung einfügen
+      implicit val sys = ActorSystem("SmartMarkt")
+      implicit val mat = ActorMaterializer()
+      implicit val ec = sys.dispatcher
+      val bank = AccountServiceClient(GrpcClientSettings.fromConfig("account.AccountService"))
+      val ibanRequest = bank.getIban(account.UserId(userID))
+      var iban = "EMPTY"
+      ibanRequest.map(res => {
+        iban = res.getFieldByNumber(2).toString
+      })
+
+      Thread.sleep(1000)
+      if (!iban.equals("EMPTY")) {
+        var transfer =
+          Transfer(userID, iban, "Smartmarkt", marktIBAN, summe.toString)
+        val transferrequest = bank.transfer(transfer)
+        var transferresult = "ERROR"
+        transferrequest.map(res => {
+          transferresult = res.getFieldByNumber(1).toString
+        })
+        Thread.sleep(1000)
+        if (transferresult.equals("Ok")) {
+          //try save order, if order fails -> undo transaction
+          val orderID =
+            dbc
+              .executeUpdate(
+                s"INSERT INTO markt_order (userID)  VALUES ($userID)"
+              )
+              .toInt
+
+          for (i <- 0 to article.value.size - 1) {
+            val articleID = article.apply(i)("id")
+            val number = article.apply(i)("number")
+            dbc.executeUpdate(
+              s"INSERT INTO order_article (articleID,orderID,number) VALUES($articleID,$orderID,$number)"
+            )
+            val currentStock =
+              dbc.executeSQL(s"SELECT stock FROM article WHERE id=$articleID")
+            currentStock.next()
+            var stock = currentStock.getInt("stock")
+            stock = stock - number.toString.toInt
+            dbc.executeUpdate(
+              s"UPDATE article SET stock=$stock WHERE id=$articleID"
+            )
+          }
+          Ok("OK")
+        } else Ok("TRANFER FAILED")
+      } else Ok("GET IBAN FAILED")
     } catch {
       case e: SQLTimeoutException =>
         InternalServerError("SQL-Timeout Exception: " + e.toString())
@@ -404,6 +447,7 @@ class HomeController @Inject() (
 
       case e: Exception => InternalServerError("Exception: " + e.toString())
     }
+
   }
 
   def newComment = Action(parse.json) { implicit request =>
