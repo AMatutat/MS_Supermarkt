@@ -4,13 +4,13 @@ import scala.scalajs.js.JSON
 
 class User(
     val id: String,
-    val isWorker: Boolean,
+    val worker: Boolean,
     var treuepunkte: Int,
-    var name: String = "USERNAME",
-    var adress: String = "USERADRESS"
+    var name: String="NAME",
+    var adress: String="ADRESS"
 ) {
   def getTreuepunkte(): Int = this.treuepunkte
-  def istWorker(): Boolean = this.istWorker
+  def isWorker(): Boolean = this.worker
   def setPoints(points: Int): Unit = this.treuepunkte = points
   def getID(): String = this.id
   def getName(): String = this.name
@@ -21,18 +21,10 @@ class User(
   def pushChanges(url: String): Unit = {
     val xhr = new dom.XMLHttpRequest()
     val jsonRequest =
-      s""" {  "id": $id, "isWorker": $isWorker,"points": $treuepunkte } """
+      s""" {"id": "$id", "isWorker": $worker,"points": $treuepunkte } """
     xhr.open("POST", s"$url/alterUser", false)
-
+    println(jsonRequest)
     xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.onreadystatechange = { (e: dom.Event) =>
-      val respons = js.JSON.parse(xhr.responseText)
-      respons match {
-        case json: js.Dynamic =>
-          println(json)
-          println(respons)
-      }
-    }
     xhr.send(jsonRequest)
 
   }

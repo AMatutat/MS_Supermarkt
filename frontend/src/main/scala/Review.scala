@@ -17,18 +17,9 @@ class Review(
     val xhr = new dom.XMLHttpRequest()
     val uid = author.getID()
     val jsonRequest =
-      s""" {  "text": "$text", "rating": $rating, "userID": $uid ,"articleID": $toArticle } """
+      s"""{  "text": "$text", "rating": $rating, "userID": "$uid" ,"articleID": $toArticle }"""
     xhr.open("POST", s"$url/newComment", false)
-
     xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.onreadystatechange = { (e: dom.Event) =>
-      val respons = js.JSON.parse(xhr.responseText)
-      respons match {
-        case json: js.Dynamic =>
-          println(json)
-          println(respons)
-      }
-    }
     xhr.send(jsonRequest)
 
   }
