@@ -35,11 +35,11 @@ spec:
               secretKeyRef:
                 name: ms-supermarkt
                 key: POSTGRES_PASSWORD
-                - name: IBAN
-                valueFrom:
-                  secretKeyRef:
-                    name: ms-supermarkt
-                    key: IBAN
+           - name: IBAN
+             valueFrom:
+             secretKeyRef:
+               name: ms-supermarkt
+               key: IBAN
                 
         ports:
         - containerPort: 8080
