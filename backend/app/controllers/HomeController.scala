@@ -7,7 +7,7 @@ import play.api.libs.json._
 import java.sql.ResultSet
 import java.sql.SQLTimeoutException
 import java.sql.SQLException
-import buerger._
+import user_
 import account._
 
 import scala.concurrent.duration._
@@ -66,8 +66,8 @@ class HomeController @Inject() (
       implicit val ec = sys.dispatcher
 
       val client =
-        UserServiceClient(GrpcClientSettings.fromConfig("buerger.UserService"))
-      val userrequest: Future[buerger.UserId] = client.verifyUser(buerger.UserToken(token))
+        UserServiceClient(GrpcClientSettings.fromConfig("userUserService"))
+      val userrequest: Future[UserId] = client.verifyUser(UserToken(token))
       userrequest.map(msg =>
         if (msg.getFieldByNumber(1) == null) Ok("Login Failed")
         else Ok(getUserByID(msg.getFieldByNumber(1).toString()))
@@ -79,13 +79,13 @@ class HomeController @Inject() (
     implicit val mat = ActorMaterializer()
     implicit val ec = sys.dispatcher
     val client = UserServiceClient(
-      GrpcClientSettings.fromConfig("buerger.UserService")
+      GrpcClientSettings.fromConfig("userUserService")
     )
   
-    val grpcuser = client.getUser(buerger.UserId(id))
+    val grpcuser = client.getUser(UserId(id))
     var adress = ""
     var name = ""
-    grpcuser.map(res => {
+    grpcusermap(res => {
       adress =
         res.getFieldByNumber(9) + " " + res.getFieldByNumber(10) + " " + res
           .getFieldByNumber(8)
@@ -396,7 +396,7 @@ class HomeController @Inject() (
       implicit val mat = ActorMaterializer()
       implicit val ec = sys.dispatcher
       val bank = AccountServiceClient(GrpcClientSettings.fromConfig("account.AccountService"))
-      val ibanRequest = bank.getIban(account.UserId(userID))
+      val ibanRequest = bank.getIban(User_Id(userID))
       var iban = "EMPTY"
       ibanRequest.map(res => {
         iban = res.getFieldByNumber(2).toString

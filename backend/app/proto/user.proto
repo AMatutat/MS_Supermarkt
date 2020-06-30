@@ -1,5 +1,5 @@
 syntax = "proto3";
-package buerger;
+package user;
 
 service UserService {
     rpc verifyUser(UserToken) returns (UserId) {}

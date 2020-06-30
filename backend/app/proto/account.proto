@@ -5,10 +5,10 @@ service AccountService {
 	rpc createAccount(AccountCreation) returns (Account) {}
 	rpc transfer(Transfer) returns (transferMessage) {}
 	rpc deleteAccount(Account) returns (Status) {}
-	rpc getIban(UserId) returns (Account){}
+	rpc getIban(User_Id) returns (Account){}
 }
 
-message UserId {
+message User_Id {
     string user_id = 1;
 }
 
