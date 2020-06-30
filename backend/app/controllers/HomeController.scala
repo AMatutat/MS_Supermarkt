@@ -7,7 +7,7 @@ import play.api.libs.json._
 import java.sql.ResultSet
 import java.sql.SQLTimeoutException
 import java.sql.SQLException
-import user_
+import user._
 import account._
 
 import scala.concurrent.duration._
