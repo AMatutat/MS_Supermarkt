@@ -30,7 +30,6 @@ env:
   POSTGRES_USER: ${{secrets.POSTGRES_USER}}
   POSTGRES_PASSWORD: ${{secrets.POSTGRES_PASSWORD}}
   POSTGRES_DB: ${{secrets.POSTGRES_DB}}
-  key:  
 jobs:
   setup-build-publish-deploy:
     name: Setup, Build, Publish, and Deploy

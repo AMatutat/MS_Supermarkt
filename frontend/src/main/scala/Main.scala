@@ -18,7 +18,7 @@ object Main {
   /**
     * Aktueller User
     */
-  var user:User = null
+  var user: User = null
 
   /**
     * Einkaufswagen vom aktuellen User
@@ -128,7 +128,6 @@ object Main {
     while (userList.firstChild != null) {
       userList.removeChild(userList.firstChild)
     }
-
 
     //val homeButton = createButton("Home", "home-button")
     val homeButton = createHREF("Home", "nav-link", "#", "home-button")
@@ -497,24 +496,24 @@ object Main {
           val userRespons = js.JSON.parse(xhrUserRequest.responseText)
           userRespons match {
             case json: js.Dynamic =>
-                rev.getUser.setName(json.name.toString)
-                val reviewDiv = document.createElement("div")
-                val text = document.createTextNode(rev.getText)
-                val author =
-                  document.createTextNode(
-                    "  " + rev.getUser.getName() + ":     "
-                  )
-                val rating =
-                  document.createTextNode("     " + rev.getRating + "/5")
-                //val date = document.createTextNode(rev.getDate)
-                // reviewDiv.appendChild(date)
-                reviewDiv.appendChild(author)
-                reviewDiv.appendChild(document.createElement("BR"))
-                reviewDiv.appendChild(text)
-                reviewDiv.appendChild(document.createElement("BR"))
-                reviewDiv.appendChild(rating)
-                allReviewDiv.appendChild(reviewDiv)
-                allReviewDiv.appendChild(document.createElement("BR"))
+              rev.getUser.setName(json.name.toString)
+              val reviewDiv = document.createElement("div")
+              val text = document.createTextNode(rev.getText)
+              val author =
+                document.createTextNode(
+                  "  " + rev.getUser.getName() + ":     "
+                )
+              val rating =
+                document.createTextNode("     " + rev.getRating + "/5")
+              //val date = document.createTextNode(rev.getDate)
+              // reviewDiv.appendChild(date)
+              reviewDiv.appendChild(author)
+              reviewDiv.appendChild(document.createElement("BR"))
+              reviewDiv.appendChild(text)
+              reviewDiv.appendChild(document.createElement("BR"))
+              reviewDiv.appendChild(rating)
+              allReviewDiv.appendChild(reviewDiv)
+              allReviewDiv.appendChild(document.createElement("BR"))
           }
 
         }
@@ -784,18 +783,23 @@ object Main {
                   case userjs: js.Dynamic =>
                     println("---------------")
                     println("json respons:" + userjs)
-                    var isw=false
-                    if (userjs.isWorker.toString.equals("t"))
-                      isw=true
 
-                    this.user = new User(
-                      userjs.id.toString,
-                      isw,
-                      userjs.points.toString.toInt,
-                      userjs.name.toString,
-                      userjs.adress.toString
-                    )
-                    createHomePage()   
+                    try {
+                      var isw = false
+                      if (userjs.isWorker.toString.equals("t"))
+                        isw = true
+
+                      this.user = new User(
+                        userjs.id.toString,
+                        isw,
+                        userjs.points.toString.toInt,
+                        userjs.name.toString,
+                        userjs.adress.toString
+                      )
+                      createHomePage()
+                    } catch {
+                      case e: Exception => println("Login Failed: "+e.toString())
+                    }
                 }
               }
               sxhr.send()
@@ -995,39 +999,39 @@ object Main {
           val userRespons = js.JSON.parse(xhrUserRequest.responseText)
           userRespons match {
             case json: js.Dynamic =>
-                order.getUser.setName(json.name.toString)
-                order.getUser.setAdress(json.adress.toString)
+              order.getUser.setName(json.name.toString)
+              order.getUser.setAdress(json.adress.toString)
 
-                val orderDiv = document.createElement("div")
-                val moreButton =
-                  createButton("Details", "more-button-" + order.getID())
-                orderDiv.appendChild(
-                  document.createTextNode("BestellNr: " + order.getID())
-                )
-                orderDiv.appendChild(document.createElement("BR"))
-                orderDiv.appendChild(
-                  document.createTextNode("KundenNr: " + order.getUser.getID())
-                )
-                orderDiv.appendChild(document.createElement("BR"))
-                orderDiv.appendChild(
-                  document.createTextNode("Kunde: " + order.getUser.getName)
-                )
-                orderDiv.appendChild(document.createElement("BR"))
-                orderDiv.appendChild(
-                  document.createTextNode("Adresse: " + order.getUser.getAdress)
-                )
-                orderDiv.appendChild(document.createElement("BR"))
-                orderDiv.appendChild(
-                  document.createTextNode("Status: " + order.getState)
-                )
-                orderDiv.appendChild(document.createElement("BR"))
-                orderDiv.appendChild(moreButton)
-                println("YAY")
-                content.appendChild(orderDiv)
+              val orderDiv = document.createElement("div")
+              val moreButton =
+                createButton("Details", "more-button-" + order.getID())
+              orderDiv.appendChild(
+                document.createTextNode("BestellNr: " + order.getID())
+              )
+              orderDiv.appendChild(document.createElement("BR"))
+              orderDiv.appendChild(
+                document.createTextNode("KundenNr: " + order.getUser.getID())
+              )
+              orderDiv.appendChild(document.createElement("BR"))
+              orderDiv.appendChild(
+                document.createTextNode("Kunde: " + order.getUser.getName)
+              )
+              orderDiv.appendChild(document.createElement("BR"))
+              orderDiv.appendChild(
+                document.createTextNode("Adresse: " + order.getUser.getAdress)
+              )
+              orderDiv.appendChild(document.createElement("BR"))
+              orderDiv.appendChild(
+                document.createTextNode("Status: " + order.getState)
+              )
+              orderDiv.appendChild(document.createElement("BR"))
+              orderDiv.appendChild(moreButton)
+              println("YAY")
+              content.appendChild(orderDiv)
 
-                $("#more-button-" + order.getID()).click { () =>
-                  createOrderDetailsPage(order)
-                }
+              $("#more-button-" + order.getID()).click { () =>
+                createOrderDetailsPage(order)
+              }
           }
 
         }
