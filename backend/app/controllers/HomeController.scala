@@ -85,7 +85,7 @@ class HomeController @Inject() (
     val grpcuser = client.getUser(UserId(id))
     var adress = ""
     var name = ""
-    grpcusermap(res => {
+    grpcuser map(res => {
       adress =
         res.getFieldByNumber(9) + " " + res.getFieldByNumber(10) + " " + res
           .getFieldByNumber(8)
