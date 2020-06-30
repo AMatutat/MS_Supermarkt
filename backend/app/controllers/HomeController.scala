@@ -412,7 +412,7 @@ class HomeController @Inject() (
           transferresult = res.getFieldByNumber(1).toString
         })
         Thread.sleep(1000)
-        if (transferresult.equals("Ok")) {
+        if (transferresult.equals("200")) {
           //try save order, if order fails -> undo transaction
           val orderID =
             dbc
