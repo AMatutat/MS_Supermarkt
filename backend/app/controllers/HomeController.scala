@@ -67,7 +67,7 @@ class HomeController @Inject() (
 
       val client =
         UserServiceClient(GrpcClientSettings.fromConfig("buerger.UserService"))
-      val userrequest: Future[buerger.UserId] = client.verifyUser(UserToken(token))
+      val userrequest: Future[buerger.UserId] = client.verifyUser(buerger.UserToken(token))
       userrequest.map(msg =>
         if (msg.getFieldByNumber(1) == null) Ok("Login Failed")
         else Ok(getUserByID(msg.getFieldByNumber(1).toString()))
