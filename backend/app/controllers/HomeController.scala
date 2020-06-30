@@ -66,7 +66,7 @@ class HomeController @Inject() (
       implicit val ec = sys.dispatcher
 
       val client =
-        UserServiceClient(GrpcClientSettings.fromConfig("user.UserService"))
+        UserServiceClient(GrpcClientSettings.fromConfig("buerger.UserService"))
       val userrequest: Future[buerger.UserId] = client.verifyUser(UserToken(token))
       userrequest.map(msg =>
         if (msg.getFieldByNumber(1) == null) Ok("Login Failed")
@@ -79,7 +79,7 @@ class HomeController @Inject() (
     implicit val mat = ActorMaterializer()
     implicit val ec = sys.dispatcher
     val client = UserServiceClient(
-      GrpcClientSettings.fromConfig("user.UserService")
+      GrpcClientSettings.fromConfig("buerger.UserService")
     )
   
     val grpcuser = client.getUser(buerger.UserId(id))
