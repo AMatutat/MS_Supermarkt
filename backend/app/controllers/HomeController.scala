@@ -437,7 +437,7 @@ class HomeController @Inject() (
             )
           }
           Ok("OK")
-        } else Ok("TRANFER FAILED")
+        } else Ok("TRANFER FAILED" + transferresult+ "IBAN "+iban)
       } else Ok("GET IBAN FAILED")
     } catch {
       case e: SQLTimeoutException =>
