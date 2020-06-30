@@ -781,9 +781,6 @@ object Main {
                 val loginRespons = js.JSON.parse(sxhr.responseText)
                 loginRespons match {
                   case userjs: js.Dynamic =>
-                    println("---------------")
-                    println("json respons:" + userjs)
-
                     try {
                       var isw = false
                       if (userjs.isWorker.toString.equals("t"))

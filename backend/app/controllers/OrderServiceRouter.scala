@@ -41,7 +41,7 @@ class OrderServiceRouter @Inject() (
   val dbc = new DBController(dbuser, dbpw, dbURL)
 
   override def makeOrder(in: OrderInformation): Future[OrderID] = {
-    val marktIBAN = "DE 23 1520 0000 2404 6596 49"
+    val marktIBAN = "DE 23 1520 0000 7845 2945 55"
     val connection = DriverManager.getConnection(dbURL, dbuser, dbpw)
 
     val userID = in.userID
