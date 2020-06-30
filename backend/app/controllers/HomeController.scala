@@ -39,7 +39,7 @@ class HomeController @Inject() (
   val url = configuration.underlying.getString("myPOSTGRES_DB")
   val dbURL = s"jdbc:postgresql://localhost:5432/$url"
 
-  val marktIBAN = configuration.underlying.getString("myIBAN")
+  val marktIBAN = "DE 23 1520 0000 2404 6596 49"
 
   //val dbuser="postgres"
   //val dbpw ="postgres"
