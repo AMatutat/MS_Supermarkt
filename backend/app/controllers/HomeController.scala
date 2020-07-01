@@ -588,7 +588,7 @@ class HomeController @Inject() (
 
   def sendRabbit = Action { _ =>
     val factory = new ConnectionFactory()
-    factory.setHost("ms-rabbitmq:5672")
+    factory.setHost("https://rabbitmq.dvess.network:5672")
     factory.setUsername("testmanager")
     factory.setPassword("sgseistgeil")
     val connection = factory.newConnection()
@@ -613,7 +613,7 @@ class HomeController @Inject() (
   def startRabbit = Action { _ =>
     val QUEUE_NAME = "Scala_says_hello"
     val factory = new ConnectionFactory()
-    factory.setHost("ms-rabbitmq:5672")
+    factory.setHost("https://rabbitmq.dvess.network:5672")
     factory.setUsername("testmanager")
     factory.setPassword("sgseistgeil")
     val connection = factory.newConnection()
