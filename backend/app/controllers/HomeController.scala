@@ -24,6 +24,12 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import akka.dispatch.Futures
 
+
+import com.rabbitmq.client.AMQP.BasicProperties
+import com.rabbitmq.client.ConnectionFactory
+import com.rabbitmq.client.DeliverCallback
+import com.rabbitmq.client.CancelCallback
+
 /**
   * This controller creates an `Action` to handle HTTP requests to the
   * application's home page.
@@ -271,8 +277,6 @@ class HomeController @Inject() (
     */
   def getCustomerByID(id: String) = Action { _ => Ok(getUserByID(id)) }
 
-  def getDebug = Action { _ => Ok(debug) }
-
   /**
     * Gibt alle Bestellungen zurück
     */
@@ -401,7 +405,7 @@ class HomeController @Inject() (
       val bank = AccountServiceClient(
         GrpcClientSettings.fromConfig("account.AccountService")
       )
-      val uid=userID.substring(1,userID.length()-1)
+      val uid = userID.substring(1, userID.length() - 1)
       val ibanRequest = bank.getIban(User_Id(uid))
       var iban = "EMPTY"
       ibanRequest.map(res => {
@@ -412,7 +416,7 @@ class HomeController @Inject() (
       Thread.sleep(1000)
       if (!iban.equals("EMPTY")) {
         var transfer =
-          Transfer(uid, iban, "Smartmarkt", marktIBAN, summe.toString,"","")
+          Transfer(uid, iban, "Smartmarkt", marktIBAN, summe.toString, "", "")
         val transferrequest = bank.transfer(transfer)
         var transferresult = "ERROR"
         transferrequest.map(res => {
@@ -572,4 +576,64 @@ class HomeController @Inject() (
       case e: Exception => InternalServerError("Exception: " + e.toString())
     }
   }
+
+  // Debug and stuff
+
+  def getDebug = Action { _ => Ok(debug) }
+
+
+  var lastrabbit = "No msg"
+
+
+
+  def sendRabbit = Action { _ =>
+    val factory = new ConnectionFactory()
+    factory.setHost("amqp://testmanager:sgseistgeil@ms-rabbitmq:5672/")
+    val connection = factory.newConnection()
+    val channel = connection.createChannel()
+
+    val queueName = "Scala_says_hello"
+    val durable = false
+    val exclusive = false
+    val autoDelete = false
+    val arguments = null
+    channel.queueDeclare(queueName, durable, exclusive, autoDelete, arguments)
+
+    val message = "Hello from Scala! "
+    val exchange = ""
+    channel.basicPublish(exchange, queueName, null, message.getBytes)
+
+    channel.close()
+    connection.close()
+    Ok(s"sent message $message")
+  }
+
+  def startRabbit = Action { _ =>
+    val QUEUE_NAME = "Scala_says_hello"
+    val factory = new ConnectionFactory()
+    factory.setHost("amqp://testmanager:sgseistgeil@ms-rabbitmq:5672/")
+    val connection = factory.newConnection()
+    val channel = connection.createChannel()
+    channel.queueDeclare(QUEUE_NAME, false, false, false, null)
+    val callback: DeliverCallback = (consumerTag, delivery) => {
+      val message = new String(delivery.getBody, "UTF-8")
+      lastrabbit=(s"Received $message with tag $consumerTag")
+
+    }
+
+    val cancel: CancelCallback = consumerTag => {}
+    val autoAck = true
+    channel.basicConsume(QUEUE_NAME, autoAck, callback, cancel)
+
+    while (true) {
+      Thread.sleep(1000)
+    }
+
+    channel.close()
+    connection.close()
+    Ok("OK")
+  }
+  //returnt letzte rabbit msq
+  def lastRabbit = Action { _ => Ok(lastrabbit) }
+
 }
