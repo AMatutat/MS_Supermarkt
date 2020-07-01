@@ -1,3 +1,4 @@
+
 syntax = "proto3";
 package account;
 
@@ -9,33 +10,34 @@ service AccountService {
 }
 
 message User_Id {
-    string user_id = 1;
+    string userId = 1;
 }
 
 message AccountCreation {
-    string user_id = 1;
+    string userId = 1;
 	string description = 2;
 }
 
 message Account {
-    string user_id = 1;
+    string userId = 1;
 	string iban = 2;
+	string status = 3;
 }
 
 message transferMessage {
-	string status = 1;
-	string user_id = 2;
+	string status = 1;		// 200 Ok, 400 Kein Konto, 401 Iban falsch
+	string userId = 2;	
 	string lastname = 3;
     string message = 5;
 }
 
 message Transfer {
-	string user_id = 7;
+	string userId = 7;
 	string iban = 1;
 	string purpose = 2;
-	string dest_iban = 3;
+	string destIban = 3;
 	string amount = 4;
-	string start_date = 5;
+	string startDate = 5;
 	string repeat = 6;
 }
 
