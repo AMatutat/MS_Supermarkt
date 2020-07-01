@@ -401,7 +401,8 @@ class HomeController @Inject() (
       val bank = AccountServiceClient(
         GrpcClientSettings.fromConfig("account.AccountService")
       )
-      val ibanRequest = bank.getIban(User_Id(userID))
+      val uid=userID.substring(1,userID.length()-1)
+      val ibanRequest = bank.getIban(User_Id(uid))
       var iban = "EMPTY"
       ibanRequest.map(res => {
         iban = res.getFieldByNumber(2).toString
