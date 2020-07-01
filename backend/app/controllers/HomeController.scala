@@ -41,6 +41,7 @@ class HomeController @Inject() (
 
   val marktIBAN = "DE 23 1520 0000 7845 2945 55"
 
+  var debug = ""
   //val dbuser="postgres"
   //val dbpw ="postgres"
   //val url="smartmarkt"
@@ -81,11 +82,11 @@ class HomeController @Inject() (
     val client = UserServiceClient(
       GrpcClientSettings.fromConfig("user.UserService")
     )
-  
+
     val grpcuser = client.getUser(UserId(id))
     var adress = ""
     var name = ""
-    grpcuser map(res => {
+    grpcuser map (res => {
       adress =
         res.getFieldByNumber(9) + " " + res.getFieldByNumber(10) + " " + res
           .getFieldByNumber(8)
@@ -270,6 +271,8 @@ class HomeController @Inject() (
     */
   def getCustomerByID(id: String) = Action { _ => Ok(getUserByID(id)) }
 
+  def getDebug = Action { _ => Ok(debug) }
+
   /**
     * Gibt alle Bestellungen zurück
     */
@@ -395,11 +398,14 @@ class HomeController @Inject() (
       implicit val sys = ActorSystem("SmartMarkt")
       implicit val mat = ActorMaterializer()
       implicit val ec = sys.dispatcher
-      val bank = AccountServiceClient(GrpcClientSettings.fromConfig("account.AccountService"))
+      val bank = AccountServiceClient(
+        GrpcClientSettings.fromConfig("account.AccountService")
+      )
       val ibanRequest = bank.getIban(User_Id(userID))
       var iban = "EMPTY"
       ibanRequest.map(res => {
         iban = res.getFieldByNumber(2).toString
+        debug = debug + " IBAN: " + iban + " "
       })
 
       Thread.sleep(1000)
@@ -410,6 +416,7 @@ class HomeController @Inject() (
         var transferresult = "ERROR"
         transferrequest.map(res => {
           transferresult = res.getFieldByNumber(1).toString
+          debug = debug + " TRANSFER: " + transferresult + " "
         })
         Thread.sleep(1000)
         if (transferresult.equals("200")) {
@@ -437,7 +444,7 @@ class HomeController @Inject() (
             )
           }
           Ok("OK")
-        } else Ok("TRANFER FAILED" + transferresult+ "IBAN "+iban)
+        } else Ok("TRANFER FAILED" + transferresult + "IBAN " + iban)
       } else Ok("GET IBAN FAILED")
     } catch {
       case e: SQLTimeoutException =>

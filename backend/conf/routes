@@ -8,7 +8,7 @@
 
 #DEBUG
 GET     /db controllers.HomeController.createDB
-
+GET /debug controllers.HomeController.getDebug
 #LOGIN
 GET /login/:token controllers.HomeController.login(token:String)
 
