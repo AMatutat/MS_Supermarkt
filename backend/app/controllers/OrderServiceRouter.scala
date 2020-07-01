@@ -47,7 +47,6 @@ class OrderServiceRouter @Inject() (
     val userID = in.userID
     val articleID = in.articleID
     val number = in.howMany
-
     //summe berechnen
     var priceRes = dbc.executeSQL(s"SELECT price FROM article WHERE id=$articleID")
     priceRes.next()
@@ -58,11 +57,12 @@ class OrderServiceRouter @Inject() (
     //Bank verbindung einfügen
       implicit val mat = ActorMaterializer()
       implicit val ec = actorSystem.dispatcher
+    
       val bank = AccountServiceClient(GrpcClientSettings.fromConfig("account.AccountService"))
       val ibanRequest = bank.getIban(User_Id(userID))
       var iban = "EMPTY"
       var orderID = -1
- 
+      
       ibanRequest.map(res => {
         iban = res.getFieldByNumber(2).toString
       })

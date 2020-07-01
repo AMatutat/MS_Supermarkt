@@ -412,7 +412,7 @@ class HomeController @Inject() (
       Thread.sleep(1000)
       if (!iban.equals("EMPTY")) {
         var transfer =
-          Transfer(userID, iban, "Smartmarkt", marktIBAN, summe.toString,"","")
+          Transfer(uid, iban, "Smartmarkt", marktIBAN, summe.toString,"","")
         val transferrequest = bank.transfer(transfer)
         var transferresult = "ERROR"
         transferrequest.map(res => {
