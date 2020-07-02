@@ -24,6 +24,12 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import akka.dispatch.Futures
 
+
+import com.rabbitmq.client.AMQP.BasicProperties
+import com.rabbitmq.client.ConnectionFactory
+import com.rabbitmq.client.DeliverCallback
+import com.rabbitmq.client.CancelCallback
+
 /**
   * This controller creates an `Action` to handle HTTP requests to the
   * application's home page.
@@ -39,8 +45,9 @@ class HomeController @Inject() (
   val url = configuration.underlying.getString("myPOSTGRES_DB")
   val dbURL = s"jdbc:postgresql://localhost:5432/$url"
 
-  val marktIBAN = "DE 23 1520 0000 2404 6596 49"
+  val marktIBAN = "DE 23 1520 0000 7845 2945 55"
 
+  var debug = ""
   //val dbuser="postgres"
   //val dbpw ="postgres"
   //val url="smartmarkt"
@@ -81,11 +88,11 @@ class HomeController @Inject() (
     val client = UserServiceClient(
       GrpcClientSettings.fromConfig("user.UserService")
     )
-  
+
     val grpcuser = client.getUser(UserId(id))
     var adress = ""
     var name = ""
-    grpcuser map(res => {
+    grpcuser map (res => {
       adress =
         res.getFieldByNumber(9) + " " + res.getFieldByNumber(10) + " " + res
           .getFieldByNumber(8)
@@ -395,21 +402,26 @@ class HomeController @Inject() (
       implicit val sys = ActorSystem("SmartMarkt")
       implicit val mat = ActorMaterializer()
       implicit val ec = sys.dispatcher
-      val bank = AccountServiceClient(GrpcClientSettings.fromConfig("account.AccountService"))
-      val ibanRequest = bank.getIban(User_Id(userID))
+      val bank = AccountServiceClient(
+        GrpcClientSettings.fromConfig("account.AccountService")
+      )
+      val uid = userID.substring(1, userID.length() - 1)
+      val ibanRequest = bank.getIban(User_Id(uid))
       var iban = "EMPTY"
       ibanRequest.map(res => {
         iban = res.getFieldByNumber(2).toString
+        debug = debug + " IBAN: " + iban + " "
       })
 
       Thread.sleep(1000)
       if (!iban.equals("EMPTY")) {
         var transfer =
-          Transfer(userID, iban, "Smartmarkt", marktIBAN, summe.toString)
+          Transfer(uid, iban, "Smartmarkt", marktIBAN, summe.toString, "", "")
         val transferrequest = bank.transfer(transfer)
         var transferresult = "ERROR"
         transferrequest.map(res => {
           transferresult = res.getFieldByNumber(1).toString
+          debug = debug + " TRANSFER: " + transferresult + " "
         })
         Thread.sleep(1000)
         if (transferresult.equals("200")) {
@@ -437,7 +449,7 @@ class HomeController @Inject() (
             )
           }
           Ok("OK")
-        } else Ok("TRANFER FAILED" + transferresult+ "IBAN "+iban)
+        } else Ok("TRANFER FAILED" + transferresult + "IBAN " + iban)
       } else Ok("GET IBAN FAILED")
     } catch {
       case e: SQLTimeoutException =>
@@ -564,4 +576,70 @@ class HomeController @Inject() (
       case e: Exception => InternalServerError("Exception: " + e.toString())
     }
   }
+
+  // Debug and stuff
+
+  def getDebug = Action { _ => Ok(debug) }
+
+
+  var lastrabbit = "No msg"
+
+
+
+  def sendRabbit = Action { _ =>
+    val factory = new ConnectionFactory()
+    factory.setHost("ms-rabbitmq")
+    factory.setPort(5672)
+    factory.setUsername("testmanager")
+    factory.setPassword("sgseistgeil")
+    val connection = factory.newConnection()
+    val channel = connection.createChannel()
+
+    val queueName = "Scala_says_hello"
+    val durable = false
+    val exclusive = false
+    val autoDelete = false
+    val arguments = null
+    channel.queueDeclare(queueName, durable, exclusive, autoDelete, arguments)
+
+    val message = "Hello from Scala! "
+    val exchange = ""
+    channel.basicPublish(exchange, queueName, null, message.getBytes)
+
+    channel.close()
+    connection.close()
+    Ok(s"sent message $message")
+  }
+
+  def startRabbit = Action { _ =>
+    val QUEUE_NAME = "Scala_says_hello"
+    val factory = new ConnectionFactory()
+    factory.setHost("ms-rabbitmq")
+    factory.setPort(5672)
+    factory.setUsername("testmanager")
+    factory.setPassword("sgseistgeil")
+    val connection = factory.newConnection()
+    val channel = connection.createChannel()
+    channel.queueDeclare(QUEUE_NAME, false, false, false, null)
+    val callback: DeliverCallback = (consumerTag, delivery) => {
+      val message = new String(delivery.getBody, "UTF-8")
+      lastrabbit=(s"Received $message with tag $consumerTag")
+
+    }
+
+    val cancel: CancelCallback = consumerTag => {}
+    val autoAck = true
+    channel.basicConsume(QUEUE_NAME, autoAck, callback, cancel)
+
+    while (true) {
+      Thread.sleep(1000)
+    }
+
+    channel.close()
+    connection.close()
+    Ok("OK")
+  }
+  //returnt letzte rabbit msq
+  def lastRabbit = Action { _ => Ok(lastrabbit) }
+
 }

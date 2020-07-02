@@ -8,6 +8,10 @@
 
 #DEBUG
 GET     /db controllers.HomeController.createDB
+GET     /debug controllers.HomeController.getDebug
+GET     /startRabbit controllers.HomeController.startRabbit
+GET     /lastRabbit controllers.HomeController.lastRabbit
+GET     /sendRabbit controllers.HomeController.sendRabbit
 
 #LOGIN
 GET /login/:token controllers.HomeController.login(token:String)

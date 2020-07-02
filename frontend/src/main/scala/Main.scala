@@ -13,8 +13,7 @@ object Main {
   //val port = "8080"
   //val backend = "http://localhost:" + port
 
-  val backend = "/api"
-  //val backend ="https://supermarkt.dvess.network/api"
+  val backend ="/api"
   /**
     * Aktueller User
     */
@@ -702,10 +701,19 @@ object Main {
         val xhr = new dom.XMLHttpRequest()
         xhr.open("POST", s"$backend/newOrder", false)
         xhr.setRequestHeader("Content-Type", "application/json");
+        
+        xhr.onreadystatechange = { (e: dom.Event) =>
+          if(xhr.responseText.toString.equals("OK")){
+              this.shoppingcar = HashMap[Article, Int]()
+              createArticleOverview()
+          }
+          else println("Error: "+xhr.responseText)
+           
+        }
+
         xhr.send(order)
 
-        this.shoppingcar = HashMap[Article, Int]()
-        createArticleOverview()
+     
 
       })
     }
@@ -781,9 +789,6 @@ object Main {
                 val loginRespons = js.JSON.parse(sxhr.responseText)
                 loginRespons match {
                   case userjs: js.Dynamic =>
-                    println("---------------")
-                    println("json respons:" + userjs)
-
                     try {
                       var isw = false
                       if (userjs.isWorker.toString.equals("t"))
