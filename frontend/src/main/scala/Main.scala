@@ -703,11 +703,11 @@ object Main {
         xhr.setRequestHeader("Content-Type", "application/json");
         
         xhr.onreadystatechange = { (e: dom.Event) =>
-          if(xhr.responseText.equals("Ok")){
+          if(xhr.responseText.toString.equals("OK")){
               this.shoppingcar = HashMap[Article, Int]()
               createArticleOverview()
           }
-          println("Error: "+xhr.responseText)
+          else println("Error: "+xhr.responseText)
            
         }
 
